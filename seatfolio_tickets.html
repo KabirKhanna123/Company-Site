@@ -3,90 +3,926 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seatfolio</title>
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
+    <title>Seatfolio - Turn Unused Tickets Into Effortless Revenue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=SF+Pro+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #000;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            z-index: 1000;
+            padding: 2.5rem 5%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 100%;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Placeholder styling */
+        .img-placeholder {
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .nav-links {
+            position: absolute;
+            left: 5%;
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #000;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 400;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.6;
+        }
+
+        .book-btn {
+            position: absolute;
+            right: 5%;
+            padding: 0.75rem 2rem;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .book-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 0;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            min-height: 90vh;
+            background: #e8e8e8;
+            padding: 2rem;
+        }
+
+        .hero-left {
+            padding: 10% 5% 5% 6%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .hero-left h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-left p {
+            font-size: 1.3rem;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        .learn-more-btn {
+            padding: 1rem 2.5rem;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            width: fit-content;
+            transition: opacity 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .learn-more-btn:hover {
+            opacity: 0.8;
+        }
+
+        .hero-right {
+            background-size: cover;
+            background-position: center;
+            background-image: url('https://levisstadium.com/wp-content/uploads/2024/08/2024-08-27-levis-fb-1600x740.png');
+            border-radius: 12px;
+        }
+
+        /* The Process Section */
+        .process-section {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            background: #fff;
+            padding: 2rem;
+        }
+
+        .process-left {
+            padding: 6% 3% 5% 6%;
+        }
+
+        .process-left h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .process-left > p {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 3rem;
+        }
+
+        .accordion {
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .accordion-item {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .accordion-header {
+            padding: 1.5rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .accordion-header:hover {
+            opacity: 0.7;
+        }
+
+        .accordion-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-content p {
+            padding-bottom: 1.5rem;
+            line-height: 1.7;
+            color: #333;
+            font-size: 1.15rem;
+        }
+
+        .accordion-item.active .accordion-content {
+            max-height: 300px;
+        }
+
+        .accordion-item.active .accordion-icon {
+            transform: rotate(45deg);
+        }
+
+        .process-right {
+            background-size: cover;
+            background-position: center;
+            background-image: url('https://i.imgur.com/OhT1nqg.jpeg');
+            border-radius: 12px;
+        }
+
+        /* Smarter Way Section */
+        .smarter-section {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+            background: #e8e8e8;
+            padding: 2rem;
+        }
+
+        .smarter-left {
+            background-size: cover;
+            background-position: center;
+            background-image: url('https://i.imgur.com/V2kAEOZ.jpeg');
+            border-radius: 12px;
+        }
+
+        .smarter-right {
+            padding: 6% 6% 5% 3%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .smarter-right h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .smarter-right p {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        /* Why Section */
+        .why-section {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            background: #fff;
+            padding: 2rem;
+        }
+
+        .why-left {
+            padding: 6% 3% 5% 6%;
+        }
+
+        .why-left h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .why-left p {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+
+        .why-right {
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            background: #ddd;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: #fff;
+            padding: 8rem 8%;
+        }
+
+        .contact-left {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .contact-left h2 {
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            padding: 1rem 2.5rem;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: opacity 0.3s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.8;
+        }
+
+        .contact-right {
+            display: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 3rem 4rem;
+            max-width: 900px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 2rem;
+            top: 2rem;
+            font-size: 2rem;
+            font-weight: 300;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .modal-content h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .modal-content h3 {
+            font-size: 1.8rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-content p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin: 2.5rem 0;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 2rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits-list li {
+            padding: 1rem 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.05rem;
+            color: #333;
+        }
+
+        .benefits-list li:before {
+            content: "✓ ";
+            color: #000;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            background: #fff;
+            border-radius: 8px;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 1rem;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Footer */
+        footer {
+            background: #fff;
+            padding: 3rem 8%;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .social-links a {
+            color: #000;
+            font-size: 1.5rem;
+            transition: opacity 0.3s;
+        }
+
+        .social-links a:hover {
+            opacity: 0.6;
+        }
+
+        .footer-email {
+            font-size: 1rem;
+            color: #000;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 968px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero,
+            .process-section,
+            .smarter-section,
+            .contact-section {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-left h1,
+            .process-left h2,
+            .smarter-right h2,
+            .contact-left h2 {
+                font-size: 2.5rem;
+            }
+
+            .hero-right,
+            .process-right,
+            .smarter-left,
+            .contact-right {
+                min-height: 400px;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Navigation -->
     <nav>
-        <ul>
-            <li><a href="#hero">Home</a></li>
-            <li><a href="#process">Process</a></li>
-            <li><a href="#smarter">Smarter Way</a></li>
-            <li><a href="#contact">Contact</a></li>
-            <li><a href="#about" onclick="openModal('aboutModal')">About</a></li>
-            <li><a href="#services" onclick="openModal('servicesModal')">Services</a></li>
-            <li><a href="#why" onclick="openModal('whyModal')">Why Us</a></li>
-            <li><a href="#booking" onclick="openModal('bookingModal')">Booking</a></li>
+        <ul class="nav-links">
+            <li><a href="#" onclick="openAboutModal(); return false;">About</a></li>
+            <li><a href="#" onclick="openServicesModal(); return false;">Services</a></li>
+            <li><a href="#" onclick="openModal(); return false;">Why</a></li>
         </ul>
+        <div class="logo">
+            <img src="https://i.imgur.com/grDokU0.png" alt="Victory Kay Tickets Logo">
+        </div>
+        <button class="book-btn" onclick="openBookingModal()">Book now</button>
     </nav>
-    <section id="hero">
-        <h1>Welcome to Seatfolio</h1>
-        <p>Your journey starts here.</p>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-left">
+            <h1>Turn Unused Tickets Into Effortless Revenue</h1>
+            <p>We handle pricing, listing, selling, and transferring your tickets across secondary marketplaces — so you don't have to.</p>
+            <button class="learn-more-btn" onclick="openServicesModal()">Learn More</button>
+        </div>
+        <div class="hero-right"></div>
     </section>
-    <section id="process">
-        <h2>Our Process</h2>
-        <div>
-            <div class="step">Step 1</div>
-            <div class="step">Step 2</div>
-            <div class="step">Step 3</div>
+
+    <!-- The Process Section -->
+    <section class="process-section" id="services">
+        <div class="process-left">
+            <h2>The Process</h2>
+            <p>Our service makes selling tickets effortless by handling pricing, listings, and fulfillment from start to finish. You simply send us your tickets, and we take care of the rest while maximizing value and ensuring a smooth, reliable sale.</p>
+            
+            <div class="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>1. Submit Your Tickets</span>
+                        <span class="accordion-icon">+</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Share the tickets you're unable to use or wanting to re-sell through our secure intake form. We'll take care of the rest. The form is located in the top right of the site named "Book Now". You'll provide your contact information as well as your ticket information. We'll take care of the rest!</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>2. We Manage the Resale</span>
+                        <span class="accordion-icon">+</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Our team handles pricing strategy, creates professional listings, and manages all customer communications across multiple marketplaces to maximize your return.</p>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span>3. Tickets Sell & Transfer</span>
+                        <span class="accordion-icon">+</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>Once sold, we coordinate the secure transfer directly through official team systems and ensure you receive payment promptly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="process-right"></div>
+    </section>
+
+    <!-- A Smarter Way Section -->
+    <section class="smarter-section" id="about">
+        <div class="smarter-left"></div>
+        <div class="smarter-right">
+            <h2>A Smarter Way to Sell Tickets</h2>
+            <p>Selling tickets on the secondary market can be time-consuming and unpredictable, especially when pricing and demand change constantly. Victory Kay Tickets offers a smarter approach by combining professional pricing strategy, active listing management, and reliable fulfillment into one seamless service. Instead of guessing prices or managing multiple marketplaces, clients benefit from data-driven decisions, hands-off convenience, and peace of mind knowing their tickets are in expert hands.</p>
+            <button class="learn-more-btn" onclick="openServicesModal()">Learn More</button>
         </div>
     </section>
-    <section id="smarter">
-        <h2>A Smarter Way</h2>
-        <p>Discover new efficient ways to enhance your experience.</p>
-    </section>
-    <section id="contact">
-        <h2>Contact Us</h2>
-        <form id="contactForm">
-            <input type="text" name="name" placeholder="Your Name" required>
-            <input type="email" name="email" placeholder="Your Email" required>
-            <textarea name="message" placeholder="Your Message" required></textarea>
-            <button type="submit">Send</button>
-        </form>
-    </section>
-    <footer>
-        <p>&copy; 2026 Seatfolio. All rights reserved.</p>
-    </footer>
+
+    <!-- About Modal -->
     <div id="aboutModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('aboutModal')">&times;</span>
-            <h2>About Us</h2>
-            <p>Information about Seatfolio.</p>
+            <button class="close-modal" onclick="closeAboutModal()">&times;</button>
+            <h2>Who We Are</h2>
+            
+            <div class="modal-image" style="background-image: url('https://i.imgur.com/RnCbbYH.jpeg'); background-color: #fff; background-size: contain; background-repeat: no-repeat;"></div>
+            
+            <p>Victory Kay Tickets is a full-service ticket resale management company built by an experienced team of pricing analysts, fulfillment specialists, and sales professionals.</p>
+            
+            <p>Our team has hands-on experience pricing and selling tickets across major sports leagues and live events, including MLB, NFL, NBA, NHL, MLS, FIFA World Cup, and premium theatre productions. We understand how demand, timing, and market behavior impact value — and we use that expertise to price tickets strategically and sell them efficiently.</p>
+            
+            <p>We specialize in maximizing revenue while ensuring quality, accurate, and timely fulfillment. From the moment tickets are submitted to final transfer, every step of the process is carefully managed to protect both value and reliability.</p>
+            
+            <p>At Victory, we believe ticket resale should be simple, transparent, and hands-off. Our clients trust us to handle pricing, selling, and transfers so they don't have to monitor markets or manage listings themselves.</p>
+            
+            <p style="font-weight: 600; margin-top: 2rem;">Have tickets to sell? Text, email, or call us — and we'll make sure your tickets are sold.</p>
         </div>
     </div>
-    <div id="servicesModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('servicesModal')">&times;</span>
-            <h2>Our Services</h2>
-            <p>Details on our services.</p>
-        </div>
-    </div>
+
+    <!-- Why Modal -->
     <div id="whyModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('whyModal')">&times;</span>
-            <h2>Why Choose Us?</h2>
-            <p>Reasons to choose Seatfolio.</p>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2>Why Team With Us?</h2>
+            
+            <div class="modal-image" style="background-image: url('https://i.imgur.com/MUkeys0.jpeg'); height: 397px; background-size: contain; background-repeat: no-repeat;"></div>
+            
+            <p>Stop leaving money on the table. Our data-driven approach and expert team ensure you get maximum value from your season tickets with zero effort.</p>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">73%</div>
+                    <div class="stat-label">Average Season Cost Recovery</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">$4.2K</div>
+                    <div class="stat-label">Additional Revenue Per Season</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">4.2hrs</div>
+                    <div class="stat-label">Time Saved Per Game</div>
+                </div>
+            </div>
+
+            <h3>Maximize Your Returns</h3>
+            <p>Our proprietary pricing algorithms analyze real-time market data, opponent strength, game timing, weather conditions, and historical trends to price your tickets optimally. This means you're not guessing—you're using data that would typically require a full-time analyst.</p>
+
+            <h3>Complete Peace of Mind</h3>
+            <ul class="benefits-list">
+                <li>Listing optimization across all major platforms</li>
+                <li>24/7 customer service handling all buyer inquiries</li>
+                <li>Secure transfer coordination through official team systems</li>
+                <li>Real-time revenue tracking and season ROI projections</li>
+            </ul>
+
+            <h3>Proven Track Record</h3>
+            <p>Our clients consistently outperform DIY sellers by an average of 23% per ticket. With over 10,000 successful transactions and a 98% customer satisfaction rate, we've established ourselves as the premier ticket management service for season ticket holders nationwide.</p>
+
+                            <p style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0; text-align: center; font-weight: 600;">Ready to maximize your season ticket investment? Book a consultation today.</p>
         </div>
     </div>
+
+    <!-- Services Modal -->
+    <div id="servicesModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeServicesModal()">&times;</button>
+            <h2>Our Services</h2>
+            
+            <div class="modal-image" style="background-image: url('https://i.imgur.com/ORT6eGp.jpeg');"></div>
+            
+            <p>We provide a complete, hands-off solution for season ticket holders. From the moment you share your tickets with us, we handle everything to maximize your returns.</p>
+
+            <h3>1. You Send Us Your Tickets</h3>
+            <p>Getting started is simple. Through our secure online form, you provide us with your ticket information and game details. We handle everything from there—no complicated uploads, no multiple steps. Just tell us which games you can't attend, and we take care of the rest. Our intake process takes less than 5 minutes, and you'll have immediate confirmation that your tickets are in our system.</p>
+
+            <h3>2. We Handle Pricing, Listing, Selling, and Transferring</h3>
+            <p>Our team manages every aspect of the resale process. We use advanced pricing algorithms that analyze market demand, opponent strength, game timing, weather patterns, and historical data to set optimal prices. We create professional listings across all platforms, respond to buyer inquiries 24/7, negotiate when appropriate, and coordinate secure transfers through official team systems. You'll receive real-time updates throughout the process, but never have to lift a finger.</p>
+
+            <h3>3. We Sell Across All Secondary Marketplaces</h3>
+            <p>Maximum exposure means maximum returns. We simultaneously list your tickets on StubHub, Vivid Seats, SeatGeek, Ticketmaster Resale, and other leading platforms. This multi-platform approach ensures your tickets reach the largest possible audience of buyers, driving competition and increasing sale prices. Our system automatically updates inventory across all platforms, preventing double-sales and ensuring seamless coordination.</p>
+
+            <h3>4. No Upfront Cost. No Risk. Completely Free.</h3>
+            <p>We only succeed when you succeed. There are zero upfront fees, no monthly charges, and no hidden costs. We earn a small commission only when your tickets sell, which means we're motivated to get you the highest possible price. If your tickets don't sell, you pay nothing. It's that simple. You maintain complete control—you can always use your tickets yourself right up until they're sold, and you'll always know exactly what you're earning after our commission.</p>
+
+                            <p style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0; text-align: center; font-weight: 600;">Ready to get started? Submit your tickets through our "Book Now" button above.</p>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
     <div id="bookingModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('bookingModal')">&times;</span>
-            <h2>Booking Information</h2>
-            <p>Details on how to book.</p>
+            <button class="close-modal" onclick="closeBookingModal()">&times;</button>
+            <h2>Submit Your Tickets</h2>
+            
+            <p style="margin-bottom: 2rem;">Fill out the form below and we'll get back to you within 24 hours with pricing and next steps.</p>
+
+            <form action="https://formspree.io/f/mzdagvrd" method="POST">
+                <div class="form-group">
+                    <label>First Name <span style="color: red;">*</span></label>
+                    <input type="text" name="firstName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Last Name <span style="color: red;">*</span></label>
+                    <input type="text" name="lastName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Email <span style="color: red;">*</span></label>
+                    <input type="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sports Team or Venue <span style="color: red;">*</span></label>
+                    <input type="text" name="sportsTeamVenue" placeholder="e.g., San Francisco 49ers, Oracle Park" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Event <span style="color: red;">*</span></label>
+                    <input type="text" name="event" placeholder="e.g., vs. Dallas Cowboys, Opening Day" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Section <span style="color: red;">*</span></label>
+                        <input type="text" name="section" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Row <span style="color: red;">*</span></label>
+                        <input type="text" name="row" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantity <span style="color: red;">*</span></label>
+                        <input type="number" name="quantity" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seat Numbers</label>
+                        <input type="text" name="seatNumbers" placeholder="e.g., 1, 2, 3, 4">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Cost / Face Value <span style="color: red;">*</span></label>
+                    <input type="text" name="costFaceValue" placeholder="e.g., $150 per ticket" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Submit Tickets</button>
+            </form>
         </div>
     </div>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="contact-left">
+            <h2>Contact Us</h2>
+            <form action="https://formspree.io/f/xwvnbqlw" method="POST">
+                <div class="form-group">
+                    <label>Name</label>
+                    <div class="form-row">
+                        <input type="text" name="firstName" placeholder="First Name" required>
+                        <input type="text" name="lastName" placeholder="Last Name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email <span style="color: red;">*</span></label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Subject <span style="color: red;">*</span></label>
+                    <input type="text" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label>Message <span style="color: red;">*</span></label>
+                    <textarea name="message" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">Victory Kay Tickets</div>
+        <div class="social-links">
+            <a href="#" aria-label="Instagram">📷</a>
+            <a href="#" aria-label="Twitter">🐦</a>
+            <a href="#" aria-label="Facebook">📘</a>
+        </div>
+        <div class="footer-email">victorykaytix@gmail.com</div>
+    </footer>
+
     <script>
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
+        function toggleAccordion(element) {
+            const item = element.parentElement;
+            const isActive = item.classList.contains('active');
+            
+            // Close all accordion items
+            document.querySelectorAll('.accordion-item').forEach(i => {
+                i.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!isActive) {
+                item.classList.add('active');
+            }
         }
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+
+        function openModal() {
+            document.getElementById('whyModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
-        document.getElementById('contactForm').onsubmit = function() {
-            alert('Thank you for contacting us!');
-            return false;
-        };
+
+        function closeModal() {
+            document.getElementById('whyModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openAboutModal() {
+            document.getElementById('aboutModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAboutModal() {
+            document.getElementById('aboutModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openServicesModal() {
+            document.getElementById('servicesModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeServicesModal() {
+            document.getElementById('servicesModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openBookingModal() {
+            document.getElementById('bookingModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const whyModal = document.getElementById('whyModal');
+            const servicesModal = document.getElementById('servicesModal');
+            const aboutModal = document.getElementById('aboutModal');
+            const bookingModal = document.getElementById('bookingModal');
+            if (event.target === whyModal) {
+                closeModal();
+            }
+            if (event.target === servicesModal) {
+                closeServicesModal();
+            }
+            if (event.target === aboutModal) {
+                closeAboutModal();
+            }
+            if (event.target === bookingModal) {
+                closeBookingModal();
+            }
+        }
     </script>
 </body>
 </html>
