@@ -1,24 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seatfolio Tickets</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        h1 { color: #333; }
-        .ticket { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
-    </style>
+    <title>Seatfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
 </head>
 <body>
-    <h1>Seatfolio Tickets</h1>
-    <div class="ticket">
-        <h2>Ticket 1</h2>
-        <p>Description: This is the first ticket.</p>
+    <nav>
+        <ul>
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#process">Process</a></li>
+            <li><a href="#smarter">Smarter Way</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#about" onclick="openModal('aboutModal')">About</a></li>
+            <li><a href="#services" onclick="openModal('servicesModal')">Services</a></li>
+            <li><a href="#why" onclick="openModal('whyModal')">Why Us</a></li>
+            <li><a href="#booking" onclick="openModal('bookingModal')">Booking</a></li>
+        </ul>
+    </nav>
+    <section id="hero">
+        <h1>Welcome to Seatfolio</h1>
+        <p>Your journey starts here.</p>
+    </section>
+    <section id="process">
+        <h2>Our Process</h2>
+        <div>
+            <div class="step">Step 1</div>
+            <div class="step">Step 2</div>
+            <div class="step">Step 3</div>
+        </div>
+    </section>
+    <section id="smarter">
+        <h2>A Smarter Way</h2>
+        <p>Discover new efficient ways to enhance your experience.</p>
+    </section>
+    <section id="contact">
+        <h2>Contact Us</h2>
+        <form id="contactForm">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="email" name="email" placeholder="Your Email" required>
+            <textarea name="message" placeholder="Your Message" required></textarea>
+            <button type="submit">Send</button>
+        </form>
+    </section>
+    <footer>
+        <p>&copy; 2026 Seatfolio. All rights reserved.</p>
+    </footer>
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('aboutModal')">&times;</span>
+            <h2>About Us</h2>
+            <p>Information about Seatfolio.</p>
+        </div>
     </div>
-    <div class="ticket">
-        <h2>Ticket 2</h2>
-        <p>Description: This is the second ticket.</p>
+    <div id="servicesModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('servicesModal')">&times;</span>
+            <h2>Our Services</h2>
+            <p>Details on our services.</p>
+        </div>
     </div>
+    <div id="whyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('whyModal')">&times;</span>
+            <h2>Why Choose Us?</h2>
+            <p>Reasons to choose Seatfolio.</p>
+        </div>
+    </div>
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('bookingModal')">&times;</span>
+            <h2>Booking Information</h2>
+            <p>Details on how to book.</p>
+        </div>
+    </div>
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        document.getElementById('contactForm').onsubmit = function() {
+            alert('Thank you for contacting us!');
+            return false;
+        };
+    </script>
 </body>
 </html>
