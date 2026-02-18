@@ -1,2 +1,4 @@
-# Victory Kay Tickets HTML Web Code
-
+# Victory Kay Tickets Website
+Use Claude for HTML
+Use Freespace for Forms
+Use Vercel for Domain
