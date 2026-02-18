@@ -510,7 +510,7 @@
 
         /* Footer */
         footer {
-            background: #fff;
+            background: #e8e8e8;
             padding: 3rem 8%;
             border-top: 1px solid #e0e0e0;
             display: flex;
@@ -523,19 +523,9 @@
             font-weight: 700;
         }
 
-        .social-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .social-links a {
-            color: #000;
-            font-size: 1.5rem;
-            transition: opacity 0.3s;
-        }
-
-        .social-links a:hover {
-            opacity: 0.6;
+        .footer-v-logo {
+            height: 100px;
+            width: auto;
         }
 
         .footer-email {
@@ -840,13 +830,105 @@
     <!-- Footer -->
     <footer>
         <div class="footer-logo">Victory Kay Tickets</div>
-        <div class="social-links">
-            <a href="#" aria-label="Instagram">📷</a>
-            <a href="#" aria-label="Twitter">🐦</a>
-            <a href="#" aria-label="Facebook">📘</a>
+        <div class="footer-center">
+            <a href="#" onclick="openFAQModal(); return false;">FAQ</a>
+            <a href="#" onclick="openPrivacyModal(); return false;">Privacy Policy</a>
         </div>
         <div class="footer-email">victorykaytickets@gmail.com</div>
     </footer>
+
+    <!-- FAQ Modal -->
+    <div id="faqModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeFAQModal()">&times;</button>
+            <h2>Frequently Asked Questions</h2>
+            
+            <h3>How does Victory Kay Tickets work?</h3>
+            <p>Simply submit your unused tickets through our "Book Now" form. We handle all pricing, listing, customer service, and transfers across major secondary marketplaces. You receive payment once your tickets sell.</p>
+
+            <h3>What sports and events do you handle?</h3>
+            <p>We work with tickets from all major sports leagues including MLB, NFL, NBA, NHL, MLS, and premium events. If you have season tickets or individual game tickets you can't use, we can help sell them.</p>
+
+            <h3>How do you price my tickets?</h3>
+            <p>We use advanced pricing algorithms that analyze real-time market demand, opponent strength, game timing, weather conditions, and historical trends to set optimal prices that maximize your returns.</p>
+
+            <h3>What marketplaces do you list on?</h3>
+            <p>We list your tickets simultaneously on StubHub, Vivid Seats, SeatGeek, Ticketmaster Resale, and other leading platforms to ensure maximum exposure and the best possible sale price.</p>
+
+            <h3>How do I get paid?</h3>
+            <p>Once your tickets sell, we process payment quickly and securely. You'll receive detailed information about the sale and payment within our standard processing timeline.</p>
+
+            <h3>What if my tickets don't sell?</h3>
+            <p>There are no upfront costs or fees. If your tickets don't sell, you pay nothing. You maintain control and can use the tickets yourself right up until they're sold.</p>
+
+            <h3>Is my information secure?</h3>
+            <p>Absolutely. We use industry-standard security measures to protect your information and coordinate transfers directly through official team systems to ensure authenticity and security.</p>
+
+            <h3>Can I still use my tickets after submitting them?</h3>
+            <p>Yes, you maintain control of your tickets until they're sold. If you decide you want to attend the game yourself, just let us know before the sale is completed.</p>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <button class="close-modal" onclick="closePrivacyModal()">&times;</button>
+            <h2>Privacy Policy</h2>
+            <p><strong>Last Updated: January 26, 2026</strong></p>
+
+            <p>Victory Kay Tickets ("Victory Kay Tickets," "we," "us," "our") is committed to respecting the privacy and confidentiality of your information. This Privacy Policy ("Policy") explains our policies and practices regarding how we collect, use, and process information from and about users of our website and services (collectively, the "Services").</p>
+
+            <h3>1. Information We Collect</h3>
+            <p>We collect information in multiple ways, including when you provide information directly to us, when we passively collect information from you such as from your browser or device, and from third parties.</p>
+
+            <p><strong>Information You Provide Directly to Us:</strong> We collect information that you provide to us, such as when you create an account, contact us for information or customer support, or submit information through the Services. This may include your name, email address, phone number, and mailing address.</p>
+
+            <p><strong>Transaction Information:</strong> When you submit a transaction through the Services, we collect details needed to create and manage listings on retail ticket marketplaces and to process the transaction. This includes sales information (event, venue, event date and time, quantity of tickets, section, row, seat numbers, sales price) and transaction date and time.</p>
+
+            <p><strong>Information Automatically Collected:</strong> We may automatically collect information about your computer or devices, browser types, operating system, IP addresses, and information related to how you interact with the Services.</p>
+
+            <p><strong>Cookies and Tracking Technologies:</strong> We use cookies and similar technologies to recognize your computer, store your preferences, enhance your user experience, and perform analytics.</p>
+
+            <h3>2. How We Use Your Information</h3>
+            <p>We may use the information we collect for the following purposes:</p>
+            <ul style="list-style: disc; margin-left: 2rem; margin-bottom: 1rem;">
+                <li>To create your account, process transactions, and facilitate your use of the Services</li>
+                <li>To provide and improve the Services</li>
+                <li>For marketing and advertising purposes</li>
+                <li>To process and respond to your inquiries</li>
+                <li>For analytics, research, and reporting</li>
+                <li>To comply with the law and protect safety, rights, and property</li>
+            </ul>
+
+            <h3>3. When We Disclose Your Information</h3>
+            <p>We may disclose your information to:</p>
+            <ul style="list-style: disc; margin-left: 2rem; margin-bottom: 1rem;">
+                <li>Service providers who perform services on our behalf</li>
+                <li>Legal authorities when required by law or to protect rights and safety</li>
+                <li>Business partners in connection with business transfers</li>
+                <li>Affiliated companies</li>
+                <li>Third parties based on your consent</li>
+            </ul>
+
+            <h3>4. Your Choices and Rights</h3>
+            <p>You can update your profile information, unsubscribe from marketing emails, and opt out of certain cookie-related processing. Depending on your jurisdiction, you may have rights to access, update, delete, or restrict the processing of your information.</p>
+
+            <h3>5. Security</h3>
+            <p>We have implemented administrative, technical, and physical security measures to protect against loss, misuse, and alteration of your information. However, no Internet transmission can be completely secure.</p>
+
+            <h3>6. Data Retention</h3>
+            <p>We retain your information for as long as necessary to fulfill the purposes set forth in this Policy or as long as we are legally required or permitted to do so.</p>
+
+            <h3>7. Children's Privacy</h3>
+            <p>The Services are not intended for children under the age of 18. We do not knowingly collect personal information from children under the age of 13.</p>
+
+            <h3>8. Changes to this Policy</h3>
+            <p>We may update this Policy from time to time. Any changes will be posted here with an updated "Last Updated" date.</p>
+
+            <h3>9. Contact Us</h3>
+            <p>If you have questions about this Policy, please contact us at victorykaytickets@gmail.com.</p>
+        </div>
+    </div>
 
     <script>
         function toggleAccordion(element) {
@@ -904,12 +986,34 @@
             document.body.style.overflow = 'auto';
         }
 
+        function openFAQModal() {
+            document.getElementById('faqModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFAQModal() {
+            document.getElementById('faqModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openPrivacyModal() {
+            document.getElementById('privacyModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePrivacyModal() {
+            document.getElementById('privacyModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
         // Close modal when clicking outside of it
         window.onclick = function(event) {
             const whyModal = document.getElementById('whyModal');
             const servicesModal = document.getElementById('servicesModal');
             const aboutModal = document.getElementById('aboutModal');
             const bookingModal = document.getElementById('bookingModal');
+            const faqModal = document.getElementById('faqModal');
+            const privacyModal = document.getElementById('privacyModal');
             if (event.target === whyModal) {
                 closeModal();
             }
@@ -921,6 +1025,12 @@
             }
             if (event.target === bookingModal) {
                 closeBookingModal();
+            }
+            if (event.target === faqModal) {
+                closeFAQModal();
+            }
+            if (event.target === privacyModal) {
+                closePrivacyModal();
             }
         }
     </script>
