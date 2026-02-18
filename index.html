@@ -130,7 +130,7 @@
             height: auto;
             background: #e8e8e8;
             z-index: 999;
-            padding-top: 1rem;
+            padding-top: 3rem;
             padding-bottom: 1rem;
             padding-left: 1.5rem;
             padding-right: 1.5rem;
@@ -164,7 +164,7 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 1rem;
-            padding: 1rem 0;
+            padding: 0;
         }
 
         .mobile-menu-links a {
@@ -176,6 +176,14 @@
             padding: 0.5rem 0;
             width: auto;
             text-align: left;
+        }
+
+        .mobile-menu-links a:first-child {
+            padding-top: 0;
+        }
+
+        .mobile-menu-links a:last-child {
+            padding-bottom: 0;
         }
 
         .hero {
@@ -300,7 +308,7 @@
         }
 
         .accordion-content p {
-            padding-bottom: 1.5rem;
+            padding-bottom: 1rem;
             line-height: 1.7;
             color: #333;
             font-size: 1.15rem;
@@ -737,7 +745,7 @@
             <li><a href="#" onclick="openModal(); return false;">Why</a></li>
         </ul>
         <div class="logo">
-            <img src="https://i.imgur.com/grDokU0.png" alt="Victory Kay Tickets Logo">
+            <img src="https://i.imgur.com/6FN7EkY.png" alt="Victory Kay Tickets Logo">
         </div>
         <button class="book-btn" onclick="openBookingModal()">Book now</button>
     </nav>
