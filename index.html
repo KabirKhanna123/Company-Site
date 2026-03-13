@@ -804,10 +804,14 @@
 
         /* ===== MOBILE ===== */
         @media (max-width: 968px) {
-            nav { padding: 0 4%; }
-            .nav-links { display: none; }
-            .mobile-menu-btn { display: block; }
-            .book-btn { font-size: 0.65rem; padding: 0.5rem 1.2rem; }
+            nav { padding: 0 3%; height: auto; flex-wrap: wrap; }
+            .nav-left { flex: none; order: 2; width: 100%; justify-content: center; padding: 0.5rem 0 0.6rem 0; border-top: 1px solid #1e1e1e; }
+            .nav-links { display: flex; gap: 1.5rem; }
+            .nav-links a { font-size: 0.65rem; letter-spacing: 1px; }
+            .mobile-menu-btn { display: none; }
+            .logo { position: static; transform: none; order: 1; flex: 1; justify-content: center; padding: 0.8rem 0; }
+            .nav-right { order: 1; flex: none; display: flex; align-items: center; padding: 0.8rem 0; }
+            .book-btn { font-size: 0.65rem; padding: 0.45rem 1rem; }
 
             .hero,
             .process-section,
