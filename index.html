@@ -122,21 +122,21 @@
         }
 
         .mobile-menu {
-            display: none;
             position: fixed;
             top: 72px;
-            left: -100%;
+            left: 0;
             width: 240px;
             height: calc(100% - 72px);
             background: #111111;
             z-index: 999;
             padding: 2rem 2rem;
-            transition: left 0.3s ease;
+            transition: transform 0.3s ease;
             box-shadow: 4px 0 20px rgba(0,0,0,0.4);
             border-right: 1px solid #222;
+            transform: translateX(-100%);
         }
 
-        .mobile-menu.active { display: block; left: 0; }
+        .mobile-menu.active { transform: translateX(0); }
 
         .mobile-menu-overlay {
             display: none;
