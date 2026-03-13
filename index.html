@@ -66,12 +66,20 @@
 
         .nav-links a:hover { color: var(--gold); }
 
+        .nav-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
         .logo {
             height: 52px;
             display: flex;
             align-items: center;
-            flex: 1;
-            justify-content: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .logo img { height: 100%; width: auto; object-fit: contain; }
@@ -874,7 +882,9 @@
         <div class="logo">
             <img src="https://i.imgur.com/6FN7EkY.png" alt="Victory Kay Tickets Logo">
         </div>
-        <button class="book-btn" onclick="openBookingModal()">Book Now</button>
+        <div class="nav-right">
+            <button class="book-btn" onclick="openBookingModal()">Book Now</button>
+        </div>
     </nav>
 
     <!-- Mobile Menu Overlay -->
