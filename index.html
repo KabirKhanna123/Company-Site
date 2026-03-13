@@ -80,9 +80,11 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
         }
 
-        .logo img { height: 100%; width: auto; object-fit: contain; }
+        .logo img { height: 100%; width: auto; object-fit: contain; pointer-events: auto; }
 
         .book-btn {
             padding: 0.6rem 1.8rem;
@@ -106,7 +108,8 @@
             border: none;
             cursor: pointer;
             padding: 0.5rem;
-            z-index: 1001;
+            z-index: 1002;
+            position: relative;
         }
 
         .mobile-menu-btn span {
