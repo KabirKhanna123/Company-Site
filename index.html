@@ -6,104 +6,88 @@
     <title>Victory Kay Tickets - Turn Unused Tickets Into Effortless Revenue</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=SF+Pro+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --black: #0c0c0c;
+            --gold: #d4a843;
+            --warm: #f7f4ef;
+            --warm-dark: #ede8e0;
+            --text: #3a3530;
+            --muted: #888888;
+            --border: #d6d0c6;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f5f5f5;
-            color: #000;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            background: var(--warm);
+            color: var(--black);
         }
 
-        /* Navigation */
+        /* ===== NAV ===== */
         nav {
             position: fixed;
             top: 0;
             width: 100%;
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--black);
+            border-bottom: 1px solid #222;
             z-index: 1000;
-            padding: 2.5rem 5% 3rem 5%;
+            padding: 0 5%;
+            height: 72px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-        }
-
-        .logo {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            height: 80px;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo img {
-            height: 100%;
-            width: auto;
-            object-fit: contain;
-        }
-
-        /* Placeholder styling */
-        .img-placeholder {
-            background: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 0.9rem;
-            text-align: center;
-            padding: 1rem;
         }
 
         .nav-links {
-            position: absolute;
-            left: 5%;
             display: flex;
             gap: 2.5rem;
             list-style: none;
         }
 
         .nav-links a {
-            color: #000;
+            color: var(--muted);
             text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: 400;
-            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: color 0.3s;
         }
 
-        .nav-links a:hover {
-            opacity: 0.6;
+        .nav-links a:hover { color: var(--gold); }
+
+        .logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 52px;
+            display: flex;
+            align-items: center;
         }
+
+        .logo img { height: 100%; width: auto; object-fit: contain; }
 
         .book-btn {
-            position: absolute;
-            right: 5%;
-            padding: 0.75rem 2rem;
-            background: #000;
-            color: #fff;
+            padding: 0.6rem 1.8rem;
+            background: var(--gold);
+            color: var(--black);
             border: none;
-            border-radius: 50px;
             cursor: pointer;
-            font-size: 1.05rem;
-            font-weight: 500;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             transition: opacity 0.3s;
         }
 
-        .book-btn:hover {
-            opacity: 0.8;
-        }
+        .book-btn:hover { opacity: 0.85; }
 
         /* Mobile Menu */
         .mobile-menu-btn {
             display: none;
-            position: absolute;
-            left: 5%;
             background: none;
             border: none;
             cursor: pointer;
@@ -113,9 +97,9 @@
 
         .mobile-menu-btn span {
             display: block;
-            width: 25px;
-            height: 3px;
-            background: #000;
+            width: 24px;
+            height: 2px;
+            background: var(--warm);
             margin: 5px 0;
             transition: 0.3s;
         }
@@ -126,179 +110,256 @@
             top: 0;
             left: -100%;
             width: auto;
-            max-width: 300px;
+            max-width: 280px;
             height: auto;
-            background: #e8e8e8;
+            background: #111111;
             z-index: 999;
-            padding-top: 3rem;
-            padding-bottom: 1rem;
-            padding-left: 1.5rem;
-            padding-right: 1.5rem;
+            padding: 3rem 2rem 2rem 2rem;
             transition: left 0.3s ease;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            border-bottom-right-radius: 12px;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+            border-bottom-right-radius: 4px;
+            border-right: 1px solid #222;
         }
 
-        .mobile-menu.active {
-            display: block;
-            left: 0;
-        }
+        .mobile-menu.active { display: block; left: 0; }
 
         .mobile-menu-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
             z-index: 998;
         }
 
-        .mobile-menu-overlay.active {
-            display: block;
-        }
+        .mobile-menu-overlay.active { display: block; }
 
         .mobile-menu-links {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
             gap: 1rem;
-            padding: 0;
         }
 
         .mobile-menu-links a {
-            color: #000;
-            background: transparent;
+            color: var(--muted);
             text-decoration: none;
-            font-size: 1.1rem;
+            font-size: 0.85rem;
             font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             padding: 0.5rem 0;
-            width: auto;
-            text-align: left;
+            border-bottom: 1px solid #222;
+            transition: color 0.3s;
         }
 
-        .mobile-menu-links a:first-child {
-            padding-top: 0;
-        }
+        .mobile-menu-links a:hover { color: var(--gold); }
 
-        .mobile-menu-links a:last-child {
-            padding-bottom: 0;
-        }
 
+        /* ===== HERO ===== */
         .hero {
-            margin-top: 0;
-            padding-top: 140px;
+            margin-top: 72px;
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 2rem;
-            min-height: 90vh;
-            background: #e8e8e8;
-            padding-left: 2rem;
-            padding-right: 2rem;
-            padding-bottom: 2rem;
+            grid-template-columns: 1.4fr 1fr;
+            min-height: 88vh;
+            background: var(--black);
         }
 
         .hero-left {
-            padding: 10% 5% 5% 6%;
+            padding: 10% 6% 8% 8%;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            border-right: 1px solid #1e1e1e;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 20px;
+            font-weight: 600;
         }
 
         .hero-left h1 {
-            font-size: 3.5rem;
-            line-height: 1.1;
-            margin-bottom: 2rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 3.6rem;
+            line-height: 1.05;
+            color: #ffffff;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .hero-left h1 em {
+            color: var(--gold);
+            font-style: italic;
         }
 
         .hero-left p {
-            font-size: 1.3rem;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 2.5rem;
+            font-size: 1rem;
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 36px;
+            max-width: 440px;
         }
 
-        .learn-more-btn {
-            padding: 1rem 2.5rem;
-            background: #000;
-            color: #fff;
+        .hero-cta-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 0.85rem 2.2rem;
+            background: var(--gold);
+            color: var(--black);
             border: none;
-            border-radius: 50px;
             cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
-            width: fit-content;
-            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            transition: opacity 0.3s;
         }
 
-        .learn-more-btn:hover {
-            opacity: 0.8;
+        .btn-primary:hover { opacity: 0.85; }
+
+        .btn-ghost {
+            padding: 0.85rem 2.2rem;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid #333;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-top: 1px solid #1e1e1e;
+            margin-top: 48px;
+            padding-top: 32px;
+        }
+
+        .hero-stat {
+            padding-right: 24px;
+            border-right: 1px solid #1e1e1e;
+        }
+
+        .hero-stat:last-child { border-right: none; padding-left: 24px; padding-right: 0; }
+        .hero-stat:nth-child(2) { padding: 0 24px; }
+
+        .hero-stat-num {
+            font-family: Georgia, serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .hero-stat-label {
+            font-size: 0.7rem;
+            color: #555;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 6px;
+            line-height: 1.4;
         }
 
         .hero-right {
+            background-image: url('https://levisstadium.com/wp-content/uploads/2024/08/2024-08-27-levis-fb-1600x740.png');
             background-size: cover;
             background-position: center;
-            background-image: url('https://levisstadium.com/wp-content/uploads/2024/08/2024-08-27-levis-fb-1600x740.png');
-            border-radius: 12px;
         }
 
-        /* The Process Section */
+
+        /* ===== GOLD STRIP ===== */
+        .gold-strip {
+            background: var(--gold);
+            padding: 13px 8%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gold-strip p {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--black);
+            font-weight: 700;
+        }
+
+
+        /* ===== PROCESS SECTION ===== */
         .process-section {
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 2rem;
-            background: #fff;
-            padding: 2rem;
+            grid-template-columns: 1.4fr 1fr;
+            background: var(--warm);
+            border-bottom: 1px solid var(--border);
         }
 
         .process-left {
-            padding: 6% 3% 5% 6%;
+            padding: 8% 6% 7% 8%;
+            border-right: 1px solid var(--border);
+        }
+
+        .section-tag {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 14px;
         }
 
         .process-left h2 {
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: var(--black);
+            line-height: 1.1;
+            margin-bottom: 20px;
         }
 
         .process-left > p {
-            font-size: 1.25rem;
-            line-height: 1.8;
-            color: #333;
-            margin-bottom: 3rem;
+            font-size: 1rem;
+            line-height: 1.82;
+            color: var(--text);
+            margin-bottom: 36px;
         }
 
-        .accordion {
-            border-top: 1px solid #e0e0e0;
-        }
+        .accordion { border-top: 1px solid var(--border); }
 
-        .accordion-item {
-            border-bottom: 1px solid #e0e0e0;
-        }
+        .accordion-item { border-bottom: 1px solid var(--border); }
 
         .accordion-header {
-            padding: 1.5rem 0;
+            padding: 1.4rem 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 400;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--black);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        .accordion-header:hover {
-            opacity: 0.7;
-        }
+        .accordion-header:hover { color: var(--gold); }
 
         .accordion-icon {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+            color: var(--gold);
             transition: transform 0.3s;
+            font-weight: 300;
         }
 
         .accordion-content {
@@ -308,436 +369,496 @@
         }
 
         .accordion-content p {
-            padding-bottom: 1rem;
-            line-height: 1.7;
-            color: #333;
-            font-size: 1.15rem;
+            padding-bottom: 1.2rem;
+            line-height: 1.8;
+            color: var(--text);
+            font-size: 0.95rem;
         }
 
-        .accordion-item.active .accordion-content {
-            max-height: 300px;
-        }
-
-        .accordion-item.active .accordion-icon {
-            transform: rotate(45deg);
-        }
+        .accordion-item.active .accordion-content { max-height: 300px; }
+        .accordion-item.active .accordion-icon { transform: rotate(45deg); }
+        .accordion-item.active .accordion-header { color: var(--gold); }
 
         .process-right {
+            background-image: url('https://i.imgur.com/OhT1nqg.jpeg');
             background-size: cover;
             background-position: center;
-            background-image: url('https://i.imgur.com/OhT1nqg.jpeg');
-            border-radius: 12px;
         }
 
-        /* Smarter Way Section */
+
+        /* ===== STATS BAR ===== */
+        .stats-bar {
+            background: var(--black);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .stats-bar-cell {
+            padding: 36px 24px;
+            text-align: center;
+            border-right: 1px solid #1e1e1e;
+        }
+
+        .stats-bar-cell:last-child { border-right: none; }
+
+        .stats-bar-num {
+            font-family: Georgia, serif;
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .stats-bar-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+
+        /* ===== SMARTER SECTION ===== */
         .smarter-section {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 2rem;
-            background: #e8e8e8;
-            padding: 2rem;
+            grid-template-columns: 1fr 1.4fr;
+            background: var(--warm-dark);
+            border-bottom: 1px solid var(--border);
         }
 
         .smarter-left {
+            background-image: url('https://i.imgur.com/V2kAEOZ.jpeg');
             background-size: cover;
             background-position: center;
-            background-image: url('https://i.imgur.com/V2kAEOZ.jpeg');
-            border-radius: 12px;
+            min-height: 480px;
         }
 
         .smarter-right {
-            padding: 6% 6% 5% 3%;
+            padding: 8% 8% 7% 6%;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            border-left: 1px solid var(--border);
         }
 
         .smarter-right h2 {
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: var(--black);
             line-height: 1.1;
+            margin-bottom: 20px;
         }
+
+        .smarter-right h2 em { color: var(--gold); font-style: italic; }
 
         .smarter-right p {
-            font-size: 1.15rem;
-            line-height: 1.8;
-            color: #333;
-            margin-bottom: 2rem;
-        }
-
-        /* Why Section */
-        .why-section {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 2rem;
-            background: #fff;
-            padding: 2rem;
-        }
-
-        .why-left {
-            padding: 6% 3% 5% 6%;
-        }
-
-        .why-left h2 {
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
-        }
-
-        .why-left p {
             font-size: 1rem;
-            line-height: 1.8;
-            color: #333;
-            margin-bottom: 2rem;
+            line-height: 1.82;
+            color: var(--text);
+            margin-bottom: 28px;
         }
 
-        .why-right {
-            background-size: cover;
-            background-position: center;
-            border-radius: 12px;
-            background: #ddd;
+
+        /* ===== REASONS SECTION ===== */
+        .reasons-section {
+            background: var(--black);
+            padding: 7% 8%;
         }
 
-        /* Contact Section */
+        .reasons-section .section-tag { color: var(--gold); margin-bottom: 14px; }
+
+        .reasons-section h2 {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: #ffffff;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .reasons-section > p {
+            font-size: 1rem;
+            color: var(--muted);
+            line-height: 1.82;
+            max-width: 600px;
+            margin-bottom: 48px;
+        }
+
+        .reasons-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .reason-card {
+            padding: 24px 22px;
+            border: 1px solid #1e1e1e;
+            border-left: 3px solid var(--gold);
+            background: #111111;
+        }
+
+        .reason-icon { font-size: 22px; margin-bottom: 10px; }
+
+        .reason-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+
+        /* ===== PULL QUOTE ===== */
+        .pull-quote {
+            background: var(--warm-dark);
+            padding: 6% 8%;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pull-quote blockquote {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.55rem;
+            font-style: italic;
+            color: var(--black);
+            line-height: 1.6;
+            max-width: 720px;
+            border-left: 4px solid var(--gold);
+            padding-left: 28px;
+            margin-bottom: 16px;
+        }
+
+        .pull-quote cite {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-style: normal;
+            font-weight: 700;
+            padding-left: 32px;
+        }
+
+
+        /* ===== CONTACT SECTION ===== */
         .contact-section {
-            background: #fff;
-            padding: 8rem 8%;
+            background: var(--warm);
+            padding: 8% 8%;
+            border-top: 1px solid var(--border);
         }
 
-        .contact-left {
-            max-width: 800px;
-            margin: 0 auto;
+        .contact-section .section-tag { margin-bottom: 14px; }
+
+        .contact-section h2 {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: var(--black);
+            line-height: 1.1;
+            margin-bottom: 16px;
         }
 
-        .contact-left h2 {
-            font-size: 3rem;
-            margin-bottom: 3rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
+        .contact-section > p {
+            font-size: 1rem;
+            color: var(--text);
+            line-height: 1.82;
+            max-width: 560px;
+            margin-bottom: 40px;
         }
 
-        .form-group {
-            margin-bottom: 2rem;
+        .contact-inner {
+            max-width: 680px;
         }
+
+        .form-group { margin-bottom: 20px; }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
-            color: #333;
+            margin-bottom: 6px;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text);
+            font-weight: 600;
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 1rem;
-            border: 1px solid #d0d0d0;
-            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            background: #ffffff;
+            color: var(--black);
+            transition: border-color 0.3s;
         }
 
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
         }
+
+        .form-group textarea { min-height: 120px; resize: vertical; }
 
         .submit-btn {
-            padding: 1rem 2.5rem;
-            background: #000;
-            color: #fff;
+            padding: 0.9rem 2.4rem;
+            background: var(--gold);
+            color: var(--black);
             border: none;
-            border-radius: 50px;
             cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             transition: opacity 0.3s;
         }
 
-        .submit-btn:hover {
-            opacity: 0.8;
-        }
+        .submit-btn:hover { opacity: 0.85; }
 
-        .contact-right {
-            display: none;
-        }
 
-        /* Modal Styles */
+        /* ===== MODAL ===== */
         .modal {
             display: none;
             position: fixed;
             z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
             overflow-y: auto;
         }
 
-        .modal.active {
-            display: block;
-        }
+        .modal.active { display: block; }
 
         .modal-content {
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 3rem 4rem;
-            max-width: 900px;
-            border-radius: 12px;
+            background-color: var(--warm);
+            margin: 4% auto;
+            padding: 3.5rem 4rem;
+            max-width: 860px;
             position: relative;
+            border-top: 3px solid var(--gold);
         }
 
         .close-modal {
             position: absolute;
-            right: 2rem;
-            top: 2rem;
-            font-size: 2rem;
+            right: 2rem; top: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 300;
-            color: #666;
+            color: var(--muted);
             cursor: pointer;
-            transition: color 0.3s;
             background: none;
             border: none;
+            transition: color 0.3s;
         }
 
-        .close-modal:hover {
-            color: #000;
-        }
+        .close-modal:hover { color: var(--gold); }
 
         .modal-content h2 {
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            font-weight: 400;
-            letter-spacing: -0.02em;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: var(--black);
+            margin-bottom: 24px;
+            line-height: 1.1;
         }
 
         .modal-content h3 {
-            font-size: 1.8rem;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--black);
             margin-top: 2.5rem;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
+            margin-bottom: 1rem;
         }
 
         .modal-content p {
-            font-size: 1.05rem;
-            line-height: 1.8;
-            color: #333;
-            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.82;
+            color: var(--text);
+            margin-bottom: 1.2rem;
+        }
+
+        .modal-section-tag {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 10px;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            margin: 2.5rem 0;
+            gap: 16px;
+            margin: 2rem 0;
         }
 
         .stat-box {
             text-align: center;
-            padding: 2rem;
-            background: #f5f5f5;
-            border-radius: 8px;
+            padding: 28px 16px;
+            background: var(--black);
+            border-left: 3px solid var(--gold);
         }
 
         .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #000;
-            margin-bottom: 0.5rem;
+            font-family: Georgia, serif;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 6px;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.95rem;
-            color: #666;
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1.4;
         }
 
-        .benefits-list {
-            list-style: none;
-            padding: 0;
-        }
+        .benefits-list { list-style: none; padding: 0; }
 
         .benefits-list li {
-            padding: 1rem 0;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 1.05rem;
-            color: #333;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+            color: var(--text);
         }
 
-        .benefits-list li:before {
-            content: "✓ ";
-            color: #000;
+        .benefits-list li::before {
+            content: "✦ ";
+            color: var(--gold);
             font-weight: 700;
             margin-right: 0.5rem;
         }
 
         .modal-image {
             width: 100%;
-            height: 300px;
-            background: #fff;
-            border-radius: 8px;
-            margin: 2rem 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 1rem;
-            background-size: cover;
+            height: 280px;
+            background: #ddd;
+            margin: 1.5rem 0;
+            background-size: contain;
+            background-repeat: no-repeat;
             background-position: center;
         }
 
-        /* Footer */
+
+        /* ===== FOOTER ===== */
         footer {
-            background: #fff;
-            padding: 3rem 8%;
-            border-top: 1px solid #e0e0e0;
+            background: #080808;
+            padding: 24px 8%;
+            border-top: 3px solid var(--gold);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .footer-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
+        .footer-brand {
+            font-family: Georgia, serif;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--gold);
         }
 
-        .footer-v-logo {
-            height: 100px;
-            width: auto;
+        .footer-center {
+            display: flex;
+            gap: 2rem;
         }
+
+        .footer-center a {
+            color: #444;
+            text-decoration: none;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .footer-center a:hover { color: var(--gold); }
 
         .footer-email {
-            font-size: 1rem;
-            color: #000;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            color: #444;
+            text-transform: uppercase;
         }
 
-        /* Mobile Responsive */
+        .footer-email a {
+            color: #444;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-email a:hover { color: var(--gold); }
+
+
+        /* ===== MOBILE ===== */
         @media (max-width: 968px) {
-            nav {
-                padding: 1rem 3%;
-            }
-
-            .logo {
-                height: 40px;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-menu-btn {
-                display: block;
-            }
-
-            .book-btn {
-                font-size: 0.75rem;
-                padding: 0.5rem 1rem;
-            }
+            nav { padding: 0 4%; }
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .book-btn { font-size: 0.65rem; padding: 0.5rem 1.2rem; }
 
             .hero,
             .process-section,
             .smarter-section {
                 grid-template-columns: 1fr;
-                padding: 1rem;
-                gap: 1.5rem;
             }
 
-            .hero-left,
-            .process-left,
-            .smarter-right {
-                padding: 5%;
-                text-align: center;
-            }
+            .hero-left { padding: 12% 6% 6% 6%; }
+            .hero-left h1 { font-size: 2.4rem; }
+            .hero-right { min-height: 260px; order: -1; }
+            .hero-stats { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+            .hero-stat, .hero-stat:last-child, .hero-stat:nth-child(2) { padding: 0 8px; }
+            .hero-stat-num { font-size: 1.6rem; }
 
-            .hero-left h1,
-            .process-left h2,
-            .smarter-right h2,
-            .contact-left h2 {
-                font-size: 2rem;
-            }
+            .process-left { padding: 8% 6%; }
+            .process-left h2 { font-size: 2rem; }
+            .process-right { min-height: 260px; order: -1; }
 
-            .hero-left p,
-            .process-left > p,
-            .smarter-right p {
-                font-size: 1rem;
-            }
+            .stats-bar { grid-template-columns: 1fr; }
+            .stats-bar-cell { border-right: none; border-bottom: 1px solid #1e1e1e; }
 
-            .hero-right,
-            .process-right,
-            .smarter-left {
-                min-height: 300px;
-                order: -1;
-            }
+            .smarter-left { min-height: 260px; }
+            .smarter-right { padding: 8% 6%; }
+            .smarter-right h2 { font-size: 2rem; }
 
-            .accordion-header {
-                font-size: 1rem;
-            }
+            .reasons-grid { grid-template-columns: 1fr 1fr; }
 
-            .accordion-content p {
-                font-size: 0.95rem;
-            }
+            .pull-quote blockquote { font-size: 1.2rem; }
 
-            .contact-section {
-                padding: 4rem 5%;
-            }
+            .contact-section { padding: 10% 6%; }
+            .contact-section h2 { font-size: 2rem; }
+            .form-row { grid-template-columns: 1fr; }
 
-            .contact-left h2 {
-                font-size: 2rem;
-            }
+            .modal-content { margin: 2% auto; padding: 2rem 1.5rem; max-width: 95%; }
+            .modal-content h2 { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: 1fr; }
 
-            .form-row {
-                grid-template-columns: 1fr;
-            }
+            footer { flex-direction: column; gap: 1.5rem; text-align: center; }
+            .footer-center { flex-direction: column; gap: 1rem; align-items: center; }
+        }
 
-            footer {
-                flex-direction: column;
-                gap: 1.5rem;
-                text-align: center;
-            }
-
-            .footer-center {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .modal-content {
-                margin: 2% auto;
-                padding: 2rem;
-                max-width: 95%;
-            }
-
-            .modal-content h2 {
-                font-size: 2rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stat-number {
-                font-size: 3rem;
-            }
+        @media (max-width: 560px) {
+            .reasons-grid { grid-template-columns: 1fr; }
+            .hero-stats { grid-template-columns: 1fr; }
+            .hero-stat { border-right: none; border-bottom: 1px solid #1e1e1e; padding: 12px 0; }
+            .hero-stat:last-child { border-bottom: none; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
+
+    <!-- NAV -->
     <nav>
         <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span>
         </button>
         <ul class="nav-links">
             <li><a href="#" onclick="openAboutModal(); return false;">About</a></li>
@@ -747,13 +868,11 @@
         <div class="logo">
             <img src="https://i.imgur.com/6FN7EkY.png" alt="Victory Kay Tickets Logo">
         </div>
-        <button class="book-btn" onclick="openBookingModal()">Book now</button>
+        <button class="book-btn" onclick="openBookingModal()">Book Now</button>
     </nav>
 
     <!-- Mobile Menu Overlay -->
     <div id="mobileMenuOverlay" class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
-
-    <!-- Mobile Menu -->
     <div id="mobileMenu" class="mobile-menu">
         <div class="mobile-menu-links">
             <a href="#" onclick="openAboutModal(); closeMobileMenu(); return false;">About</a>
@@ -763,22 +882,47 @@
         </div>
     </div>
 
-    <!-- Hero Section -->
+
+    <!-- HERO -->
     <section class="hero">
         <div class="hero-left">
-            <h1>Turn Unused Tickets Into Effortless Revenue</h1>
-            <p>We handle pricing, listing, selling, and transferring your tickets across secondary marketplaces — so you don't have to.</p>
-            <button class="learn-more-btn" onclick="openServicesModal()">Learn More</button>
+            <p class="hero-eyebrow">&#8212; Season Ticket Holders</p>
+            <h1>Turn Unused Seats Into <em>Effortless Revenue.</em></h1>
+            <p>We handle pricing, listing, selling, and transferring your tickets across every major secondary marketplace — so you don't have to.</p>
+            <div class="hero-cta-row">
+                <button class="btn-primary" onclick="openBookingModal()">Book Now &rarr;</button>
+                <button class="btn-ghost" onclick="openServicesModal()">Learn More</button>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-num">73%</div>
+                    <div class="hero-stat-label">Avg season cost recovered</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">$4.2K</div>
+                    <div class="hero-stat-label">Additional revenue per season</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num">98%</div>
+                    <div class="hero-stat-label">Client satisfaction rate</div>
+                </div>
+            </div>
         </div>
         <div class="hero-right"></div>
     </section>
 
-    <!-- The Process Section -->
+    <!-- GOLD STRIP -->
+    <div class="gold-strip">
+        <p>Victory Kay Tickets &nbsp;&middot;&nbsp; Full-Service Ticket Resale &nbsp;&middot;&nbsp; NFL &middot; MLB &middot; NBA &middot; NHL &amp; More</p>
+    </div>
+
+
+    <!-- PROCESS -->
     <section class="process-section" id="services">
         <div class="process-left">
-            <h2>The Process</h2>
-            <p>Our service makes selling tickets effortless by handling pricing, listings, and fulfillment from start to finish. You simply send us your tickets, and we take care of the rest while maximizing value and ensuring a smooth, reliable sale.</p>
-            
+            <p class="section-tag">How It Works</p>
+            <h2>We Handle Everything. You Do Nothing.</h2>
+            <p>Our service makes selling tickets effortless by handling pricing, listings, and fulfillment from start to finish. You simply share your tickets with us, and we take care of the rest while maximizing your return.</p>
             <div class="accordion">
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -786,7 +930,7 @@
                         <span class="accordion-icon">+</span>
                     </div>
                     <div class="accordion-content">
-                        <p>Share the tickets you're unable to use or wanting to re-sell through our secure intake form. We'll take care of the rest. The form is located in the top right of the site named "Book Now". You'll provide your contact information as well as your ticket information. We'll take care of the rest!</p>
+                        <p>Share the tickets you're unable to use through our secure intake form. Provide your contact and ticket information — it takes less than 5 minutes. You'll have immediate confirmation that your tickets are in our system.</p>
                     </div>
                 </div>
                 <div class="accordion-item">
@@ -795,16 +939,16 @@
                         <span class="accordion-icon">+</span>
                     </div>
                     <div class="accordion-content">
-                        <p>Our team handles pricing strategy, creates professional listings, and manages all customer communications across multiple marketplaces to maximize your return.</p>
+                        <p>Our team handles pricing strategy using real-time market data, creates professional listings, and manages all buyer communications across StubHub, SeatGeek, Vivid Seats, Ticketmaster Resale, and more — simultaneously.</p>
                     </div>
                 </div>
                 <div class="accordion-item">
                     <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>3. Tickets Sell & Transfer</span>
+                        <span>3. Tickets Sell &amp; Transfer</span>
                         <span class="accordion-icon">+</span>
                     </div>
                     <div class="accordion-content">
-                        <p>Once sold, we coordinate the secure transfer directly through official team systems and ensure you receive payment promptly.</p>
+                        <p>Once sold, we coordinate the secure transfer through official team systems and send you a full sale summary with payment details. You receive your proceeds promptly — completely hands-off.</p>
                     </div>
                 </div>
             </div>
@@ -812,46 +956,144 @@
         <div class="process-right"></div>
     </section>
 
-    <!-- A Smarter Way Section -->
-    <section class="smarter-section" id="about">
-        <div class="smarter-left"></div>
-        <div class="smarter-right">
-            <h2>A Smarter Way to Sell Tickets</h2>
-            <p>Selling tickets on the secondary market can be time-consuming and unpredictable, especially when pricing and demand change constantly. Victory Kay Tickets offers a smarter approach by combining professional pricing strategy, active listing management, and reliable fulfillment into one seamless service. Instead of guessing prices or managing multiple marketplaces, clients benefit from data-driven decisions, hands-off convenience, and peace of mind knowing their tickets are in expert hands.</p>
-            <button class="learn-more-btn" onclick="openServicesModal()">Learn More</button>
-        </div>
-    </section>
 
-    <!-- About Modal -->
-    <div id="aboutModal" class="modal">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeAboutModal()">&times;</button>
-            <h2>Who We Are</h2>
-            
-            <div class="modal-image" style="background-image: url('https://i.imgur.com/RnCbbYH.jpeg'); background-color: #fff; background-size: contain; background-repeat: no-repeat;"></div>
-            
-            <p>Victory Kay Tickets is a full-service ticket resale management company built by an experienced team of pricing analysts, fulfillment specialists, and sales professionals.</p>
-            
-            <p>Our team has hands-on experience pricing and selling tickets across major sports leagues and live events, including MLB, NFL, NBA, NHL, MLS, FIFA World Cup, and premium theatre productions. We understand how demand, timing, and market behavior impact value — and we use that expertise to price tickets strategically and sell them efficiently.</p>
-            
-            <p>We specialize in maximizing revenue while ensuring quality, accurate, and timely fulfillment. From the moment tickets are submitted to final transfer, every step of the process is carefully managed to protect both value and reliability.</p>
-            
-            <p>At Victory, we believe ticket resale should be simple, transparent, and hands-off. Our clients trust us to handle pricing, selling, and transfers so they don't have to monitor markets or manage listings themselves.</p>
-            
-            <p style="font-weight: 600; margin-top: 2rem;">Have tickets to sell? Text, email, or call us — and we'll make sure your tickets are sold.</p>
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="stats-bar-cell">
+            <div class="stats-bar-num">$0</div>
+            <div class="stats-bar-label">Upfront cost to you — ever</div>
+        </div>
+        <div class="stats-bar-cell">
+            <div class="stats-bar-num">4</div>
+            <div class="stats-bar-label">Major platforms listed simultaneously</div>
+        </div>
+        <div class="stats-bar-cell">
+            <div class="stats-bar-num">23%</div>
+            <div class="stats-bar-label">Our clients outperform DIY sellers on avg</div>
         </div>
     </div>
 
-    <!-- Why Modal -->
+
+    <!-- SMARTER SECTION -->
+    <section class="smarter-section" id="about">
+        <div class="smarter-left"></div>
+        <div class="smarter-right">
+            <p class="section-tag">A Smarter Way</p>
+            <h2>Your Seats Deserve <em>a Professional.</em></h2>
+            <p>Selling tickets on the secondary market can be time-consuming and unpredictable — especially when pricing and demand change constantly. Victory Kay Tickets offers a smarter approach by combining professional pricing strategy, active listing management, and reliable fulfillment into one seamless service.</p>
+            <p>Instead of guessing prices or managing multiple marketplaces, our clients benefit from data-driven decisions, hands-off convenience, and peace of mind knowing their tickets are in expert hands.</p>
+            <button class="btn-primary" onclick="openServicesModal()">Our Services &rarr;</button>
+        </div>
+    </section>
+
+
+    <!-- REASONS -->
+    <section class="reasons-section">
+        <p class="section-tag">Why Season Ticket Holders Choose Us</p>
+        <h2>We Maximize Your Money.</h2>
+        <p>Most holders who try to resell on their own leave money on the table — through underpricing, limited reach, or not having the time to manage listings. Here's what we bring to the table.</p>
+        <div class="reasons-grid">
+            <div class="reason-card">
+                <div class="reason-icon">&#128202;</div>
+                <div class="reason-title">Data-Driven Pricing</div>
+            </div>
+            <div class="reason-card">
+                <div class="reason-icon">&#127758;</div>
+                <div class="reason-title">Full Market Exposure</div>
+            </div>
+            <div class="reason-card">
+                <div class="reason-icon">&#9201;</div>
+                <div class="reason-title">Zero Time Commitment</div>
+            </div>
+            <div class="reason-card">
+                <div class="reason-icon">&#128274;</div>
+                <div class="reason-title">Secure &amp; Reliable Transfers</div>
+            </div>
+            <div class="reason-card">
+                <div class="reason-icon">&#128176;</div>
+                <div class="reason-title">No Upfront Cost. Ever.</div>
+            </div>
+            <div class="reason-card">
+                <div class="reason-icon">&#127903;</div>
+                <div class="reason-title">You Stay in Control</div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- PULL QUOTE -->
+    <div class="pull-quote">
+        <blockquote>Our clients consistently outperform DIY sellers by an average of 23% per ticket. That difference compounds across an entire season — turning unused seats into meaningful revenue, automatically.</blockquote>
+        <cite>Victory Kay Tickets &middot; Client Performance Data</cite>
+    </div>
+
+
+    <!-- CONTACT -->
+    <section class="contact-section" id="contact">
+        <div class="contact-inner">
+            <p class="section-tag">Get In Touch</p>
+            <h2>Contact Us</h2>
+            <p>Have a question or want to learn more? Reach out and our team will get back to you within 24 hours.</p>
+            <form action="https://formspree.io/f/xbdakajw" method="POST">
+                <div class="form-group">
+                    <label>Name</label>
+                    <div class="form-row">
+                        <input type="text" name="firstName" placeholder="First Name" required>
+                        <input type="text" name="lastName" placeholder="Last Name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email <span style="color:#d4a843;">*</span></label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Subject <span style="color:#d4a843;">*</span></label>
+                    <input type="text" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label>Message <span style="color:#d4a843;">*</span></label>
+                    <textarea name="message" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message &rarr;</button>
+            </form>
+        </div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-brand">Victory Kay Tickets</div>
+        <div class="footer-center">
+            <a href="#" onclick="openFAQModal(); return false;">FAQ</a>
+            <a href="#" onclick="openPrivacyModal(); return false;">Privacy Policy</a>
+        </div>
+        <div class="footer-email">victorykaytickets@gmail.com</div>
+    </footer>
+
+
+    <!-- ABOUT MODAL -->
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeAboutModal()">&times;</button>
+            <p class="modal-section-tag">Who We Are</p>
+            <h2>About Victory Kay Tickets</h2>
+            <div class="modal-image" style="background-image: url('https://i.imgur.com/RnCbbYH.jpeg');"></div>
+            <p>Victory Kay Tickets is a full-service ticket resale management company built by an experienced team of pricing analysts, fulfillment specialists, and sales professionals.</p>
+            <p>Our team has hands-on experience pricing and selling tickets across major sports leagues and live events, including MLB, NFL, NBA, NHL, MLS, FIFA World Cup, and premium theatre productions. We understand how demand, timing, and market behavior impact value — and we use that expertise to price tickets strategically and sell them efficiently.</p>
+            <p>We specialize in maximizing revenue while ensuring quality, accurate, and timely fulfillment. From the moment tickets are submitted to final transfer, every step of the process is carefully managed to protect both value and reliability.</p>
+            <p>At Victory Kay Tickets, we believe ticket resale should be simple, transparent, and hands-off. Our clients trust us to handle pricing, selling, and transfers so they don't have to monitor markets or manage listings themselves.</p>
+            <p style="font-weight: 600; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">Have tickets to sell? Reach out and we'll make sure your tickets are sold.</p>
+        </div>
+    </div>
+
+    <!-- WHY MODAL -->
     <div id="whyModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal()">&times;</button>
-            <h2>Why Team With Us?</h2>
-            
-            <div class="modal-image" style="background-image: url('https://i.imgur.com/MUkeys0.jpeg'); height: 397px; background-size: contain; background-repeat: no-repeat;"></div>
-            
-            <p>Stop leaving money on the table. Our data-driven approach and expert team ensure you get maximum value from your season tickets with zero effort.</p>
-
+            <p class="modal-section-tag">Why Team With Us</p>
+            <h2>Stop Leaving Money on the Table.</h2>
+            <div class="modal-image" style="background-image: url('https://i.imgur.com/MUkeys0.jpeg'); height: 360px;"></div>
+            <p>Our data-driven approach and expert team ensure you get maximum value from your season tickets with zero effort on your part.</p>
             <div class="stats-grid">
                 <div class="stat-box">
                     <div class="stat-number">73%</div>
@@ -862,251 +1104,146 @@
                     <div class="stat-label">Additional Revenue Per Season</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-number">4.2hrs</div>
-                    <div class="stat-label">Time Saved Per Game</div>
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Client Satisfaction Rate</div>
                 </div>
             </div>
-
             <h3>Maximize Your Returns</h3>
-            <p>Our proprietary pricing algorithms analyze real-time market data, opponent strength, game timing, weather conditions, and historical trends to price your tickets optimally. This means you're not guessing—you're using data that would typically require a full-time analyst.</p>
-
+            <p>Our pricing strategy analyzes real-time market data, opponent strength, game timing, weather conditions, and historical trends to price your tickets optimally. This means you're not guessing — you're using data that would typically require a full-time analyst.</p>
             <h3>Complete Peace of Mind</h3>
             <ul class="benefits-list">
                 <li>Listing optimization across all major platforms</li>
                 <li>24/7 customer service handling all buyer inquiries</li>
                 <li>Secure transfer coordination through official team systems</li>
-                <li>Real-time revenue tracking and season ROI projections</li>
+                <li>Full sale summary and transparent payment breakdown</li>
             </ul>
-
             <h3>Proven Track Record</h3>
             <p>Our clients consistently outperform DIY sellers by an average of 23% per ticket. With over 10,000 successful transactions and a 98% customer satisfaction rate, we've established ourselves as the premier ticket management service for season ticket holders nationwide.</p>
-
-                            <p style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0; text-align: center; font-weight: 600;">Ready to maximize your season ticket investment? Book a consultation today.</p>
+            <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-weight: 600; text-align: center;">Ready to maximize your season ticket investment? Book now — it's free.</p>
         </div>
     </div>
 
-    <!-- Services Modal -->
+    <!-- SERVICES MODAL -->
     <div id="servicesModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeServicesModal()">&times;</button>
+            <p class="modal-section-tag">What We Do</p>
             <h2>Our Services</h2>
-            
             <div class="modal-image" style="background-image: url('https://i.imgur.com/ORT6eGp.jpeg');"></div>
-            
             <p>We provide a complete, hands-off solution for season ticket holders. From the moment you share your tickets with us, we handle everything to maximize your returns.</p>
-
             <h3>1. You Send Us Your Tickets</h3>
-            <p>Getting started is simple. Through our secure online form, you provide us with your ticket information and game details. We handle everything from there—no complicated uploads, no multiple steps. Just tell us which games you can't attend, and we take care of the rest. Our intake process takes less than 5 minutes, and you'll have immediate confirmation that your tickets are in our system.</p>
-
-            <h3>2. We Handle Pricing, Listing, Selling, and Transferring</h3>
-            <p>Our team manages every aspect of the resale process. We use advanced pricing algorithms that analyze market demand, opponent strength, game timing, weather patterns, and historical data to set optimal prices. We create professional listings across all platforms, respond to buyer inquiries 24/7, negotiate when appropriate, and coordinate secure transfers through official team systems. You'll receive real-time updates throughout the process, but never have to lift a finger.</p>
-
+            <p>Through our secure online form, you provide your ticket information and game details. Our intake process takes less than 5 minutes, and you'll have immediate confirmation that your tickets are in our system.</p>
+            <h3>2. We Handle Pricing, Listing, Selling &amp; Transferring</h3>
+            <p>Our team manages every aspect of the resale process. We use advanced pricing strategies that analyze market demand, opponent strength, game timing, and historical data to set optimal prices. We list simultaneously on StubHub, Vivid Seats, SeatGeek, Ticketmaster Resale, and more.</p>
             <h3>3. We Sell Across All Secondary Marketplaces</h3>
-            <p>Maximum exposure means maximum returns. We simultaneously list your tickets on StubHub, Vivid Seats, SeatGeek, Ticketmaster Resale, and other leading platforms. This multi-platform approach ensures your tickets reach the largest possible audience of buyers, driving competition and increasing sale prices. Our system automatically updates inventory across all platforms, preventing double-sales and ensuring seamless coordination.</p>
-
+            <p>Maximum exposure means maximum returns. Our multi-platform approach ensures your tickets reach the largest possible audience of buyers, driving competition and increasing sale prices.</p>
             <h3>4. No Upfront Cost. No Risk. Completely Free.</h3>
-            <p>We only succeed when you succeed. There are zero upfront fees, no monthly charges, and no hidden costs. We earn a small commission only when your tickets sell, which means we're motivated to get you the highest possible price. If your tickets don't sell, you pay nothing. It's that simple. You maintain complete control—you can always use your tickets yourself right up until they're sold, and you'll always know exactly what you're earning after our commission.</p>
-
-                            <p style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0; text-align: center; font-weight: 600;">Ready to get started? Submit your tickets through our "Book Now" button above.</p>
+            <p>We only succeed when you succeed. There are zero upfront fees, no monthly charges, and no hidden costs. We earn a small commission only when your tickets sell. If your tickets don't sell, you pay nothing.</p>
+            <p style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-weight: 600; text-align: center;">Ready to get started? Submit your tickets through the Book Now button.</p>
         </div>
     </div>
 
-    <!-- Booking Modal -->
+    <!-- BOOKING MODAL -->
     <div id="bookingModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" id="book-now">
             <button class="close-modal" onclick="closeBookingModal()">&times;</button>
+            <p class="modal-section-tag">Get Started</p>
             <h2>Submit Your Tickets</h2>
-            
             <p style="margin-bottom: 2rem;">Fill out the form below and we'll get back to you within 24 hours with pricing and next steps.</p>
-
             <form action="https://formspree.io/f/mvzbqbow" method="POST">
                 <div class="form-group">
-                    <label>First Name <span style="color: red;">*</span></label>
+                    <label>First Name <span style="color:#d4a843;">*</span></label>
                     <input type="text" name="firstName" required>
                 </div>
-                
                 <div class="form-group">
-                    <label>Last Name <span style="color: red;">*</span></label>
+                    <label>Last Name <span style="color:#d4a843;">*</span></label>
                     <input type="text" name="lastName" required>
                 </div>
-                
                 <div class="form-group">
-                    <label>Email <span style="color: red;">*</span></label>
+                    <label>Email <span style="color:#d4a843;">*</span></label>
                     <input type="email" name="email" required>
                 </div>
-                
                 <div class="form-group">
-                    <label>Sports Team or Venue <span style="color: red;">*</span></label>
+                    <label>Sports Team or Venue <span style="color:#d4a843;">*</span></label>
                     <input type="text" name="sportsTeamVenue" placeholder="e.g., San Francisco 49ers, Oracle Park" required>
                 </div>
-                
                 <div class="form-group">
-                    <label>Event <span style="color: red;">*</span></label>
+                    <label>Event <span style="color:#d4a843;">*</span></label>
                     <input type="text" name="event" placeholder="e.g., vs. Dallas Cowboys, Opening Day" required>
                 </div>
-                
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Section <span style="color: red;">*</span></label>
+                        <label>Section <span style="color:#d4a843;">*</span></label>
                         <input type="text" name="section" required>
                     </div>
-                    
                     <div class="form-group">
-                        <label>Row <span style="color: red;">*</span></label>
+                        <label>Row <span style="color:#d4a843;">*</span></label>
                         <input type="text" name="row" required>
                     </div>
                 </div>
-                
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Quantity <span style="color: red;">*</span></label>
+                        <label>Quantity <span style="color:#d4a843;">*</span></label>
                         <input type="number" name="quantity" min="1" required>
                     </div>
-                    
                     <div class="form-group">
                         <label>Seat Numbers</label>
                         <input type="text" name="seatNumbers" placeholder="e.g., 1, 2, 3, 4">
                     </div>
                 </div>
-                
                 <div class="form-group">
-                    <label>Cost / Face Value <span style="color: red;">*</span></label>
+                    <label>Cost / Face Value <span style="color:#d4a843;">*</span></label>
                     <input type="text" name="costFaceValue" placeholder="e.g., $150 per ticket" required>
                 </div>
-                
-                <button type="submit" class="submit-btn">Submit Tickets</button>
+                <button type="submit" class="submit-btn">Submit Tickets &rarr;</button>
             </form>
         </div>
     </div>
 
-    <!-- Contact Section -->
-    <section class="contact-section" id="contact">
-        <div class="contact-left">
-            <h2>Contact Us</h2>
-            <form action="https://formspree.io/f/xbdakajw" method="POST">
-                <div class="form-group">
-                    <label>Name</label>
-                    <div class="form-row">
-                        <input type="text" name="firstName" placeholder="First Name" required>
-                        <input type="text" name="lastName" placeholder="Last Name" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Email <span style="color: red;">*</span></label>
-                    <input type="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Subject <span style="color: red;">*</span></label>
-                    <input type="text" name="subject" required>
-                </div>
-                <div class="form-group">
-                    <label>Message <span style="color: red;">*</span></label>
-                    <textarea name="message" required></textarea>
-                </div>
-                <button type="submit" class="submit-btn">Send</button>
-            </form>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="footer-logo">Victory Kay Tickets</div>
-        <div class="footer-center">
-            <a href="#" onclick="openFAQModal(); return false;">FAQ</a>
-            <a href="#" onclick="openPrivacyModal(); return false;">Privacy Policy</a>
-        </div>
-        <div class="footer-email">victorykaytickets@gmail.com</div>
-    </footer>
-
-    <!-- FAQ Modal -->
+    <!-- FAQ MODAL -->
     <div id="faqModal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeFAQModal()">&times;</button>
-            <h2>Frequently Asked Questions</h2>
-            
+            <p class="modal-section-tag">Frequently Asked Questions</p>
+            <h2>FAQ</h2>
             <h3>How does Victory Kay Tickets work?</h3>
             <p>Simply submit your unused tickets through our "Book Now" form. We handle all pricing, listing, customer service, and transfers across major secondary marketplaces. You receive payment once your tickets sell.</p>
-
             <h3>What sports and events do you handle?</h3>
             <p>We work with tickets from all major sports leagues including MLB, NFL, NBA, NHL, MLS, and premium events. If you have season tickets or individual game tickets you can't use, we can help sell them.</p>
-
             <h3>How do you price my tickets?</h3>
-            <p>We use advanced pricing algorithms that analyze real-time market demand, opponent strength, game timing, weather conditions, and historical trends to set optimal prices that maximize your returns.</p>
-
+            <p>We use real-time market data, opponent strength, game timing, weather conditions, and historical trends to set optimal prices that maximize your returns.</p>
             <h3>What marketplaces do you list on?</h3>
             <p>We list your tickets simultaneously on StubHub, Vivid Seats, SeatGeek, Ticketmaster Resale, and other leading platforms to ensure maximum exposure and the best possible sale price.</p>
-
             <h3>How do I get paid?</h3>
-            <p>Once your tickets sell, we process payment quickly and securely. You'll receive detailed information about the sale and payment within our standard processing timeline.</p>
-
+            <p>Once your tickets sell, we send you a full sale summary and ask how you'd like to receive your proceeds. We operate on an 80/20 split — 80% goes directly to you.</p>
             <h3>What if my tickets don't sell?</h3>
             <p>There are no upfront costs or fees. If your tickets don't sell, you pay nothing. You maintain control and can use the tickets yourself right up until they're sold.</p>
-
             <h3>Is my information secure?</h3>
-            <p>Absolutely. We use industry-standard security measures to protect your information and coordinate transfers directly through official team systems to ensure authenticity and security.</p>
-
+            <p>Absolutely. We use industry-standard security measures and coordinate transfers directly through official team systems to ensure authenticity and security.</p>
             <h3>Can I still use my tickets after submitting them?</h3>
             <p>Yes, you maintain control of your tickets until they're sold. If you decide you want to attend the game yourself, just let us know before the sale is completed.</p>
         </div>
     </div>
 
-    <!-- Privacy Policy Modal -->
+    <!-- PRIVACY MODAL -->
     <div id="privacyModal" class="modal">
         <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
             <button class="close-modal" onclick="closePrivacyModal()">&times;</button>
+            <p class="modal-section-tag">Legal</p>
             <h2>Privacy Policy</h2>
             <p><strong>Last Updated: January 26, 2026</strong></p>
-
-            <p>Victory Kay Tickets ("Victory Kay Tickets," "we," "us," "our") is committed to respecting the privacy and confidentiality of your information. This Privacy Policy ("Policy") explains our policies and practices regarding how we collect, use, and process information from and about users of our website and services (collectively, the "Services").</p>
-
+            <p>Victory Kay Tickets ("Victory Kay Tickets," "we," "us," "our") is committed to respecting the privacy and confidentiality of your information. This Privacy Policy ("Policy") explains our policies and practices regarding how we collect, use, and process information from and about users of our website and services.</p>
             <h3>1. Information We Collect</h3>
-            <p>We collect information in multiple ways, including when you provide information directly to us, when we passively collect information from you such as from your browser or device, and from third parties.</p>
-
-            <p><strong>Information You Provide Directly to Us:</strong> We collect information that you provide to us, such as when you create an account, contact us for information or customer support, or submit information through the Services. This may include your name, email address, phone number, and mailing address.</p>
-
-            <p><strong>Transaction Information:</strong> When you submit a transaction through the Services, we collect details needed to create and manage listings on retail ticket marketplaces and to process the transaction. This includes sales information (event, venue, event date and time, quantity of tickets, section, row, seat numbers, sales price) and transaction date and time.</p>
-
-            <p><strong>Information Automatically Collected:</strong> We may automatically collect information about your computer or devices, browser types, operating system, IP addresses, and information related to how you interact with the Services.</p>
-
-            <p><strong>Cookies and Tracking Technologies:</strong> We use cookies and similar technologies to recognize your computer, store your preferences, enhance your user experience, and perform analytics.</p>
-
+            <p>We collect information you provide directly to us, such as when you contact us or submit information through the Services. This may include your name, email address, phone number, and mailing address. We also collect transaction information when you submit tickets, and may automatically collect browser and device data.</p>
             <h3>2. How We Use Your Information</h3>
-            <p>We may use the information we collect for the following purposes:</p>
-            <ul style="list-style: disc; margin-left: 2rem; margin-bottom: 1rem;">
-                <li>To create your account, process transactions, and facilitate your use of the Services</li>
-                <li>To provide and improve the Services</li>
-                <li>For marketing and advertising purposes</li>
-                <li>To process and respond to your inquiries</li>
-                <li>For analytics, research, and reporting</li>
-                <li>To comply with the law and protect safety, rights, and property</li>
-            </ul>
-
+            <p>We use your information to process transactions, provide and improve our services, respond to inquiries, for analytics and reporting, and to comply with applicable law.</p>
             <h3>3. When We Disclose Your Information</h3>
-            <p>We may disclose your information to:</p>
-            <ul style="list-style: disc; margin-left: 2rem; margin-bottom: 1rem;">
-                <li>Service providers who perform services on our behalf</li>
-                <li>Legal authorities when required by law or to protect rights and safety</li>
-                <li>Business partners in connection with business transfers</li>
-                <li>Affiliated companies</li>
-                <li>Third parties based on your consent</li>
-            </ul>
-
+            <p>We may disclose your information to service providers, legal authorities when required by law, and business partners in connection with business transfers.</p>
             <h3>4. Your Choices and Rights</h3>
-            <p>You can update your profile information, unsubscribe from marketing emails, and opt out of certain cookie-related processing. Depending on your jurisdiction, you may have rights to access, update, delete, or restrict the processing of your information.</p>
-
+            <p>You can unsubscribe from marketing emails and opt out of certain cookie-related processing. Depending on your jurisdiction, you may have rights to access, update, delete, or restrict the processing of your information.</p>
             <h3>5. Security</h3>
-            <p>We have implemented administrative, technical, and physical security measures to protect against loss, misuse, and alteration of your information. However, no Internet transmission can be completely secure.</p>
-
-            <h3>6. Data Retention</h3>
-            <p>We retain your information for as long as necessary to fulfill the purposes set forth in this Policy or as long as we are legally required or permitted to do so.</p>
-
-            <h3>7. Children's Privacy</h3>
-            <p>The Services are not intended for children under the age of 18. We do not knowingly collect personal information from children under the age of 13.</p>
-
-            <h3>8. Changes to this Policy</h3>
-            <p>We may update this Policy from time to time. Any changes will be posted here with an updated "Last Updated" date.</p>
-
-            <h3>9. Contact Us</h3>
+            <p>We have implemented administrative, technical, and physical security measures to protect against loss, misuse, and alteration of your information.</p>
+            <h3>6. Contact Us</h3>
             <p>If you have questions about this Policy, please contact us at victorykaytickets@gmail.com.</p>
         </div>
     </div>
@@ -1115,78 +1252,22 @@
         function toggleAccordion(element) {
             const item = element.parentElement;
             const isActive = item.classList.contains('active');
-            
-            // Close all accordion items
-            document.querySelectorAll('.accordion-item').forEach(i => {
-                i.classList.remove('active');
-            });
-            
-            // Open clicked item if it wasn't active
-            if (!isActive) {
-                item.classList.add('active');
-            }
+            document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+            if (!isActive) item.classList.add('active');
         }
 
-        function openModal() {
-            document.getElementById('whyModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('whyModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function openAboutModal() {
-            document.getElementById('aboutModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeAboutModal() {
-            document.getElementById('aboutModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function openServicesModal() {
-            document.getElementById('servicesModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeServicesModal() {
-            document.getElementById('servicesModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function openBookingModal() {
-            document.getElementById('bookingModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeBookingModal() {
-            document.getElementById('bookingModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function openFAQModal() {
-            document.getElementById('faqModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeFAQModal() {
-            document.getElementById('faqModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function openPrivacyModal() {
-            document.getElementById('privacyModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closePrivacyModal() {
-            document.getElementById('privacyModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
+        function openModal() { document.getElementById('whyModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeModal() { document.getElementById('whyModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openAboutModal() { document.getElementById('aboutModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeAboutModal() { document.getElementById('aboutModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openServicesModal() { document.getElementById('servicesModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeServicesModal() { document.getElementById('servicesModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openBookingModal() { document.getElementById('bookingModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeBookingModal() { document.getElementById('bookingModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openFAQModal() { document.getElementById('faqModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeFAQModal() { document.getElementById('faqModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openPrivacyModal() { document.getElementById('privacyModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closePrivacyModal() { document.getElementById('privacyModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             const overlay = document.getElementById('mobileMenuOverlay');
@@ -1194,40 +1275,20 @@
             overlay.classList.toggle('active');
             document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : 'auto';
         }
-
         function closeMobileMenu() {
             document.getElementById('mobileMenu').classList.remove('active');
             document.getElementById('mobileMenuOverlay').classList.remove('active');
             document.body.style.overflow = 'auto';
         }
 
-        // Close modal when clicking outside of it
         window.onclick = function(event) {
-            const whyModal = document.getElementById('whyModal');
-            const servicesModal = document.getElementById('servicesModal');
-            const aboutModal = document.getElementById('aboutModal');
-            const bookingModal = document.getElementById('bookingModal');
-            const faqModal = document.getElementById('faqModal');
-            const privacyModal = document.getElementById('privacyModal');
-            if (event.target === whyModal) {
-                closeModal();
-            }
-            if (event.target === servicesModal) {
-                closeServicesModal();
-            }
-            if (event.target === aboutModal) {
-                closeAboutModal();
-            }
-            if (event.target === bookingModal) {
-                closeBookingModal();
-            }
-            if (event.target === faqModal) {
-                closeFAQModal();
-            }
-            if (event.target === privacyModal) {
-                closePrivacyModal();
-            }
+            const modals = ['whyModal','servicesModal','aboutModal','bookingModal','faqModal','privacyModal'];
+            modals.forEach(id => {
+                const modal = document.getElementById(id);
+                if (event.target === modal) modal.classList.remove('active');
+            });
         }
     </script>
+
 </body>
 </html>
