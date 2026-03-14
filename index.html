@@ -284,21 +284,37 @@
         }
 
 
-        /* ===== GOLD STRIP ===== */
+        /* ===== GOLD STRIP TICKER ===== */
         .gold-strip {
             background: var(--gold);
-            padding: 13px 8%;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            padding: 12px 0;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
-        .gold-strip p {
-            font-size: 0.7rem;
+        .ticker-wrap {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .ticker {
+            display: inline-flex;
+            animation: ticker-scroll 30s linear infinite;
+        }
+
+        .ticker span {
+            font-size: 0.72rem;
             letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--black);
             font-weight: 700;
+            white-space: nowrap;
+            padding-right: 0;
+        }
+
+        @keyframes ticker-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
 
@@ -873,6 +889,8 @@
                 <li><a href="#" onclick="openAboutModal(); return false;">About</a></li>
                 <li><a href="#" onclick="openServicesModal(); return false;">Services</a></li>
                 <li><a href="#" onclick="openModal(); return false;">Why</a></li>
+                <li><a href="#" onclick="openNewslettersModal(); return false;">Newsletters</a></li>
+                <li><a href="#" onclick="openReviewsModal(); return false;">Reviews</a></li>
             </ul>
         </div>
         <div class="logo">
@@ -889,6 +907,8 @@
             <a href="#" onclick="openAboutModal(); closeMobileMenu(); return false;">About</a>
             <a href="#" onclick="openServicesModal(); closeMobileMenu(); return false;">Services</a>
             <a href="#" onclick="openModal(); closeMobileMenu(); return false;">Why</a>
+            <a href="#" onclick="openNewslettersModal(); closeMobileMenu(); return false;">Newsletters</a>
+            <a href="#" onclick="openReviewsModal(); closeMobileMenu(); return false;">Reviews</a>
             <a href="#" onclick="openBookingModal(); closeMobileMenu(); return false;">Book Now</a>
         </div>
     </div>
@@ -924,7 +944,12 @@
 
     <!-- GOLD STRIP -->
     <div class="gold-strip">
-        <p>Victory Kay Tickets &nbsp;&middot;&nbsp; Full-Service Ticket Resale &nbsp;&middot;&nbsp; NFL &middot; MLB &middot; NBA &middot; NHL &amp; More</p>
+        <div class="ticker-wrap">
+            <div class="ticker">
+                <span>Victory Kay Tickets &nbsp;&middot;&nbsp; Full-Service Ticket Resale &nbsp;&middot;&nbsp; NFL &nbsp;&middot;&nbsp; MLB &nbsp;&middot;&nbsp; NBA &nbsp;&middot;&nbsp; NHL &nbsp;&middot;&nbsp; MLS &nbsp;&middot;&nbsp; Live Events &nbsp;&middot;&nbsp; No Upfront Cost &nbsp;&middot;&nbsp; We List on Every Platform &nbsp;&middot;&nbsp;</span>
+                <span>Victory Kay Tickets &nbsp;&middot;&nbsp; Full-Service Ticket Resale &nbsp;&middot;&nbsp; NFL &nbsp;&middot;&nbsp; MLB &nbsp;&middot;&nbsp; NBA &nbsp;&middot;&nbsp; NHL &nbsp;&middot;&nbsp; MLS &nbsp;&middot;&nbsp; Live Events &nbsp;&middot;&nbsp; No Upfront Cost &nbsp;&middot;&nbsp; We List on Every Platform &nbsp;&middot;&nbsp;</span>
+            </div>
+        </div>
     </div>
 
 
@@ -1211,6 +1236,152 @@
         </div>
     </div>
 
+    <!-- NEWSLETTERS MODAL -->
+    <div id="newslettersModal" class="modal">
+        <div class="modal-content" style="max-width:860px;">
+            <button class="close-modal" onclick="closeNewslettersModal()">&times;</button>
+            <p class="modal-section-tag">Stay Informed</p>
+            <h2>Our Newsletters</h2>
+            <p style="margin-bottom:2rem;">Market breakdowns, resale opportunity guides, and season recaps built for season ticket holders. Click any newsletter to open it.</p>
+
+            <div style="margin-bottom:24px;">
+                <button onclick="closeNewslettersModal(); openSubscribeModal();" class="btn-primary">Subscribe to Our Newsletter &rarr;</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+                <!-- Intro Newsletter -->
+                <a href="VictoryKayTickets_Intro_EMAIL.html" target="_blank" style="text-decoration:none;">
+                    <div style="border:1px solid var(--border);border-top:3px solid var(--gold);background:#0c0c0c;padding:32px 28px;cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 10px 0;">Welcome Edition</p>
+                        <p style="font-family:Georgia,serif;font-size:1.3rem;font-weight:bold;color:#ffffff;margin:0 0 10px 0;line-height:1.2;">Intro Newsletter</p>
+                        <p style="font-size:0.85rem;color:#888;margin:0 0 20px 0;line-height:1.6;">A full-service ticket resale partner built for season ticket holders who want their unused seats to work for them.</p>
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">Open Newsletter &rarr;</p>
+                    </div>
+                </a>
+
+                <!-- 49ers Recap -->
+                <a href="VictoryKayTickets_49ers_EMAIL.html" target="_blank" style="text-decoration:none;">
+                    <div style="border:1px solid var(--border);border-top:3px solid #AA0000;background:#0c0c0c;padding:32px 28px;cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#AA0000;font-weight:700;margin:0 0 10px 0;">2025 NFL Resale</p>
+                        <p style="font-family:Georgia,serif;font-size:1.3rem;font-weight:bold;color:#ffffff;margin:0 0 10px 0;line-height:1.2;">49ers Season Recap</p>
+                        <p style="font-size:0.85rem;color:#888;margin:0 0 20px 0;line-height:1.6;">The definitive secondary market recap for 49ers season ticket holders — what your seats were worth and how to maximize every dollar.</p>
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">Open Newsletter &rarr;</p>
+                    </div>
+                </a>
+
+                <!-- MLB Recap -->
+                <a href="VictoryKayTickets_MLB_EMAIL.html" target="_blank" style="text-decoration:none;">
+                    <div style="border:1px solid var(--border);border-top:3px solid #1a6b3a;background:#0c0c0c;padding:32px 28px;cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#1a6b3a;font-weight:700;margin:0 0 10px 0;">2024 MLB Resale</p>
+                        <p style="font-family:Georgia,serif;font-size:1.3rem;font-weight:bold;color:#ffffff;margin:0 0 10px 0;line-height:1.2;">MLB Season Recap</p>
+                        <p style="font-size:0.85rem;color:#888;margin:0 0 20px 0;line-height:1.6;">The secondary market breakdown for MLB season ticket holders — what your seats were worth in 2024 and why 2025 sets up stronger.</p>
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">Open Newsletter &rarr;</p>
+                    </div>
+                </a>
+
+                <!-- Dodgers Recap -->
+                <a href="VictoryKayTickets_Dodgers_EMAIL.html" target="_blank" style="text-decoration:none;">
+                    <div style="border:1px solid var(--border);border-top:3px solid #005A9C;background:#0c0c0c;padding:32px 28px;cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:#005A9C;font-weight:700;margin:0 0 10px 0;">2024 Dodgers Resale</p>
+                        <p style="font-family:Georgia,serif;font-size:1.3rem;font-weight:bold;color:#ffffff;margin:0 0 10px 0;line-height:1.2;">Dodgers Season Recap</p>
+                        <p style="font-size:0.85rem;color:#888;margin:0 0 20px 0;line-height:1.6;">The most valuable ticket in baseball — what Dodgers season ticket holders earned in 2024 and why 2025 is the hottest resale season yet.</p>
+                        <p style="font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">Open Newsletter &rarr;</p>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBSCRIBE MODAL -->
+    <div id="subscribeModal" class="modal">
+        <div class="modal-content" style="max-width:520px;">
+            <button class="close-modal" onclick="closeSubscribeModal()">&times;</button>
+            <p class="modal-section-tag">Stay In The Loop</p>
+            <h2>Subscribe to Our Newsletter</h2>
+            <p style="margin-bottom:2rem;">Get market breakdowns, resale opportunity guides, and season recaps delivered straight to your inbox — built exclusively for season ticket holders.</p>
+            <form action="https://formspree.io/f/mkoqzlpk" method="POST">
+                <div class="form-group">
+                    <label>Email Address <span style="color:#d4a843;">*</span></label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
+                </div>
+                <button type="submit" class="submit-btn">Subscribe &rarr;</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- REVIEWS MODAL -->
+    <div id="reviewsModal" class="modal">
+        <div class="modal-content" style="max-width:740px;">
+            <button class="close-modal" onclick="closeReviewsModal()">&times;</button>
+            <p class="modal-section-tag">What Our Clients Say</p>
+            <h2>Client Reviews</h2>
+            <p style="margin-bottom:2rem;">Real feedback from season ticket holders across every major league.</p>
+
+            <!-- Review 1 — NFL -->
+            <div style="border:1px solid var(--border);border-left:3px solid var(--gold);background:#fff;padding:24px 26px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <p style="font-family:Georgia,serif;font-size:1rem;font-weight:bold;color:var(--black);margin:0 0 2px 0;">Marcus T.</p>
+                        <p style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">NFL &middot; San Francisco 49ers</p>
+                    </div>
+                    <p style="font-size:1.2rem;color:#f5a623;margin:0;">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+                </div>
+                <p style="font-size:0.95rem;color:var(--text);line-height:1.75;margin:0;">"I've had 49ers season tickets for six years and always struggled to sell the games I couldn't attend. Victory Kay Tickets listed my seats across every platform overnight and got me nearly double what I was asking on my own. The whole thing was completely hands-off — I just forwarded the tickets and got paid. Unreal service."</p>
+            </div>
+
+            <!-- Review 2 — MLB -->
+            <div style="border:1px solid var(--border);border-left:3px solid var(--gold);background:#fff;padding:24px 26px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <p style="font-family:Georgia,serif;font-size:1rem;font-weight:bold;color:var(--black);margin:0 0 2px 0;">Jennifer R.</p>
+                        <p style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">MLB &middot; Los Angeles Dodgers</p>
+                    </div>
+                    <p style="font-size:1.2rem;color:#f5a623;margin:0;">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+                </div>
+                <p style="font-size:0.95rem;color:var(--text);line-height:1.75;margin:0;">"With 81 home games a season there's no way I attend everything, but I used to just let those seats go to waste. Victory Kay changed that completely. They sold 18 of my unused games this year — including an Opening Day seat for over $600. I recovered more than half my season ticket cost without doing a single thing."</p>
+            </div>
+
+            <!-- Review 3 — NBA -->
+            <div style="border:1px solid var(--border);border-left:3px solid var(--gold);background:#fff;padding:24px 26px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <p style="font-family:Georgia,serif;font-size:1rem;font-weight:bold;color:var(--black);margin:0 0 2px 0;">Derek A.</p>
+                        <p style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">NBA &middot; Golden State Warriors</p>
+                    </div>
+                    <p style="font-size:1.2rem;color:#f5a623;margin:0;">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+                </div>
+                <p style="font-size:0.95rem;color:var(--text);line-height:1.75;margin:0;">"I travel for work constantly and was missing Warriors games left and right. A friend referred me to Victory Kay and I wish I'd found them sooner. They priced my seats smarter than I ever could have, especially for the marquee matchups. The payment breakdown they send after each sale is super transparent — no surprises, just results."</p>
+            </div>
+
+            <!-- Review 4 — NHL -->
+            <div style="border:1px solid var(--border);border-left:3px solid var(--gold);background:#fff;padding:24px 26px;margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <p style="font-family:Georgia,serif;font-size:1rem;font-weight:bold;color:var(--black);margin:0 0 2px 0;">Stephanie K.</p>
+                        <p style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">NHL &middot; Vegas Golden Knights</p>
+                    </div>
+                    <p style="font-size:1.2rem;color:#f5a623;margin:0;">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+                </div>
+                <p style="font-size:0.95rem;color:var(--text);line-height:1.75;margin:0;">"Golden Knights tickets are hot right now and I had no idea how much money I was leaving behind. Victory Kay listed my unused seats within hours and had them sold before I even thought about it. The 80/20 split is completely fair for the level of service you get — I'll never sell on my own again."</p>
+            </div>
+
+            <!-- Review 5 — Live Event -->
+            <div style="border:1px solid var(--border);border-left:3px solid var(--gold);background:#fff;padding:24px 26px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                    <div>
+                        <p style="font-family:Georgia,serif;font-size:1rem;font-weight:bold;color:var(--black);margin:0 0 2px 0;">Carlos M.</p>
+                        <p style="font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0;">Live Event &middot; Concert Series</p>
+                    </div>
+                    <p style="font-size:1.2rem;color:#f5a623;margin:0;">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+                </div>
+                <p style="font-size:0.95rem;color:var(--text);line-height:1.75;margin:0;">"I had a premium concert package I couldn't use last minute and panicked. Called Victory Kay and they had my tickets listed and sold within a few hours — well above what I paid. The transfer was seamless and I had my payment within days. They saved what would have been a complete loss. Highly recommend to anyone sitting on premium event tickets."</p>
+            </div>
+
+        </div>
+    </div>
+
     <!-- FAQ MODAL -->
     <div id="faqModal" class="modal">
         <div class="modal-content">
@@ -1255,11 +1426,11 @@
             <h3>5. Security</h3>
             <p>We have implemented administrative, technical, and physical security measures to protect against loss, misuse, and alteration of your information.</p>
             <h3>6. Contact Us</h3>
-            <p>If you have questions about this Policy, please contact us at victorykaytickets@gmail.com.</p>
+            <p>If you have questions about this Policy, please contact us at <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1c6a757f68736e65777d6568757f7779686f5c7b717d7570327f7371">[email&#160;protected]</a>.</p>
         </div>
     </div>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         function toggleAccordion(element) {
             const item = element.parentElement;
             const isActive = item.classList.contains('active');
@@ -1279,6 +1450,12 @@
         function closeFAQModal() { document.getElementById('faqModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
         function openPrivacyModal() { document.getElementById('privacyModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
         function closePrivacyModal() { document.getElementById('privacyModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openNewslettersModal() { document.getElementById('newslettersModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeNewslettersModal() { document.getElementById('newslettersModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openReviewsModal() { document.getElementById('reviewsModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeReviewsModal() { document.getElementById('reviewsModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openSubscribeModal() { document.getElementById('subscribeModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeSubscribeModal() { document.getElementById('subscribeModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             menu.classList.toggle('active');
@@ -1288,7 +1465,7 @@
         }
 
         window.onclick = function(event) {
-            const modals = ['whyModal','servicesModal','aboutModal','bookingModal','faqModal','privacyModal'];
+            const modals = ['whyModal','servicesModal','aboutModal','bookingModal','faqModal','privacyModal','newslettersModal','subscribeModal','reviewsModal'];
             modals.forEach(id => {
                 const modal = document.getElementById(id);
                 if (event.target === modal) modal.classList.remove('active');
