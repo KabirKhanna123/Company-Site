@@ -1340,16 +1340,60 @@
     <div id="subscribeModal" class="modal">
         <div class="modal-content" style="max-width:520px;">
             <button class="close-modal" onclick="closeSubscribeModal()">&times;</button>
-            <p class="modal-section-tag">Stay In The Loop</p>
-            <h2>Subscribe to Our Newsletter</h2>
-            <p style="margin-bottom:2rem;">Get market breakdowns, resale opportunity guides, and season recaps delivered straight to your inbox — built exclusively for season ticket holders.</p>
-            <form action="https://formspree.io/f/mkoqzlpk" method="POST">
-                <div class="form-group">
-                    <label>Email Address <span style="color:#d4a843;">*</span></label>
-                    <input type="email" name="email" placeholder="your@email.com" required>
+
+            <!-- STEP 1: FORM -->
+            <div id="subscribeForm">
+                <p class="modal-section-tag">Stay In The Loop</p>
+                <h2>Subscribe to Our Newsletter</h2>
+                <p style="margin-bottom:2rem;">Get market breakdowns, resale opportunity guides, and season recaps delivered straight to your inbox — built exclusively for season ticket holders.</p>
+                <form onsubmit="handleSubscribeSubmit(event)">
+                    <div class="form-group">
+                        <label>Email Address <span style="color:#d4a843;">*</span></label>
+                        <input type="email" id="subscribeEmail" placeholder="your@email.com" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Subscribe &rarr;</button>
+                </form>
+            </div>
+
+            <!-- STEP 2: WHITELIST INSTRUCTIONS (hidden until submit) -->
+            <div id="subscribeConfirm" style="display:none;">
+                <p class="modal-section-tag">You're Subscribed!</p>
+                <h2>One Last Step.</h2>
+                <p style="margin-bottom:1.5rem;">To make sure our newsletters always reach your inbox and never land in spam or promotions, please add <strong>kay&#64;victorykaytickets.com</strong> to your contacts right now.</p>
+
+                <!-- Gmail -->
+                <div style="border:1px solid var(--border);border-left:3px solid var(--gold);padding:16px 18px;margin-bottom:12px;background:#fff;">
+                    <p style="font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px 0;">Gmail</p>
+                    <ol style="margin:0;padding-left:1.2rem;font-size:0.9rem;color:var(--text);line-height:1.9;">
+                        <li>Open an email from us</li>
+                        <li>Click the <strong>three dots</strong> (⋮) in the top right of the email</li>
+                        <li>Click <strong>"Add kay to Contacts"</strong></li>
+                    </ol>
                 </div>
-                <button type="submit" class="submit-btn">Subscribe &rarr;</button>
-            </form>
+
+                <!-- Apple Mail -->
+                <div style="border:1px solid var(--border);border-left:3px solid var(--gold);padding:16px 18px;margin-bottom:12px;background:#fff;">
+                    <p style="font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px 0;">Apple Mail</p>
+                    <ol style="margin:0;padding-left:1.2rem;font-size:0.9rem;color:var(--text);line-height:1.9;">
+                        <li>Open an email from us</li>
+                        <li>Hover over the sender name at the top</li>
+                        <li>Click <strong>"Add to Contacts"</strong></li>
+                    </ol>
+                </div>
+
+                <!-- Outlook -->
+                <div style="border:1px solid var(--border);border-left:3px solid var(--gold);padding:16px 18px;margin-bottom:20px;background:#fff;">
+                    <p style="font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px 0;">Outlook</p>
+                    <ol style="margin:0;padding-left:1.2rem;font-size:0.9rem;color:var(--text);line-height:1.9;">
+                        <li>Open an email from us</li>
+                        <li>Right-click the sender name</li>
+                        <li>Select <strong>"Add to Safe Senders"</strong></li>
+                    </ol>
+                </div>
+
+                <p style="font-size:0.85rem;color:var(--muted);line-height:1.7;">This ensures every newsletter, recap, and market update lands directly in your inbox. Thank you for subscribing!</p>
+            </div>
+
         </div>
     </div>
 
@@ -1496,8 +1540,26 @@
         function closeNewslettersModal() { document.getElementById('newslettersModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
         function openReviewsModal() { document.getElementById('reviewsModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
         function closeReviewsModal() { document.getElementById('reviewsModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
-        function openSubscribeModal() { document.getElementById('subscribeModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function openSubscribeModal() {
+            document.getElementById('subscribeModal').classList.add('active');
+            document.getElementById('subscribeForm').style.display = 'block';
+            document.getElementById('subscribeConfirm').style.display = 'none';
+            document.body.style.overflow = 'hidden';
+        }
         function closeSubscribeModal() { document.getElementById('subscribeModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        async function handleSubscribeSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('subscribeEmail').value;
+            try {
+                await fetch('https://formspree.io/f/mkoqzlpk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+            } catch(err) {}
+            document.getElementById('subscribeForm').style.display = 'none';
+            document.getElementById('subscribeConfirm').style.display = 'block';
+        }
         function toggleMobileMenu() {
             const menu = document.getElementById('mobileMenu');
             menu.classList.toggle('active');
