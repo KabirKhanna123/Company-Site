@@ -41,10 +41,15 @@ const SB  = 'https://unypasitbzulafehbqtj.supabase.co';
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
 
 async function load() {
-  const r = await fetch(`${SB}/rest/v1/events?limit=50&select=id,name,date,venue`, {
+  // Load TM events (real names/dates) sorted by upcoming date
+  const today = new Date().toISOString().split('T')[0];
+  const r = await fetch(`${SB}/rest/v1/events?platform=eq.Ticketmaster&date=gte.${today}&order=date.asc&limit=50&select=id,name,date,venue`, {
     headers:{ apikey:KEY, Authorization:`Bearer ${KEY}` }
   });
-  const events = await r.json();
+  let events = await r.json();
+  // Filter junk
+  const junk = /hotel|voucher|credential|postgame|^dinner$|^section \d/i;
+  events = events.filter(e => e.name && e.name.length > 3 && !junk.test(e.name));
   if (!events.length) { document.getElementById('grid').innerHTML='<div class="msg">No events found.</div>'; return; }
   document.getElementById('grid').innerHTML = events.map(ev => `
     <div class="card">
