@@ -239,8 +239,8 @@
   <div class="filter-group">
     <span class="filter-lbl">Data</span>
     <div class="data-toggle">
-      <button class="data-toggle-btn" id="toggle-primary" onclick="setDataFilter('primary')">Primary</button>
-      <button class="data-toggle-btn active-secondary" id="toggle-secondary" onclick="setDataFilter('secondary')">Secondary</button>
+      <button class="data-toggle-btn active-primary" id="toggle-primary" onclick="setDataFilter('primary')">Primary</button>
+      <button class="data-toggle-btn" id="toggle-secondary" onclick="setDataFilter('secondary')">Secondary</button>
     </div>
   </div>
 
@@ -417,7 +417,7 @@ let filteredEvents = [];
 let currentEvent = null;
 let detailRows = [];
 let detailSortKey = 'floor', detailSortDir = 1;
-let dataFilter = 'secondary'; // 'all', 'primary', 'secondary'
+let dataFilter = 'primary'; // 'all', 'primary', 'secondary'
 
 // ── HELPERS ──
 function isTM(id) { return String(id).startsWith('tm_'); }
@@ -547,11 +547,8 @@ function setDataFilter(type) {
 }
 
 function applyDataFilter() {
-  let base = [...allEvents];
-  if (dataFilter === 'primary')   base = base.filter(ev => isTM(ev.id));
-  else base = base.filter(ev => isStubHub(ev.id));
-  filteredEvents = base;
-  filterEvents(false);
+  // Reload data for the selected platform
+  loadAll();
 }
 
 // ── STATS ──
@@ -684,11 +681,9 @@ function parseEventParts(name) {
 function isJunkName(name) {
   if (!name) return true;
   if (name.length < 3) return true;
-  // Filter out page titles that got scraped instead of event names
-  const junk = /^(buy |can i |how |what |when |where |why |tickets for |los angeles |new york |chicago |boston )/i;
-  const junkWords = /(tickets|event|2026 event|api|seatgeek data|nba basketball|nfl football|nhl hockey|mlb baseball|mls soccer|nba playoffs|concert 2026)/i;
+  // Only filter out the most obvious junk
+  const junk = /^(buy |can i use |how to |what is |when is |where is )/i;
   if (junk.test(name)) return true;
-  if (junkWords.test(name) && name.split(' ').length > 3) return true;
   return false;
 }
 
