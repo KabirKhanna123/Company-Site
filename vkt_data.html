@@ -551,7 +551,7 @@ function applyDataFilter() {
   if (dataFilter === 'primary')   base = base.filter(ev => isTM(ev.id));
   else base = base.filter(ev => isStubHub(ev.id));
   filteredEvents = base;
-  filterEvents(true);
+  filterEvents(false);
 }
 
 // ── STATS ──
