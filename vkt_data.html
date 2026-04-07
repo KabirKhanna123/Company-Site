@@ -3,996 +3,199 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VKT Data — Victory Kay Tickets</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>VKT Market Data</title>
   <style>
-    :root {
-      --black: #0c0c0c;
-      --gold: #d4a843;
-      --gold-light: #f0d890;
-      --gold-bg: #fdf5e0;
-      --white: #ffffff;
-      --off-white: #f7f6f3;
-      --light: #f0eeea;
-      --border: #e4e2dc;
-      --text: #1a1a1a;
-      --muted: #888880;
-      --faint: #b8b4aa;
-      --green: #2a7a3a;
-      --green-bg: #edf8ed;
-      --red: #c0392b;
-      --red-bg: #fcecea;
-      --primary-color: #1a4a8a;
-      --primary-bg: #eef3fc;
-      --primary-border: #b0c8f0;
-      --secondary-color: #a07820;
-      --secondary-bg: #fff8e8;
-      --secondary-border: #f0d890;
-    }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Outfit',sans-serif; background:var(--off-white); color:var(--text); min-height:100vh; }
-
-    /* NAV */
-    nav { position:sticky; top:0; z-index:100; background:var(--black); padding:0 3rem; height:56px; display:flex; align-items:center; justify-content:space-between; }
-    .nav-logo { font-size:12px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--white); text-decoration:none; }
-    .nav-logo span { color:var(--gold); }
-    .nav-tag { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--gold); background:rgba(212,168,67,0.15); border:1px solid rgba(212,168,67,0.3); padding:3px 10px; }
-    .nav-right { display:flex; align-items:center; gap:1.5rem; }
-    .nav-link { font-size:11px; color:var(--muted); text-decoration:none; letter-spacing:1px; transition:color 0.2s; cursor:pointer; }
-    .nav-link:hover { color:var(--white); }
-
-    /* PAGE HEADER */
-    .page-header { background:var(--white); border-bottom:2px solid var(--gold); padding:2rem 3rem 1.5rem; }
-    .breadcrumb { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--muted); margin-bottom:10px; letter-spacing:1px; }
-    .breadcrumb span { cursor:pointer; transition:color 0.15s; text-transform:uppercase; } 
-    .breadcrumb span:hover { color:var(--gold); }
-    .breadcrumb-sep { color:var(--faint); }
-    .page-title { font-size:28px; font-weight:300; color:var(--black); letter-spacing:-0.5px; }
-    .page-title strong { font-weight:700; color:var(--gold); }
-    .page-subtitle { font-size:12px; color:var(--muted); margin-top:4px; letter-spacing:0.5px; }
-
-    /* STAT STRIP */
-    .stat-strip { display:flex; gap:1px; background:var(--border); border:1px solid var(--border); margin-top:1.5rem; }
-    .stat-card { flex:1; background:var(--white); padding:1rem 1.25rem; border-top:2px solid transparent; transition:border-color 0.2s; }
-    .stat-card:hover { border-top-color:var(--gold); }
-    .stat-label { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; font-weight:600; }
-    .stat-value { font-size:26px; font-weight:300; color:var(--black); font-family:'DM Mono',monospace; }
-    .stat-value strong { font-weight:700; }
-    .stat-sub { font-size:10px; color:var(--faint); margin-top:3px; }
-
-    /* TOOLBAR */
-    .toolbar { background:var(--white); border-bottom:1px solid var(--border); padding:0.85rem 3rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
-    .search-wrap { position:relative; max-width:280px; flex:1; }
-    .search-wrap input { width:100%; padding:7px 12px 7px 30px; border:1px solid var(--border); background:var(--off-white); font-size:12px; font-family:'Outfit',sans-serif; color:var(--text); outline:none; transition:border-color 0.2s; border-radius:2px; }
-    .search-wrap input:focus { border-color:var(--gold); background:var(--white); }
-    .search-wrap input::placeholder { color:var(--faint); }
-    .search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--faint); }
-    .toolbar-spacer { flex:1; }
-    .export-btn { padding:7px 14px; background:var(--off-white); border:1px solid var(--border); font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s; border-radius:2px; }
-    .export-btn:hover { border-color:var(--gold); color:var(--gold); background:var(--gold-bg); }
-    .filter-group { display:flex; align-items:center; gap:6px; }
-    .filter-lbl { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); font-weight:600; white-space:nowrap; }
-    .filter-sel { background:var(--off-white); border:1px solid var(--border); color:var(--text); font-size:11px; padding:6px 10px; font-family:'Outfit',sans-serif; outline:none; cursor:pointer; border-radius:2px; transition:border-color 0.2s; }
-    .filter-sel:focus { border-color:var(--gold); }
-
-    /* DATA TYPE TOGGLE */
-    .data-toggle { display:flex; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:2px; overflow:hidden; }
-    .data-toggle-btn { padding:6px 14px; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border:none; font-family:'Outfit',sans-serif; transition:all 0.15s; background:var(--off-white); color:var(--muted); }
-    .data-toggle-btn.active-all { background:var(--black); color:var(--white); }
-    .data-toggle-btn.active-primary { background:var(--primary-color); color:var(--white); }
-    .data-toggle-btn.active-secondary { background:var(--secondary-color); color:var(--white); }
-
-    /* MAIN */
-    .main { padding:2rem 3rem; }
-    .error-banner { background:#fff5f5; border:1px solid #f0c0c0; padding:10px 14px; font-size:12px; color:var(--red); margin-bottom:1.5rem; display:none; border-radius:2px; }
-
-    /* EVENTS GRID */
-    .section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
-    .section-title { font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text); }
-    .section-count { font-family:'DM Mono',monospace; font-size:11px; color:var(--faint); }
-    .events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); }
-
-    .event-card { background:var(--white); padding:1.25rem 1.5rem; cursor:pointer; transition:background 0.15s; position:relative; border-left:3px solid transparent; }
-    .event-card:hover { background:#fdf9f2; border-left-color:var(--gold); }
-    .event-card.primary { border-left-color:var(--primary-color); }
-    .event-card.secondary { border-left-color:var(--secondary-color); }
-    .event-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; }
-    .event-name { font-size:14px; font-weight:600; color:var(--black); line-height:1.3; }
-    .event-subtitle { font-size:11px; color:var(--muted); margin-top:2px; font-style:italic; }
-    .arrow { font-size:18px; color:var(--gold); opacity:0.3; transform:translateX(-4px); transition:all 0.2s; flex-shrink:0; }
-    .event-card:hover .arrow { opacity:1; transform:translateX(0); }
-
-    .event-meta { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
-    .meta-tag { font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; padding:2px 7px; }
-    .meta-tag.primary-tag { background:var(--primary-bg); color:var(--primary-color); border:1px solid var(--primary-border); }
-    .meta-tag.secondary-tag { background:var(--secondary-bg); color:var(--secondary-color); border:1px solid var(--secondary-border); }
-    .meta-tag.date-tag { background:var(--off-white); color:var(--muted); border:1px solid var(--border); }
-    .meta-tag.venue-tag { background:var(--off-white); color:var(--muted); border:1px solid var(--border); }
-
-    .event-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); }
-    .event-stat { background:var(--off-white); padding:8px 10px; text-align:center; }
-    .event-stat-label { font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:3px; font-weight:600; }
-    .event-stat-val { font-size:15px; font-weight:700; color:var(--black); font-family:'DM Mono',monospace; }
-    .event-stat-val.gold { color:var(--gold); }
-    .event-stat-val.green { color:var(--green); }
-    .event-stat-val.red { color:var(--red); }
-    .event-stat-val.muted { color:var(--muted); font-weight:400; }
-
-    /* DETAIL VIEW */
-    #detail-view { display:none; }
-    .detail-header { background:var(--white); border:1px solid var(--border); border-top:3px solid var(--gold); padding:1.5rem; margin-bottom:1.5rem; }
-    .detail-event-name { font-size:22px; font-weight:700; color:var(--black); margin-bottom:2px; }
-    .detail-event-sub { font-size:13px; color:var(--muted); margin-bottom:10px; font-style:italic; }
-    .detail-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:1.2rem; }
-    .detail-stat-strip { display:flex; gap:1px; background:var(--border); border:1px solid var(--border); }
-    .detail-stat { flex:1; background:var(--off-white); padding:10px 14px; text-align:center; }
-    .detail-stat-label { font-size:8px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; font-weight:600; }
-    .detail-stat-val { font-size:20px; font-weight:700; color:var(--black); font-family:'DM Mono',monospace; }
-    .detail-stat-val.gold { color:var(--gold); }
-    .detail-stat-val.green { color:var(--green); }
-
-    /* DATA SOURCE PANELS */
-    .data-panels { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem; }
-    .data-panel { background:var(--white); border:1px solid var(--border); padding:1.25rem; }
-    .data-panel-header { display:flex; align-items:center; gap:8px; margin-bottom:1rem; padding-bottom:10px; border-bottom:1px solid var(--border); }
-    .data-panel-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-    .data-panel-dot.primary { background:var(--primary-color); }
-    .data-panel-dot.secondary { background:var(--secondary-color); }
-    .data-panel-title { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
-    .data-panel-title.primary { color:var(--primary-color); }
-    .data-panel-title.secondary { color:var(--secondary-color); }
-    .data-panel-sub { font-size:10px; color:var(--muted); margin-left:auto; }
-    .panel-stat-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); }
-    .panel-stat-row:last-child { border-bottom:none; }
-    .panel-stat-label { font-size:11px; color:var(--muted); }
-    .panel-stat-val { font-size:13px; font-weight:600; font-family:'DM Mono',monospace; color:var(--black); }
-    .panel-stat-val.gold { color:var(--gold); }
-    .panel-stat-val.green { color:var(--green); }
-    .panel-stat-val.red { color:var(--red); }
-    .panel-empty { font-size:11px; color:var(--faint); text-align:center; padding:1rem 0; font-style:italic; }
-
-    /* TABLE */
-    .table-toolbar { background:var(--white); border:1px solid var(--border); padding:0.75rem 1rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1px; }
-    .table-wrap { background:var(--white); border:1px solid var(--border); overflow:auto; }
-    table { width:100%; border-collapse:collapse; min-width:600px; }
-    thead tr { background:var(--off-white); border-bottom:2px solid var(--border); }
-    th { padding:10px 16px; text-align:left; font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); cursor:pointer; white-space:nowrap; user-select:none; transition:color 0.15s; }
-    th:hover { color:var(--black); }
-    th.sorted { color:var(--black); }
-    th .si { margin-left:4px; color:var(--gold); }
-    td { padding:10px 16px; font-size:12px; color:var(--text); border-bottom:1px solid var(--border); white-space:nowrap; }
-    tbody tr:last-child td { border-bottom:none; }
-    tbody tr:hover td { background:var(--off-white); }
-    td.mono { font-family:'DM Mono',monospace; font-size:12px; }
-    td.gold { color:var(--gold); font-weight:700; }
-    td.green { color:var(--green); font-weight:700; }
-    td.red { color:var(--red); font-weight:700; }
-    td.muted { color:var(--muted); }
-    .trend { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; padding:2px 7px; font-family:'DM Mono',monospace; }
-    .trend.up { background:var(--green-bg); color:var(--green); }
-    .trend.down { background:var(--red-bg); color:var(--red); }
-    .trend.flat { background:var(--off-white); color:var(--muted); }
-
-    /* LOADING */
-    .loading { padding:3rem; text-align:center; }
-    .spinner { width:24px; height:24px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 12px; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    .loading-text { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
-    .empty { padding:3rem; text-align:center; color:var(--faint); font-size:13px; }
-
-    /* SEARCHABLE DROPDOWN */
-    .search-select { position:relative; }
-    .search-select-input { width:100%; padding:6px 28px 6px 10px; border:1px solid var(--border); background:var(--off-white); font-size:11px; font-family:'Outfit',sans-serif; color:var(--text); outline:none; cursor:pointer; border-radius:2px; transition:border-color 0.2s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .search-select-input:focus { border-color:var(--gold); background:var(--white); }
-    .search-select-arrow { position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:9px; color:var(--muted); pointer-events:none; }
-    .search-select-dropdown { display:none; position:absolute; top:100%; left:0; min-width:220px; background:var(--white); border:1px solid var(--border); border-top:2px solid var(--gold); z-index:500; box-shadow:0 4px 16px rgba(0,0,0,0.1); max-height:280px; flex-direction:column; }
-    .search-select-dropdown.open { display:flex; }
-    .search-select-search { padding:8px 10px; border-bottom:1px solid var(--border); }
-    .search-select-search input { width:100%; padding:5px 8px; border:1px solid var(--border); font-size:11px; font-family:'Outfit',sans-serif; outline:none; background:var(--off-white); border-radius:2px; }
-    .search-select-search input:focus { border-color:var(--gold); background:var(--white); }
-    .search-select-list { overflow-y:auto; max-height:220px; }
-    .search-select-option { padding:7px 12px; font-size:12px; cursor:pointer; transition:background 0.1s; color:var(--text); white-space:nowrap; }
-    .search-select-option:hover { background:var(--gold-bg); color:var(--black); }
-    .search-select-option.selected { background:var(--gold-bg); font-weight:600; color:var(--gold); }
-    .search-select-option.all-option { color:var(--muted); font-style:italic; border-bottom:1px solid var(--border); }
-    .search-select-empty { padding:10px 12px; font-size:11px; color:var(--faint); font-style:italic; text-align:center; }
-
-    @media (max-width:768px) { 
-      nav, .page-header, .toolbar, .main { padding-left:1.25rem; padding-right:1.25rem; }
-      .events-grid { grid-template-columns:1fr; }
-      .data-panels { grid-template-columns:1fr; }
-    }
+    body { font-family: Arial, sans-serif; background:#0c0c0c; color:#fff; }
+    nav { background:#0c0c0c; border-bottom:1px solid #222; padding:0 2rem; height:56px; display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-size:12px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#fff; }
+    .logo span { color:#d4a843; }
+    .header { padding:2rem; border-bottom:1px solid #1e1e1e; }
+    .title { font-size:24px; font-weight:300; color:#fff; margin-bottom:4px; }
+    .title strong { color:#d4a843; }
+    .subtitle { font-size:12px; color:#555; }
+    .toolbar { padding:1rem 2rem; border-bottom:1px solid #1e1e1e; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+    .toggle { display:flex; gap:1px; }
+    .toggle button { padding:7px 16px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border:none; font-family:Arial; background:#1e1e1e; color:#555; }
+    .toggle button.active { background:#d4a843; color:#0c0c0c; }
+    input[type=text] { padding:7px 12px; background:#1e1e1e; border:1px solid #333; color:#fff; font-size:12px; width:200px; outline:none; }
+    input[type=text]:focus { border-color:#d4a843; }
+    select { padding:7px 10px; background:#1e1e1e; border:1px solid #333; color:#fff; font-size:11px; outline:none; cursor:pointer; }
+    .main { padding:1.5rem 2rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1px; background:#1e1e1e; }
+    .card { background:#111; padding:1.25rem; cursor:pointer; transition:background 0.15s; border-left:3px solid #1e1e1e; }
+    .card:hover { background:#161616; border-left-color:#d4a843; }
+    .card-name { font-size:13px; font-weight:600; color:#fff; margin-bottom:4px; line-height:1.3; }
+    .card-meta { font-size:10px; color:#555; margin-bottom:12px; }
+    .card-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:#1e1e1e; }
+    .card-stat { background:#0c0c0c; padding:8px; text-align:center; }
+    .card-stat-label { font-size:8px; letter-spacing:1px; text-transform:uppercase; color:#444; margin-bottom:3px; }
+    .card-stat-val { font-size:15px; font-weight:700; color:#fff; font-family:monospace; }
+    .card-stat-val.gold { color:#d4a843; }
+    .badge { display:inline-block; font-size:8px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 6px; margin-right:4px; }
+    .badge.primary { background:rgba(26,74,138,0.3); color:#6a9fd8; }
+    .badge.secondary { background:rgba(160,120,32,0.3); color:#d4a843; }
+    .empty { padding:4rem; text-align:center; color:#333; font-size:14px; }
+    .loading-msg { padding:4rem; text-align:center; color:#444; font-size:11px; letter-spacing:3px; }
+    #detail { display:none; padding:1.5rem 2rem; }
+    .back-btn { background:none; border:1px solid #333; color:#888; padding:6px 14px; font-size:11px; cursor:pointer; margin-bottom:1.5rem; font-family:Arial; }
+    .back-btn:hover { border-color:#d4a843; color:#d4a843; }
+    .detail-name { font-size:20px; font-weight:700; color:#fff; margin-bottom:6px; }
+    .detail-meta { font-size:12px; color:#555; margin-bottom:1.5rem; }
+    .panels { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+    .panel { background:#111; border:1px solid #1e1e1e; padding:1.25rem; }
+    .panel-title { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#d4a843; margin-bottom:1rem; padding-bottom:8px; border-bottom:1px solid #1e1e1e; }
+    .panel-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #161616; font-size:12px; }
+    .panel-row:last-child { border:none; }
+    .panel-label { color:#555; }
+    .panel-val { color:#fff; font-family:monospace; font-weight:600; }
+    .panel-val.gold { color:#d4a843; }
+    .panel-empty { color:#333; font-size:11px; font-style:italic; text-align:center; padding:1rem 0; }
+    table { width:100%; border-collapse:collapse; background:#111; }
+    th { padding:8px 12px; text-align:left; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#444; background:#0c0c0c; }
+    td { padding:9px 12px; font-size:12px; color:#888; border-bottom:1px solid #1a1a1a; font-family:monospace; }
+    td:first-child { color:#fff; font-family:Arial; }
+    td.gold { color:#d4a843; font-weight:700; }
+    tbody tr:hover td { background:#161616; }
+    @media(max-width:600px) { .panels { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
-
 <nav>
-  <a class="nav-logo" href="/">Victory Kay <span>Tickets</span></a>
-  <div class="nav-right">
-    <span class="nav-tag">&#x2713; Subscriber</span>
-    <a class="nav-link" href="/">&#x2190; Back to site</a>
-  </div>
+  <div class="logo">Victory Kay <span>Tickets</span></div>
+  <a href="/" style="color:#555;font-size:11px;text-decoration:none;">← Back</a>
 </nav>
-
-<div class="page-header">
-  <div class="breadcrumb" id="breadcrumb">
-    <span onclick="showEvents()">All Events</span>
-  </div>
-  <div class="page-title"><strong>VKT</strong> Market Data</div>
-  <div class="page-subtitle">Primary = Ticketmaster face-value data · Secondary = StubHub resale market data</div>
-  <div class="stat-strip" id="stat-strip">
-    <div class="stat-card"><div class="stat-label">Events Tracked</div><div class="stat-value" id="stat-events"><strong>—</strong></div><div class="stat-sub">all platforms</div></div>
-    <div class="stat-card"><div class="stat-label">Total Snapshots</div><div class="stat-value" id="stat-snaps"><strong>—</strong></div><div class="stat-sub">data points logged</div></div>
-    <div class="stat-card"><div class="stat-label">Avg Secondary Floor</div><div class="stat-value" id="stat-floor"><strong>—</strong></div><div class="stat-sub">resale market</div></div>
-    <div class="stat-card"><div class="stat-label">Avg Primary Floor</div><div class="stat-value" id="stat-primary"><strong>—</strong></div><div class="stat-sub">face value</div></div>
-  </div>
+<div class="header">
+  <div class="title"><strong>VKT</strong> Market Data</div>
+  <div class="subtitle">Primary = Ticketmaster face value · Secondary = StubHub resale</div>
 </div>
-
 <div class="toolbar">
-  <div class="search-wrap">
-    <span class="search-icon">⌕</span>
-    <input type="text" id="search-input" placeholder="Search events…" oninput="filterEvents()" />
+  <div class="toggle">
+    <button id="btn-primary" class="active" onclick="setFilter('primary')">Primary</button>
+    <button id="btn-secondary" onclick="setFilter('secondary')">Secondary</button>
   </div>
-
-  <!-- PRIMARY / SECONDARY FILTER -->
-  <div class="filter-group">
-    <span class="filter-lbl">Data</span>
-    <div class="data-toggle">
-      <button class="data-toggle-btn active-primary" id="toggle-primary" onclick="setDataFilter('primary')">Primary</button>
-      <button class="data-toggle-btn" id="toggle-secondary" onclick="setDataFilter('secondary')">Secondary</button>
-    </div>
-  </div>
-
-  <div class="filter-group">
-    <span class="filter-lbl">Show Next</span>
-    <select class="filter-sel" id="date-window" onchange="loadAll()">
-      <option value="7" selected>7 Days</option>
-      <option value="14">14 Days</option>
-      <option value="30">30 Days</option>
-      <option value="60">60 Days</option>
-      <option value="90">90 Days</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-lbl">Change</span>
-    <select class="filter-sel" id="change-window" onchange="renderEvents()">
-      <option value="3">3 Days</option>
-      <option value="7" selected>7 Days</option>
-      <option value="14">14 Days</option>
-      <option value="30">30 Days</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <span class="filter-lbl">Performer</span>
-    <div class="search-select" id="ss-performer">
-      <div class="search-select-input" id="ss-performer-display" onclick="toggleSS('performer')">All</div>
-      <span class="search-select-arrow">▼</span>
-      <div class="search-select-dropdown" id="ss-performer-dropdown">
-        <div class="search-select-search"><input type="text" placeholder="Search performers…" oninput="searchSS('performer',this.value)" id="ss-performer-search" /></div>
-        <div class="search-select-list" id="ss-performer-list"></div>
-      </div>
-    </div>
-  </div>
-  <div class="filter-group">
-    <span class="filter-lbl">Venue</span>
-    <div class="search-select" id="ss-venue">
-      <div class="search-select-input" id="ss-venue-display" onclick="toggleSS('venue')">All</div>
-      <span class="search-select-arrow">▼</span>
-      <div class="search-select-dropdown" id="ss-venue-dropdown">
-        <div class="search-select-search"><input type="text" placeholder="Search venues…" oninput="searchSS('venue',this.value)" id="ss-venue-search" /></div>
-        <div class="search-select-list" id="ss-venue-list"></div>
-      </div>
-    </div>
-  </div>
-  <div class="filter-group">
-    <span class="filter-lbl">Opponent / Artist</span>
-    <div class="search-select" id="ss-opponent">
-      <div class="search-select-input" id="ss-opponent-display" onclick="toggleSS('opponent')">All</div>
-      <span class="search-select-arrow">▼</span>
-      <div class="search-select-dropdown" id="ss-opponent-dropdown">
-        <div class="search-select-search"><input type="text" placeholder="Search…" oninput="searchSS('opponent',this.value)" id="ss-opponent-search" /></div>
-        <div class="search-select-list" id="ss-opponent-list"></div>
-      </div>
-    </div>
-  </div>
-  <div class="filter-group">
-    <span class="filter-lbl">Sort</span>
-    <select class="filter-sel" id="sort-sel" onchange="sortEvents()">
-      <option value="date">Event Date</option>
-      <option value="name">Event Name</option>
-      <option value="floor">Secondary Floor</option>
-      <option value="listings">Total Listings</option>
-    </select>
-  </div>
-  <div class="toolbar-spacer"></div>
-  <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
+  <input type="text" id="search" placeholder="Search events..." oninput="render()">
+  <select id="sort" onchange="render()">
+    <option value="date">Sort: Date</option>
+    <option value="name">Sort: Name</option>
+    <option value="floor">Sort: Floor Price</option>
+  </select>
 </div>
-
-<div class="main">
-  <div id="error-banner" class="error-banner">Unable to reach VKT API — showing demo data.</div>
-
-  <!-- EVENTS LIST -->
-  <div id="events-view">
-    <div class="section-hdr">
-      <div class="section-title" id="events-section-title">All Events</div>
-      <div class="section-count" id="events-count">Loading…</div>
-    </div>
-    <div class="events-grid" id="events-grid">
-      <div style="grid-column:1/-1;padding:3rem;text-align:center;">
-        <div class="spinner" style="margin:0 auto 12px;"></div>
-        <div class="loading-text">Loading events…</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DETAIL VIEW -->
-  <div id="detail-view">
-    <div class="detail-header">
-      <div class="detail-event-name" id="detail-name">—</div>
-      <div class="detail-event-sub" id="detail-sub"></div>
-      <div class="detail-meta" id="detail-meta"></div>
-      <div class="detail-stat-strip" id="detail-stats"></div>
-    </div>
-
-    <!-- PRIMARY vs SECONDARY PANELS -->
-    <div class="data-panels" id="data-panels">
-      <div class="data-panel">
-        <div class="data-panel-header">
-          <div class="data-panel-dot primary"></div>
-          <div class="data-panel-title primary">Primary Market</div>
-          <div class="data-panel-sub">Ticketmaster face value</div>
-        </div>
-        <div id="primary-panel-content"><div class="panel-empty">No primary data available</div></div>
-      </div>
-      <div class="data-panel">
-        <div class="data-panel-header">
-          <div class="data-panel-dot secondary"></div>
-          <div class="data-panel-title secondary">Secondary Market</div>
-          <div class="data-panel-sub">StubHub resale</div>
-        </div>
-        <div id="secondary-panel-content"><div class="panel-empty">No secondary data available</div></div>
-      </div>
-    </div>
-
-    <!-- SECTION TABLE -->
-    <div class="table-toolbar">
-      <div class="filter-group">
-        <span class="filter-lbl">Days</span>
-        <select class="filter-sel" id="detail-days-sel" onchange="buildDetailRows(); renderDetailTable()">
-          <option value="3">Last 3 Days</option>
-          <option value="7" selected>Last 7 Days</option>
-          <option value="14">Last 14 Days</option>
-          <option value="30">Last 30 Days</option>
-          <option value="9999">All Time</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-lbl">Row</span>
-        <select class="filter-sel" id="detail-row-sel" onchange="renderDetailTable()">
-          <option value="">All Rows</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-lbl">Sort</span>
-        <select class="filter-sel" id="detail-sort-sel" onchange="sortDetail()">
-          <option value="section">Section</option>
-          <option value="floor">Floor Price</option>
-          <option value="avg">ATP</option>
-          <option value="ceiling">Ceiling</option>
-          <option value="trend">Trend</option>
-        </select>
-      </div>
-      <div class="toolbar-spacer"></div>
-      <div class="section-count" id="detail-count"></div>
-      <button class="export-btn" onclick="exportDetailCSV()">↓ Export CSV</button>
-    </div>
-    <div class="section-hdr" style="margin-top:1rem;">
-      <div class="section-title">Section Breakdown — Secondary Market</div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th onclick="detailSort('section')">Section <span class="si" id="th-section"></span></th>
-            <th onclick="detailSort('floor')">Floor <span class="si" id="th-floor"></span></th>
-            <th onclick="detailSort('avg')">ATP <span class="si" id="th-avg"></span></th>
-            <th onclick="detailSort('ceiling')">Ceiling <span class="si" id="th-ceiling"></span></th>
-            <th onclick="detailSort('listings')">Listings <span class="si" id="th-listings"></span></th>
-            <th onclick="detailSort('trend')">Floor Trend <span class="si" id="th-trend"></span></th>
-          </tr>
-        </thead>
-        <tbody id="detail-tbody"></tbody>
-      </table>
-    </div>
-  </div>
+<div class="main" id="main-view">
+  <div class="loading-msg" id="loading-msg">LOADING...</div>
+  <div class="grid" id="grid"></div>
 </div>
-
+<div id="detail">
+  <button class="back-btn" onclick="showList()">← All Events</button>
+  <div class="detail-name" id="d-name"></div>
+  <div class="detail-meta" id="d-meta"></div>
+  <div class="panels" id="d-panels"></div>
+  <div id="d-table"></div>
+</div>
 <script>
-const SUPABASE_URL = 'https://unypasitbzulafehbqtj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+const SB = 'https://unypasitbzulafehbqtj.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+let events=[], snaps=[], mode='primary';
 
-let allEvents = [], allSnapshots = [];
-let filteredEvents = [];
-let currentEvent = null;
-let detailRows = [];
-let detailSortKey = 'floor', detailSortDir = 1;
-let dataFilter = 'primary'; // 'all', 'primary', 'secondary'
-
-// ── HELPERS ──
-function isTM(id) { return String(id).startsWith('tm_'); }
-function isStubHub(id) { return !isTM(id); }
-
-// Get canonical event name — prefer TM name for matched events
-function getCanonicalName(ev) {
-  // If it's a TM event, use TM name directly
-  if (isTM(ev.id)) return ev.name;
-  // If it's a StubHub event, look for a matching TM event
-  const tmMatch = findTMMatch(ev);
-  if (tmMatch) return tmMatch.name;
-  return ev.name;
-}
-
-// Match StubHub event to TM event by date + venue similarity
-function findTMMatch(shEvent) {
-  if (!shEvent.date) return null;
-  return allEvents.find(ev => {
-    if (!isTM(ev.id)) return false;
-    if (ev.date !== shEvent.date) return false;
-    // Check venue similarity
-    const shVenue = (shEvent.venue || '').toLowerCase().split(',')[0];
-    const tmVenue = (ev.venue || '').toLowerCase().split(',')[0];
-    if (shVenue && tmVenue && shVenue.length > 3 && tmVenue.length > 3) {
-      return shVenue.includes(tmVenue.slice(0,8)) || tmVenue.includes(shVenue.slice(0,8));
-    }
-    return false;
-  });
-}
-
-// Get all StubHub events matched to a TM event
-function getMatchedSHEvents(tmEvent) {
-  if (!isTM(tmEvent.id) || !tmEvent.date) return [];
-  return allEvents.filter(ev => {
-    if (isTM(ev.id)) return false;
-    if (ev.date !== tmEvent.date) return false;
-    const shVenue = (ev.venue || '').toLowerCase().split(',')[0];
-    const tmVenue = (tmEvent.venue || '').toLowerCase().split(',')[0];
-    if (shVenue && tmVenue && shVenue.length > 3 && tmVenue.length > 3) {
-      return shVenue.includes(tmVenue.slice(0,8)) || tmVenue.includes(shVenue.slice(0,8));
-    }
-    return true; // same date, assume match if no venue
-  });
-}
-
-// ── FETCH ──
-async function fetchSupabase(table, select, params) {
-  const q = params ? '&' + params : '';
-  const url = `${SUPABASE_URL}/rest/v1/${table}?select=${select}${q}`;
-  const r = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
-  if (!r.ok) throw new Error('Supabase error ' + r.status);
+async function q(table, params) {
+  const r = await fetch(`${SB}/rest/v1/${table}?${params}`, { headers:{ apikey:KEY, Authorization:`Bearer ${KEY}` } });
   return r.json();
 }
 
-async function loadAll() {
-  try {
-    // Load by platform only — no date filter (many events have empty dates)
-    const isPrimary = dataFilter === 'primary';
-    const platformFilter = isPrimary ? 'platform=eq.Ticketmaster' : 'platform=neq.Ticketmaster';
-
-    const events = await fetchSupabase(
-      'events',
-      'id,name,date,venue,platform',
-      `${platformFilter}&order=date.asc&limit=50`
-    );
-    allEvents = events || [];
-
-    // Load snapshots only for those 50 events
-    if (allEvents.length) {
-      const ids = allEvents.map(e => e.id).join(',');
-      const snaps = await fetchSupabase(
-        'volume_snapshots',
-        'id,event_id,total_listings,section,section_listings,event_floor,section_floor,section_avg,section_ceiling,scraped_at',
-        `event_id=in.(${ids})&order=scraped_at.desc&limit=300`
-      );
-      allSnapshots = snaps || [];
-    } else {
-      allSnapshots = [];
-    }
-
-  } catch(e) {
-    console.error('Load error:', e);
-    document.getElementById('error-banner').style.display = 'block';
-    loadDemoData();
-  }
-  filteredEvents = [...allEvents];
-  applyDataFilter();
-  populateFilters();
-  updateStats();
+async function load() {
+  document.getElementById('loading-msg').textContent = 'LOADING...';
+  document.getElementById('loading-msg').style.display = 'block';
+  document.getElementById('grid').innerHTML = '';
+  const plat = mode==='primary' ? 'Ticketmaster' : 'StubHub';
+  events = await q('events', `platform=eq.${plat}&order=date.asc&limit=100&select=id,name,date,venue,platform`);
+  if (events.length) {
+    const ids = events.map(e=>e.id).join(',');
+    snaps = await q('volume_snapshots', `event_id=in.(${ids})&order=scraped_at.desc&limit=500&select=id,event_id,total_listings,event_floor,section_floor,section_avg,section_ceiling,section,section_listings,scraped_at`);
+  } else snaps = [];
+  document.getElementById('loading-msg').style.display = 'none';
+  render();
 }
 
-function loadDemoData() {
-  allEvents = [
-    { id:'tm_G5vYZ9Y4Mba', name:'Phoenix Suns at Los Angeles Lakers', date:'2026-04-10', venue:'Crypto.com Arena, Los Angeles, CA', platform:'Ticketmaster' },
-    { id:'159098506', name:'Suns at Lakers', date:'2026-04-10', venue:'Crypto.com Arena, Los Angeles, CA', platform:'StubHub' },
-    { id:'tm_G5dHZ9R4Mab', name:'New York Mets at Los Angeles Dodgers', date:'2026-04-15', venue:'Dodger Stadium, Los Angeles, CA', platform:'Ticketmaster' },
-    { id:'159257636', name:'Rangers @ Dodgers', date:'2026-04-15', venue:'Dodger Stadium, Los Angeles, CA', platform:'StubHub' },
-  ];
-  allSnapshots = [];
-  allEvents.forEach(ev => {
-    for (let i = 0; i < 5; i++) {
-      const floor = isTM(ev.id) ? 40 + Math.floor(Math.random()*60) : 80 + Math.floor(Math.random()*120);
-      allSnapshots.push({
-        id: Math.random(), event_id: ev.id,
-        total_listings: isTM(ev.id) ? 0 : 400 + Math.floor(Math.random()*400),
-        section: isTM(ev.id) ? null : ['101','102','103','201','202','301','302'][Math.floor(Math.random()*7)],
-        section_listings: isTM(ev.id) ? 0 : 2 + Math.floor(Math.random()*15),
-        event_floor: floor,
-        section_floor: floor + Math.floor(Math.random()*20),
-        section_avg: floor + 40 + Math.floor(Math.random()*60),
-        section_ceiling: floor + 120 + Math.floor(Math.random()*100),
-        scraped_at: new Date(Date.now() - (i * 86400000 * 5)).toISOString()
-      });
-    }
+function gs(id) { return snaps.filter(s=>s.event_id===id); }
+function sum(id) {
+  const s=gs(id);
+  const fl=s.filter(x=>x.event_floor>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
+  const li=s.filter(x=>x.total_listings>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
+  const at=s.filter(x=>x.section_avg>0);
+  return { floor:fl[0]?.event_floor||null, listings:li[0]?.total_listings||null, atp:at.length?Math.round(at.reduce((a,x)=>a+x.section_avg,0)/at.length):null, sections:new Set(s.filter(x=>x.section).map(x=>x.section)).size };
+}
+
+function render() {
+  const q2=document.getElementById('search').value.toLowerCase();
+  const sort=document.getElementById('sort').value;
+  let list=events.filter(e=>!q2||(e.name||'').toLowerCase().includes(q2));
+  list.sort((a,b)=>{
+    if(sort==='date') return (a.date||'').localeCompare(b.date||'');
+    if(sort==='name') return (a.name||'').localeCompare(b.name||'');
+    if(sort==='floor') return (sum(b.id).floor||0)-(sum(a.id).floor||0);
+    return 0;
   });
-}
-
-// ── DATA FILTER ──
-function setDataFilter(type) {
-  dataFilter = type;
-  ['primary','secondary'].forEach(t => {
-    const btn = document.getElementById('toggle-' + t);
-    btn.className = 'data-toggle-btn' + (type === t ? ' active-' + t : '');
-  });
-  applyDataFilter();
-}
-
-function applyDataFilter() {
-  // Reload data for the selected platform
-  loadAll();
-}
-
-// ── STATS ──
-function updateStats() {
-  document.getElementById('stat-events').innerHTML = '<strong>' + allEvents.length + '</strong>';
-  document.getElementById('stat-snaps').innerHTML = '<strong>' + allSnapshots.length.toLocaleString() + '</strong>';
-
-  const shFloors = allSnapshots.filter(s => isStubHub(s.event_id) && s.event_floor > 0).map(s => s.event_floor);
-  const tmFloors = allSnapshots.filter(s => isTM(s.event_id) && s.event_floor > 0).map(s => s.event_floor);
-
-  const avg = arr => arr.length ? '$' + Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : '—';
-  document.getElementById('stat-floor').innerHTML = '<strong>' + avg(shFloors) + '</strong>';
-  document.getElementById('stat-primary').innerHTML = '<strong>' + avg(tmFloors) + '</strong>';
-}
-
-// ── EVENTS LIST ──
-function getEventSnaps(eventId) { return allSnapshots.filter(s => s.event_id === eventId); }
-
-function getEventSummary(eventId) {
-  const days = parseInt(document.getElementById('change-window')?.value || '30');
-  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-  const snaps = getEventSnaps(eventId);
-  if (!snaps.length) return { listings:null, floor:null, atp:null, sections:0, volChange:null, floorChange:null, floorStart:null, tmFloor:null, tmCeiling:null };
-
-  const withList  = snaps.filter(s=>s.total_listings>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
-  const withFloor = snaps.filter(s=>s.event_floor>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
-  const withAtp   = snaps.filter(s=>s.section_avg>0);
-  const sections  = new Set(snaps.filter(s=>s.section).map(s=>s.section)).size;
-
-  const latestList  = withList.length ? withList[0].total_listings : null;
-  const latestFloor = withFloor.length ? withFloor[0].event_floor : null;
-  const avgAtp      = withAtp.length ? Math.round(withAtp.reduce((a,s)=>a+s.section_avg,0)/withAtp.length) : null;
-
-  const inWindow = snaps.filter(s=>new Date(s.scraped_at)>=cutoff).sort((a,b)=>new Date(a.scraped_at)-new Date(b.scraped_at));
-  let volChange=null, floorChange=null, floorStart=null;
-  if (inWindow.length>=2) {
-    const oldest=inWindow[0], newest=inWindow[inWindow.length-1];
-    if (oldest.total_listings>0&&newest.total_listings>0) volChange=newest.total_listings-oldest.total_listings;
-    if (oldest.event_floor>0&&newest.event_floor>0) { floorChange=newest.event_floor-oldest.event_floor; floorStart=oldest.event_floor; }
-  }
-
-  return { listings:latestList, floor:latestFloor, atp:avgAtp, sections, volChange, floorChange, floorStart };
-}
-
-function renderEvents() {
-  const grid = document.getElementById('events-grid');
-  document.getElementById('events-count').textContent = filteredEvents.length + ' events';
-  if (!filteredEvents.length) { grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty">No events match your filters.</div></div>'; return; }
-
-  const days = document.getElementById('change-window')?.value || '30';
-
-  grid.innerHTML = filteredEvents.filter(ev => !isJunkName(getCanonicalName(ev))).map(ev => {
-    const canonical = getCanonicalName(ev);
-    const tmMatch = isTM(ev.id) ? ev : findTMMatch(ev);
-    const shMatch = isStubHub(ev.id) ? ev : getMatchedSHEvents(ev)[0];
-    const s = getEventSummary(ev.id);
-    const isPrimary = isTM(ev.id);
-    const date = ev.date ? new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}) : '—';
-    const volCls   = s.volChange<0?'red':s.volChange>0?'green':'muted';
-    const floorCls = s.floorChange>0?'green':s.floorChange<0?'red':'muted';
-    const volLabel   = s.volChange!==null?(s.volChange>0?'+'+s.volChange:s.volChange)+' listings':'—';
-    const floorLabel = s.floorChange!==null?(s.floorChange>0?'+$'+s.floorChange:'$'+s.floorChange):'—';
-
-    // For TM events, show TM price data; for SH events show resale data
-    const floorVal = s.floor!=null?'$'+s.floor:'—';
-    const atpVal   = s.atp!=null?'$'+s.atp:'—';
-    const listVal  = s.listings!=null?s.listings.toLocaleString():'—';
-
-    return `<div class="event-card ${isPrimary?'primary':'secondary'}" onclick="showDetail('${ev.id}')">
-      <div class="event-card-top">
-        <div>
-          <div class="event-name">${canonical}</div>
-          ${canonical !== ev.name ? `<div class="event-subtitle">${ev.name}</div>` : ''}
-        </div>
-        <div class="arrow">›</div>
-      </div>
-      <div class="event-meta">
-        <span class="meta-tag ${isPrimary?'primary-tag':'secondary-tag'}">${isPrimary?'Primary':'Secondary'}</span>
-        <span class="meta-tag date-tag">📅 ${date}</span>
-        ${ev.venue?`<span class="meta-tag venue-tag">📍 ${ev.venue.split(',')[0]}</span>`:''}
-      </div>
-      <div class="event-stats">
-        <div class="event-stat"><div class="event-stat-label">${isPrimary?'TM Floor':'Listings'}</div><div class="event-stat-val ${isPrimary?'':'gold'}">${isPrimary?floorVal:listVal}</div></div>
-        <div class="event-stat"><div class="event-stat-label">${isPrimary?'TM Ceiling':'Floor'}</div><div class="event-stat-val gold">${isPrimary?(s.atp!=null?'$'+s.atp:'—'):floorVal}</div></div>
-        <div class="event-stat"><div class="event-stat-label">Sections</div><div class="event-stat-val">${s.sections||'—'}</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;">
-        <div class="event-stat"><div class="event-stat-label">Vol ${days}d</div><div class="event-stat-val ${volCls}">${s.volChange!==null?volLabel:'—'}</div></div>
-        <div class="event-stat"><div class="event-stat-label">Floor ${days}d Chg</div><div class="event-stat-val ${floorCls}">${s.floorChange!==null?floorLabel:'—'}</div></div>
+  if(!list.length){document.getElementById('grid').innerHTML='<div class="empty">No events found.</div>';return;}
+  document.getElementById('grid').innerHTML=list.map(ev=>{
+    const s=sum(ev.id), isPri=ev.platform==='Ticketmaster';
+    const date=ev.date?new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'—';
+    return `<div class="card" onclick="showDetail('${ev.id}')">
+      <div class="card-name">${ev.name||'—'}</div>
+      <div class="card-meta"><span class="badge ${isPri?'primary':'secondary'}">${isPri?'Primary':'Secondary'}</span>${date}${ev.venue?' · '+ev.venue.split(',')[0]:''}</div>
+      <div class="card-stats">
+        <div class="card-stat"><div class="card-stat-label">Floor</div><div class="card-stat-val gold">${s.floor?'$'+s.floor:'—'}</div></div>
+        <div class="card-stat"><div class="card-stat-label">ATP</div><div class="card-stat-val">${s.atp?'$'+s.atp:'—'}</div></div>
+        <div class="card-stat"><div class="card-stat-label">${isPri?'Sections':'Listings'}</div><div class="card-stat-val">${isPri?(s.sections||'—'):(s.listings?s.listings.toLocaleString():'—')}</div></div>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── FILTERS ──
-function parseEventParts(name) {
-  const n = (name||'').trim();
-
-  // "Team A @ Team B" or "Team A @Team B"
-  if (n.includes(' @ ') || n.includes(' @')) {
-    const p = n.split(/ @\s*/);
-    return { performer: p[0].trim(), opponent: p.slice(1).join(' @ ').trim() };
-  }
-  // "Team A vs Team B" or "Team A vs. Team B"
-  if (/ vs\.? /i.test(n)) {
-    const p = n.split(/ vs\.? /i);
-    return { performer: p[0].trim(), opponent: p.slice(1).join(' vs ').trim() };
-  }
-  // "Team A at Team B" — sports format "Phoenix Suns at Los Angeles Lakers"
-  // Home team (right side) is the performer, visiting team (left) is the opponent
-  const atMatch = n.match(/^(.+?)\s+at\s+(.+)$/i);
-  if (atMatch) {
-    const visitor = atMatch[1].trim(); // e.g. "Phoenix Suns"
-    const home    = atMatch[2].trim(); // e.g. "Los Angeles Lakers"
-    const venueKeywords = /arena|stadium|theater|theatre|center|centre|park|field|garden|pavilion|amphitheater|hall|coliseum/i;
-    if (!venueKeywords.test(home)) {
-      // Right side is a team — home team = performer, visitor = opponent
-      return { performer: home, opponent: visitor };
-    }
-    // Right side is a venue — left side is the performer
-    return { performer: visitor, opponent: '' };
-  }
-  // "Artist - Tour Name"
-  if (n.includes(' - ')) {
-    return { performer: n.split(' - ')[0].trim(), opponent: '' };
-  }
-  return { performer: n, opponent: '' };
+function setFilter(f){
+  mode=f;
+  document.getElementById('btn-primary').className=f==='primary'?'active':'';
+  document.getElementById('btn-secondary').className=f==='secondary'?'active':'';
+  load();
 }
 
-function isJunkName(name) {
-  if (!name) return true;
-  if (name.length < 3) return true;
-  // Only filter out the most obvious junk
-  const junk = /^(buy |can i use |how to |what is |when is |where is )/i;
-  if (junk.test(name)) return true;
-  return false;
+function showDetail(id){
+  const ev=events.find(e=>e.id===id); if(!ev) return;
+  document.getElementById('main-view').style.display='none';
+  document.getElementById('detail').style.display='block';
+  const s=gs(id), isPri=ev.platform==='Ticketmaster';
+  const date=ev.date?new Date(ev.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}):'—';
+  document.getElementById('d-name').textContent=ev.name||'—';
+  document.getElementById('d-meta').textContent=date+(ev.venue?' · '+ev.venue:'');
+  const fl=s.filter(x=>x.event_floor>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
+  const at=s.filter(x=>x.section_avg>0);
+  const li=s.filter(x=>x.total_listings>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
+  const ceil=s.filter(x=>x.section_ceiling>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
+  document.getElementById('d-panels').innerHTML=`
+    <div class="panel"><div class="panel-title">${isPri?'Primary — Ticketmaster':'Secondary — StubHub'}</div>
+      ${fl[0]?`<div class="panel-row"><span class="panel-label">Floor</span><span class="panel-val gold">$${fl[0].event_floor}</span></div>`:''}
+      ${ceil[0]?`<div class="panel-row"><span class="panel-label">Ceiling</span><span class="panel-val">$${ceil[0].section_ceiling}</span></div>`:''}
+      ${at.length?`<div class="panel-row"><span class="panel-label">Avg ATP</span><span class="panel-val">$${Math.round(at.reduce((a,x)=>a+x.section_avg,0)/at.length)}</span></div>`:''}
+      ${li[0]?`<div class="panel-row"><span class="panel-label">Listings</span><span class="panel-val">${li[0].total_listings.toLocaleString()}</span></div>`:''}
+      <div class="panel-row"><span class="panel-label">Data Points</span><span class="panel-val">${s.length}</span></div>
+      ${!fl[0]?'<div class="panel-empty">No price data yet</div>':''}
+    </div>
+    <div class="panel"><div class="panel-title">${isPri?'Secondary — StubHub':'Primary — Ticketmaster'}</div>
+      <div class="panel-empty">Visit this event on StubHub to collect resale data</div>
+    </div>`;
+  const secSnaps=s.filter(x=>x.section);
+  const bySec={};
+  secSnaps.forEach(x=>{if(!bySec[x.section])bySec[x.section]={f:[],a:[],c:[],l:[]};if(x.section_floor>0)bySec[x.section].f.push(x.section_floor);if(x.section_avg>0)bySec[x.section].a.push(x.section_avg);if(x.section_ceiling>0)bySec[x.section].c.push(x.section_ceiling);if(x.section_listings>0)bySec[x.section].l.push(x.section_listings);});
+  const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null;
+  const secs=Object.entries(bySec).map(([sec,d])=>({sec,f:avg(d.f),a:avg(d.a),c:avg(d.c),l:d.l.length?d.l[d.l.length-1]:null})).sort((a,b)=>(a.f||9999)-(b.f||9999));
+  document.getElementById('d-table').innerHTML=secs.length?`<table><thead><tr><th>Section</th><th>Floor</th><th>ATP</th><th>Ceiling</th><th>Listings</th></tr></thead><tbody>${secs.map(s=>`<tr><td>${s.sec}</td><td class="gold">${s.f?'$'+s.f:'—'}</td><td>${s.a?'$'+s.a:'—'}</td><td>${s.c?'$'+s.c:'—'}</td><td>${s.l??'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="empty" style="color:#333;font-size:12px;padding:2rem;">No section data yet</div>';
 }
 
-// Searchable select state
-const ssState = { performer: { value:'', options:[] }, venue: { value:'', options:[] }, opponent: { value:'', options:[] } };
-
-function populateFilters() {
-  const performers=new Set(), venues=new Set(), opponents=new Set();
-  allEvents.forEach(e => {
-    const canonical = getCanonicalName(e);
-    if (isJunkName(canonical)) return;
-    const p=parseEventParts(canonical);
-    if (p.performer && !isJunkName(p.performer)) performers.add(p.performer);
-    if (p.opponent && !isJunkName(p.opponent)) opponents.add(p.opponent);
-    if (e.venue) venues.add(e.venue.split(',')[0].trim());
-  });
-  // Also try extracting venue from event name for events without venue field
-  allEvents.forEach(e => {
-    if (!e.venue) {
-      const atMatch = (e.name||'').match(/^.+?\s+at\s+(.+)$/i);
-      if (atMatch) {
-        const venueKeywords = /arena|stadium|theater|theatre|center|centre|park|field|garden|pavilion|amphitheater|hall|coliseum/i;
-        if (venueKeywords.test(atMatch[1])) venues.add(atMatch[1].trim().split(',')[0].trim());
-      }
-    }
-  });
-
-  ssState.performer.options = [...performers].sort();
-  ssState.venue.options = [...venues].sort();
-  ssState.opponent.options = [...opponents].sort();
-  renderSSList('performer', '');
-  renderSSList('venue', '');
-  renderSSList('opponent', '');
+function showList(){
+  document.getElementById('main-view').style.display='block';
+  document.getElementById('detail').style.display='none';
 }
 
-function renderSSList(key, query) {
-  const list = document.getElementById('ss-'+key+'-list');
-  if (!list) return;
-  const opts = ssState[key].options.filter(o => !query || o.toLowerCase().includes(query.toLowerCase()));
-  const current = ssState[key].value;
-  let html = `<div class="search-select-option all-option ${!current?'selected':''}" onclick="selectSS('${key}','','All')">All</div>`;
-  if (opts.length === 0) {
-    html += '<div class="search-select-empty">No results</div>';
-  } else {
-    html += opts.map(o => `<div class="search-select-option ${current===o?'selected':''}" onclick="selectSS('${key}','${o.replace(/'/g,"\'")}','${o.replace(/'/g,"\'")}')"> ${o}</div>`).join('');
-  }
-  list.innerHTML = html;
-}
-
-function toggleSS(key) {
-  const dropdown = document.getElementById('ss-'+key+'-dropdown');
-  const isOpen = dropdown.classList.contains('open');
-  // Close all
-  ['performer','venue','opponent'].forEach(k => {
-    document.getElementById('ss-'+k+'-dropdown').classList.remove('open');
-    const si = document.getElementById('ss-'+k+'-search');
-    if (si) si.value = '';
-    renderSSList(k, '');
-  });
-  if (!isOpen) {
-    dropdown.classList.add('open');
-    setTimeout(() => document.getElementById('ss-'+key+'-search')?.focus(), 50);
-  }
-}
-
-function searchSS(key, query) {
-  renderSSList(key, query);
-}
-
-function selectSS(key, value, label) {
-  ssState[key].value = value;
-  document.getElementById('ss-'+key+'-display').textContent = label || 'All';
-  document.getElementById('ss-'+key+'-dropdown').classList.remove('open');
-  renderSSList(key, '');
-  filterEvents();
-}
-
-// Close dropdowns on outside click
-document.addEventListener('click', e => {
-  if (!e.target.closest('.search-select')) {
-    ['performer','venue','opponent'].forEach(k => {
-      document.getElementById('ss-'+k+'-dropdown')?.classList.remove('open');
-    });
-  }
-});
-
-function filterEvents(skipPopulate) {
-  const q       =document.getElementById('search-input').value.toLowerCase().trim();
-  const perf    =(ssState.performer.value||'').toLowerCase();
-  const venue   =(ssState.venue.value||'').toLowerCase();
-  const opponent=(ssState.opponent.value||'').toLowerCase();
-
-  let base=[...allEvents];
-  if(dataFilter==='primary') base=base.filter(ev=>isTM(ev.id));
-  else base=base.filter(ev=>isStubHub(ev.id));
-
-  filteredEvents=base.filter(e=>{
-    const canonical=getCanonicalName(e).toLowerCase();
-    const orig=(e.name||'').toLowerCase();
-    const parts=parseEventParts(getCanonicalName(e));
-    const evVenue=(e.venue||'').toLowerCase();
-    if(q&&!canonical.includes(q)&&!orig.includes(q)) return false;
-    if(perf&&!parts.performer.toLowerCase().includes(perf)) return false;
-    if(venue&&!evVenue.includes(venue)) return false;
-    if(opponent&&!parts.opponent.toLowerCase().includes(opponent)) return false;
-    return true;
-  });
-  sortEvents(true);
-  if(!skipPopulate) populateFilters();
-}
-
-function sortEvents(skipRender) {
-  const key=document.getElementById('sort-sel').value;
-  filteredEvents.sort((a,b)=>{
-    if(key==='date') return new Date(a.date||0)-new Date(b.date||0);
-    if(key==='name') return getCanonicalName(a).localeCompare(getCanonicalName(b));
-    if(key==='floor') return (getEventSummary(b.id).floor||0)-(getEventSummary(a.id).floor||0);
-    if(key==='listings') return (getEventSummary(b.id).listings||0)-(getEventSummary(a.id).listings||0);
-    return 0;
-  });
-  if(!skipRender) renderEvents();
-}
-
-// ── DETAIL VIEW ──
-function showDetail(eventId) {
-  currentEvent=allEvents.find(e=>e.id===eventId);
-  if(!currentEvent) return;
-  document.getElementById('events-view').style.display='none';
-  document.getElementById('detail-view').style.display='block';
-
-  const canonical=getCanonicalName(currentEvent);
-  const isPrimary=isTM(currentEvent.id);
-  const tmEvent=isPrimary?currentEvent:findTMMatch(currentEvent);
-  const shEvents=isPrimary?getMatchedSHEvents(currentEvent):[currentEvent];
-
-  document.getElementById('breadcrumb').innerHTML=`<span onclick="showEvents()">All Events</span><span class="breadcrumb-sep">›</span><span>${canonical}</span>`;
-  document.getElementById('detail-name').textContent=canonical;
-  document.getElementById('detail-sub').textContent=canonical!==currentEvent.name?'Also listed as: '+currentEvent.name:'';
-
-  const date=currentEvent.date?new Date(currentEvent.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}):'—';
-  document.getElementById('detail-meta').innerHTML=`
-    <span class="meta-tag ${isPrimary?'primary-tag':'secondary-tag'}">${isPrimary?'Primary':'Secondary'}</span>
-    <span class="meta-tag date-tag">📅 ${date}</span>
-    ${currentEvent.venue?`<span class="meta-tag venue-tag">📍 ${currentEvent.venue}</span>`:''}
-  `;
-
-  // Summary stats
-  const allSnaps=getEventSnaps(currentEvent.id);
-  const shSnaps=shEvents.flatMap(e=>getEventSnaps(e.id));
-  const tmSnaps=tmEvent?getEventSnaps(tmEvent.id):[];
-
-  const latestTMFloor=tmSnaps.filter(s=>s.event_floor>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at))[0]?.event_floor;
-  const latestTMCeiling=tmSnaps.filter(s=>s.section_ceiling>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at))[0]?.section_ceiling;
-  const latestSHFloor=shSnaps.filter(s=>s.event_floor>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at))[0]?.event_floor;
-  const latestSHList=shSnaps.filter(s=>s.total_listings>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at))[0]?.total_listings;
-  const sections=new Set(shSnaps.filter(s=>s.section).map(s=>s.section)).size;
-
-  const premium=latestTMFloor&&latestSHFloor?Math.round(((latestSHFloor-latestTMFloor)/latestTMFloor)*100):null;
-
-  document.getElementById('detail-stats').innerHTML=`
-    <div class="detail-stat"><div class="detail-stat-label">TM Face Value</div><div class="detail-stat-val">${latestTMFloor?'$'+latestTMFloor:'—'}</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">Resale Floor</div><div class="detail-stat-val gold">${latestSHFloor?'$'+latestSHFloor:'—'}</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">Resale Premium</div><div class="detail-stat-val ${premium>0?'green':''}">${premium!==null?'+'+premium+'%':'—'}</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">Total Listings</div><div class="detail-stat-val">${latestSHList!=null?latestSHList.toLocaleString():'—'}</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">Sections Tracked</div><div class="detail-stat-val">${sections||'—'}</div></div>
-  `;
-
-  // Primary panel
-  if(tmSnaps.length) {
-    const tmFloors=tmSnaps.filter(s=>s.event_floor>0).map(s=>s.event_floor);
-    const tmCeilings=tmSnaps.filter(s=>s.section_ceiling>0).map(s=>s.section_ceiling);
-    const avgTmFloor=tmFloors.length?Math.round(tmFloors.reduce((a,b)=>a+b,0)/tmFloors.length):null;
-    const avgTmCeiling=tmCeilings.length?Math.round(tmCeilings.reduce((a,b)=>a+b,0)/tmCeilings.length):null;
-    document.getElementById('primary-panel-content').innerHTML=`
-      <div class="panel-stat-row"><span class="panel-stat-label">Floor Price</span><span class="panel-stat-val gold">${latestTMFloor?'$'+latestTMFloor:'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Ceiling Price</span><span class="panel-stat-val">${latestTMCeiling?'$'+latestTMCeiling:'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Avg Floor (all time)</span><span class="panel-stat-val">${avgTmFloor?'$'+avgTmFloor:'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Data Points</span><span class="panel-stat-val">${tmSnaps.length}</span></div>
-    `;
-  } else {
-    document.getElementById('primary-panel-content').innerHTML='<div class="panel-empty">No Ticketmaster data available for this event</div>';
-  }
-
-  // Secondary panel
-  if(shSnaps.length) {
-    const shFloors=shSnaps.filter(s=>s.event_floor>0).sort((a,b)=>new Date(a.scraped_at)-new Date(b.scraped_at));
-    const shAtps=shSnaps.filter(s=>s.section_avg>0).map(s=>s.section_avg);
-    const avgAtp=shAtps.length?Math.round(shAtps.reduce((a,b)=>a+b,0)/shAtps.length):null;
-    const floorTrend=shFloors.length>=2?shFloors[shFloors.length-1].event_floor-shFloors[0].event_floor:null;
-    document.getElementById('secondary-panel-content').innerHTML=`
-      <div class="panel-stat-row"><span class="panel-stat-label">Current Floor</span><span class="panel-stat-val gold">${latestSHFloor?'$'+latestSHFloor:'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Avg ATP</span><span class="panel-stat-val">${avgAtp?'$'+avgAtp:'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Total Listings</span><span class="panel-stat-val">${latestSHList!=null?latestSHList.toLocaleString():'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Floor Trend</span><span class="panel-stat-val ${floorTrend>0?'green':floorTrend<0?'red':''}">${floorTrend!==null?(floorTrend>0?'▲ +$'+floorTrend:'▼ $'+Math.abs(floorTrend)):'—'}</span></div>
-      <div class="panel-stat-row"><span class="panel-stat-label">Data Points</span><span class="panel-stat-val">${shSnaps.length}</span></div>
-    `;
-  } else {
-    document.getElementById('secondary-panel-content').innerHTML='<div class="panel-empty">No StubHub data available for this event</div>';
-  }
-
-  buildDetailRows(shSnaps);
-}
-
-function showEvents() {
-  currentEvent=null;
-  document.getElementById('events-view').style.display='block';
-  document.getElementById('detail-view').style.display='none';
-  document.getElementById('breadcrumb').innerHTML='<span onclick="showEvents()">All Events</span>';
-}
-
-function buildDetailRows(shSnaps) {
-  const days=parseInt(document.getElementById('detail-days-sel')?.value||'7');
-  const cutoff=new Date(Date.now()-days*24*60*60*1000);
-  const snaps=(shSnaps||getEventSnaps(currentEvent?.id||'')).filter(s=>s.section&&new Date(s.scraped_at)>=cutoff);
-
-  const bySection={};
-  snaps.forEach(s=>{
-    const key=s.section;
-    if(!bySection[key]) bySection[key]={section:s.section,snapshots:[],floors:[],avgs:[],ceilings:[],listings:[]};
-    bySection[key].snapshots.push(s);
-    if(s.section_floor>0) bySection[key].floors.push(s.section_floor);
-    if(s.section_avg>0)   bySection[key].avgs.push(s.section_avg);
-    if(s.section_ceiling>0) bySection[key].ceilings.push(s.section_ceiling);
-    if(s.section_listings>0) bySection[key].listings.push(s.section_listings);
-  });
-
-  const avg=arr=>arr.length?Math.round(arr.reduce((a,c)=>a+c,0)/arr.length):null;
-  detailRows=Object.values(bySection).map(b=>{
-    const sorted=[...b.snapshots].sort((a,z)=>new Date(a.scraped_at)-new Date(z.scraped_at));
-    const latestListings=b.listings.length?b.listings[b.listings.length-1]:null;
-    let trend=null;
-    if(b.floors.length>=2) trend=b.floors[b.floors.length-1]-b.floors[0];
-    return {section:b.section,listings:latestListings,floor:avg(b.floors),avg:avg(b.avgs),ceiling:avg(b.ceilings),trend,snapshots:b.snapshots.length};
-  });
-
-  const rowSel=document.getElementById('detail-row-sel');
-  if(rowSel) rowSel.innerHTML='<option value="">All Rows</option>';
-  renderDetailTable();
-}
-
-function detailSort(key) {
-  if(detailSortKey===key) detailSortDir*=-1;
-  else{detailSortKey=key;detailSortDir=key==='section'?1:-1;}
-  renderDetailTable();
-}
-
-function sortDetail() {
-  detailSortKey=document.getElementById('detail-sort-sel').value;
-  detailSortDir=detailSortKey==='section'?1:-1;
-  renderDetailTable();
-}
-
-function renderDetailTable() {
-  ['section','floor','avg','ceiling','listings','trend'].forEach(k=>{
-    const el=document.getElementById('th-'+k);
-    if(el) el.textContent=detailSortKey===k?(detailSortDir===1?'▲':'▼'):'';
-  });
-
-  const sorted=[...detailRows].sort((a,b)=>{
-    const av=a[detailSortKey],bv=b[detailSortKey];
-    if(av==null) return 1; if(bv==null) return -1;
-    if(typeof av==='string') return av.localeCompare(bv)*detailSortDir;
-    return(av-bv)*detailSortDir;
-  });
-
-  document.getElementById('detail-count').textContent=sorted.length+' sections';
-  if(!sorted.length){
-    document.getElementById('detail-tbody').innerHTML='<tr><td colspan="6"><div class="empty">No section data yet — run the section scraper on this event.</div></td></tr>';
-    return;
-  }
-
-  document.getElementById('detail-tbody').innerHTML=sorted.map(r=>{
-    const trendHtml=r.trend!==null
-      ?`<span class="trend ${r.trend>0?'up':r.trend<0?'down':'flat'}">${r.trend>0?'▲ +$'+r.trend:r.trend<0?'▼ $'+Math.abs(r.trend):'— flat'}</span>`
-      :'<span class="muted">—</span>';
-    return `<tr>
-      <td><strong>${r.section}</strong></td>
-      <td class="gold mono">${r.floor!=null?'$'+r.floor:'—'}</td>
-      <td class="mono">${r.avg!=null?'$'+r.avg:'—'}</td>
-      <td class="mono muted">${r.ceiling!=null?'$'+r.ceiling:'—'}</td>
-      <td class="mono">${r.listings!=null?r.listings:'—'}</td>
-      <td>${trendHtml}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── EXPORT ──
-function exportCSV() {
-  const rows=[['Event','Date','Venue','Data Type','Listings','Floor','ATP','Sections']];
-  filteredEvents.forEach(e=>{
-    const s=getEventSummary(e.id);
-    rows.push([getCanonicalName(e),e.date,e.venue||'',isTM(e.id)?'Primary':'Secondary',s.listings||'',s.floor?'$'+s.floor:'',s.atp?'$'+s.atp:'',s.sections]);
-  });
-  downloadCSV(rows,'vkt_events');
-}
-function exportDetailCSV() {
-  const rows=[['Section','Floor','ATP','Ceiling','Listings','Trend']];
-  detailRows.forEach(r=>rows.push([r.section,r.floor?'$'+r.floor:'',r.avg?'$'+r.avg:'',r.ceiling?'$'+r.ceiling:'',r.listings||'',r.trend!=null?(r.trend>0?'+$'+r.trend:'$'+r.trend):'']));
-  downloadCSV(rows,'vkt_'+(getCanonicalName(currentEvent)||'event').replace(/\s+/g,'_'));
-}
-function downloadCSV(rows,name) {
-  const csv=rows.map(r=>r.map(v=>JSON.stringify(v??'')).join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download=name+'_'+new Date().toISOString().split('T')[0]+'.csv';
-  a.click();
-}
-
-loadAll();
+load();
 </script>
 </body>
 </html>
