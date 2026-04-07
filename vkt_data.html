@@ -475,27 +475,24 @@ async function fetchSupabase(table, select, params) {
 
 async function loadAll() {
   try {
-    // Step 1: load events filtered by platform based on current toggle
-    const platform = dataFilter === 'primary' ? 'Ticketmaster' : null;
-    const platformFilter = platform ? `&platform=eq.${platform}` : '';
-    const today = new Date().toISOString().split('T')[0];
-    const days = parseInt(document.getElementById('date-window')?.value || '7');
-    const in7days = new Date(Date.now() + days*24*60*60*1000).toISOString().split('T')[0];
+    // Load by platform only — no date filter (many events have empty dates)
+    const isPrimary = dataFilter === 'primary';
+    const platformFilter = isPrimary ? 'platform=eq.Ticketmaster' : 'platform=neq.Ticketmaster';
 
     const events = await fetchSupabase(
       'events',
       'id,name,date,venue,platform',
-      `order=date.asc&date=gte.${today}&date=lte.${in7days}&limit=100${platformFilter}`
+      `${platformFilter}&order=date.asc&limit=50`
     );
     allEvents = events || [];
 
-    // Step 2: load snapshots only for those events
+    // Load snapshots only for those 50 events
     if (allEvents.length) {
-      const ids = allEvents.map(e => `"${e.id}"`).join(',');
+      const ids = allEvents.map(e => e.id).join(',');
       const snaps = await fetchSupabase(
         'volume_snapshots',
         'id,event_id,total_listings,section,section_listings,event_floor,section_floor,section_avg,section_ceiling,scraped_at',
-        `event_id=in.(${ids})&order=scraped_at.desc&limit=500`
+        `event_id=in.(${ids})&order=scraped_at.desc&limit=300`
       );
       allSnapshots = snaps || [];
     } else {
