@@ -245,12 +245,22 @@
   </div>
 
   <div class="filter-group">
+    <span class="filter-lbl">Show Next</span>
+    <select class="filter-sel" id="date-window" onchange="loadAll()">
+      <option value="7" selected>7 Days</option>
+      <option value="14">14 Days</option>
+      <option value="30">30 Days</option>
+      <option value="60">60 Days</option>
+      <option value="90">90 Days</option>
+    </select>
+  </div>
+  <div class="filter-group">
     <span class="filter-lbl">Change</span>
     <select class="filter-sel" id="change-window" onchange="renderEvents()">
       <option value="3">3 Days</option>
-      <option value="7">7 Days</option>
+      <option value="7" selected>7 Days</option>
       <option value="14">14 Days</option>
-      <option value="30" selected>30 Days</option>
+      <option value="30">30 Days</option>
     </select>
   </div>
   <div class="filter-group">
@@ -465,25 +475,32 @@ async function fetchSupabase(table, select, params) {
 
 async function loadAll() {
   try {
-    // Load most recent 200 events
+    // Step 1: load events filtered by platform based on current toggle
+    const platform = dataFilter === 'primary' ? 'Ticketmaster' : null;
+    const platformFilter = platform ? `&platform=eq.${platform}` : '';
+    const today = new Date().toISOString().split('T')[0];
+    const days = parseInt(document.getElementById('date-window')?.value || '7');
+    const in7days = new Date(Date.now() + days*24*60*60*1000).toISOString().split('T')[0];
+
     const events = await fetchSupabase(
       'events',
       'id,name,date,venue,platform',
-      `order=updated_at.desc&limit=200`
+      `order=date.asc&date=gte.${today}&date=lte.${in7days}&limit=100${platformFilter}`
     );
     allEvents = events || [];
 
-    // Load snapshots only for those specific event IDs
-    const eventIds = allEvents.map(e => e.id).slice(0, 80);
-    let snaps = [];
-    if (eventIds.length) {
-      snaps = await fetchSupabase(
+    // Step 2: load snapshots only for those events
+    if (allEvents.length) {
+      const ids = allEvents.map(e => `"${e.id}"`).join(',');
+      const snaps = await fetchSupabase(
         'volume_snapshots',
         'id,event_id,total_listings,section,section_listings,event_floor,section_floor,section_avg,section_ceiling,scraped_at',
-        `event_id=in.(${eventIds.join(',')})&order=scraped_at.desc&limit=1000`
+        `event_id=in.(${ids})&order=scraped_at.desc&limit=500`
       );
+      allSnapshots = snaps || [];
+    } else {
+      allSnapshots = [];
     }
-    allSnapshots = snaps || [];
 
   } catch(e) {
     console.error('Load error:', e);
