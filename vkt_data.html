@@ -51,13 +51,13 @@ async function load() {
   if (!eventIds.length) { document.getElementById('grid').innerHTML='<div class="msg">No data yet — visit StubHub event pages to start collecting.</div>'; return; }
 
   // Load event details for those IDs
-  const evR = await fetch(`${SB}/rest/v1/events?id=in.(${eventIds.join(',')})&select=id,name,date,venue,platform`, {
+  const evR = await fetch(`${SB}/rest/v1/events?id=in.(${eventIds.map(i=>`"${i}"`).join(',')})&select=id,name,date,venue,platform`, {
     headers:{ apikey:KEY, Authorization:`Bearer ${KEY}` }
   });
   let events = await evR.json();
 
   // Also load snapshots for stats
-  const snapR2 = await fetch(`${SB}/rest/v1/volume_snapshots?event_id=in.(${eventIds.join(',')})&order=scraped_at.desc&limit=500&select=event_id,total_listings,event_floor,section_floor,section_avg,section_ceiling,section,section_listings,scraped_at`, {
+  const snapR2 = await fetch(`${SB}/rest/v1/volume_snapshots?event_id=in.(${eventIds.map(i=>`"${i}"`).join(',')})&order=scraped_at.desc&limit=500&select=event_id,total_listings,event_floor,section_floor,section_avg,section_ceiling,section,section_listings,scraped_at`, {
     headers:{ apikey:KEY, Authorization:`Bearer ${KEY}` }
   });
   window._snaps = await snapR2.json();
