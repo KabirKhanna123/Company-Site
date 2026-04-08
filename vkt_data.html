@@ -120,6 +120,7 @@
       border-bottom:1px solid #efede8;
       font-size:13px;
       vertical-align:middle;
+      text-align:left;
     }
 
     tbody tr:hover {
@@ -139,7 +140,10 @@
     .event-name {
       font-weight:600;
       font-size:13px;
-      margin-bottom:4px;
+      margin-bottom:0;
+      text-align:left;
+      white-space:normal;
+      line-height:1.35;
     }
 
     .subtext {
@@ -403,10 +407,10 @@
       var d = new Date(dateStr + 'T12:00:00');
       if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        weekday:'short',
+        month:'short',
+        day:'numeric',
+        year:'numeric'
       });
     }
 
@@ -512,7 +516,6 @@
         })
         .map(function(ev) {
           var evSnaps = snaps.filter(function(s) { return s.event_id === ev.id; });
-
           var latest = evSnaps.length ? evSnaps[evSnaps.length - 1] : null;
           var atps = evSnaps.filter(function(x) { return safeNumber(x.section_avg) > 0; });
 
@@ -538,6 +541,9 @@
             category: detectCategory(cleanName, venue),
             snapshot_count: evSnaps.length
           };
+        })
+        .filter(function(row) {
+          return safeNumber(row.listings) > 0;
         });
     }
 
@@ -573,6 +579,7 @@
         + '    <option value="atp">Sort: ATP</option>'
         + '    <option value="listings">Sort: Listings</option>'
         + '    <option value="name">Sort: Event Name</option>'
+        + '    <option value="venue">Sort: Venue</option>'
         + '  </select>'
         + '  <select id="sortDirection">'
         + '    <option value="asc">Ascending</option>'
@@ -604,14 +611,15 @@
           row.raw_name,
           row.venue,
           row.full_venue,
-          row.category
+          row.category,
+          row.date
         ].join(' ').toLowerCase();
 
         var matchesSearch = !search || haystack.includes(search);
         var matchesLeague = !league || row.category === league;
         var matchesDate = matchesDateFilter(row, days);
 
-        return matchesSearch && matchesLeague && matchesDate;
+        return matchesSearch && matchesLeague && matchesDate && safeNumber(row.listings) > 0;
       });
 
       rows.sort(function(a, b) {
@@ -653,21 +661,19 @@
       html += '<th class="right">Floor</th>';
       html += '<th class="right">ATP</th>';
       html += '<th class="right">Listings</th>';
-      html += '<th class="center">Snapshots</th>';
       html += '</tr></thead>';
       html += '<tbody>';
 
       rows.forEach(function(row) {
         var analysisUrl = window.location.pathname + '?event_id=' + encodeURIComponent(row.id);
         html += '<tr class="clickable-row" onclick="window.location.href=\'' + analysisUrl.replace(/'/g, "\\'") + '\'">';
-        html += '<td><div class="event-name">' + escapeHtml(row.name || '—') + '</div><div class="subtext mono">' + escapeHtml(row.id || '') + '</div></td>';
+        html += '<td><div class="event-name">' + escapeHtml(row.name || '—') + '</div></td>';
         html += '<td><span class="tag">' + escapeHtml(row.category) + '</span></td>';
         html += '<td>' + escapeHtml(formatDate(row.date)) + '</td>';
         html += '<td>' + escapeHtml(row.venue || '—') + '</td>';
         html += '<td class="right gold mono">' + escapeHtml(formatCurrency(row.event_floor)) + '</td>';
         html += '<td class="right mono">' + escapeHtml(formatCurrency(row.atp)) + '</td>';
         html += '<td class="right mono">' + escapeHtml(formatInteger(row.listings)) + '</td>';
-        html += '<td class="center muted mono">' + escapeHtml(String(row.snapshot_count || 0)) + '</td>';
         html += '</tr>';
       });
 
@@ -1014,6 +1020,7 @@
         html += '        <div><strong>Latest Listings:</strong> ' + escapeHtml(formatInteger(listingEnd)) + '</div>';
         html += '        <div><strong>Floor Change:</strong> <span class="' + deltaClass(floorDelta) + '">' + deltaText(floorDelta, true) + '</span></div>';
         html += '        <div><strong>Listings Change:</strong> <span class="' + deltaClass(listingDelta) + '">' + deltaText(listingDelta, false) + '</span></div>';
+        html += '        <div><strong>Event Date:</strong> ' + escapeHtml(formatDate(eventMeta.date)) + '</div>';
         html += '        <div><strong>Venue:</strong> ' + escapeHtml(eventMeta.venue || '') + '</div>';
         html += '        <div><strong>Event ID:</strong> <span class="mono">' + escapeHtml(eventMeta.id) + '</span></div>';
         html += '      </div>';
