@@ -14,78 +14,86 @@
     h1 { font-size:22px; font-weight:300; }
     h1 strong { color:#d4a843; }
     .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1px; background:#e4e2dc; padding:1.5rem 2rem; }
-    .card { background:#fff; padding:1.25rem; cursor:pointer; }
-    .card:hover { background:#fdf9f2; }
+    .card { background:#fff; padding:1.25rem; cursor:pointer; border-left:3px solid transparent; }
+    .card:hover { background:#fdf9f2; border-left-color:#d4a843; }
     .card-name { font-size:13px; font-weight:600; margin-bottom:4px; }
     .card-meta { font-size:11px; color:#888; margin-bottom:10px; }
     .card-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:#e4e2dc; }
     .cs { background:#f7f6f3; padding:8px; text-align:center; }
     .cs-l { font-size:8px; letter-spacing:1px; text-transform:uppercase; color:#aaa; margin-bottom:3px; }
     .cs-v { font-size:15px; font-weight:700; color:#1a1a1a; font-family:monospace; }
-    .cs-v.gold { color:#d4a843; }
-    .msg { padding:3rem; text-align:center; color:#aaa; }
+    .gold { color:#d4a843; }
+    .msg { padding:3rem; text-align:center; color:#aaa; grid-column:1/-1; }
   </style>
 </head>
 <body>
 <nav>
   <div class="logo">Victory Kay <span>Tickets</span></div>
-  <a href="/" style="color:#888;font-size:11px;text-decoration:none;">← Back</a>
+  <a href="/" style="color:#888;font-size:11px;text-decoration:none;">Back</a>
 </nav>
-<div class="header">
-  <h1><strong>VKT</strong> Market Data</h1>
-</div>
+<div class="header"><h1><strong>VKT</strong> Market Data</h1></div>
 <div class="grid" id="grid"><div class="msg">Loading...</div></div>
-
 <script>
-const SB  = 'https://unypasitbzulafehbqtj.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+var H   = { apikey: KEY, Authorization: 'Bearer ' + KEY };
 
-async function load() {
-  const H = { apikey:KEY, Authorization:'Bearer '+KEY };
-
-  // Load most recent snapshots to find which events have data
-  const snapsR = await fetch(SB+'/rest/v1/volume_snapshots?order=scraped_at.desc&limit=200&select=event_id', {headers:H});
-  const snapsRaw = await snapsR.json();
-  const eventIds = [...new Set((snapsRaw||[]).map(s=>s.event_id))].slice(0,50);
-
-  if (!eventIds.length) { document.getElementById('grid').innerHTML='<div class="msg">No data yet — visit StubHub event pages to start collecting.</div>'; return; }
-
-  // Quote IDs for Supabase in() filter
-  const idList = eventIds.map(i => '"'+i+'"').join(',');
-
-  // Load event details
-  const evR = await fetch(SB+'/rest/v1/events?id=in.('+idList+')&select=id,name,date,venue,platform', {headers:H});
-  let events = await evR.json();
-
-  // Load snapshots for stats
-  const snapR2 = await fetch(SB+'/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.desc&limit=500&select=event_id,total_listings,event_floor,section_floor,section_avg,section_ceiling,section,section_listings,scraped_at', {headers:H});
-  window._snaps = await snapR2.json();
-
-  // Filter junk
-  const junk = /hotel|voucher|credential|postgame|^dinner$|nfl football|nba basketball|nhl hockey|mlb baseball/i;
-  events = events.filter(e => e.name && e.name.length > 3 && !junk.test(e.name));
-  events.sort((a,b) => (a.date||'').localeCompare(b.date||''));
-
-  if (!events.length) { document.getElementById('grid').innerHTML='<div class="msg">No events found.</div>'; return; }
-  document.getElementById('grid').innerHTML = events.map(ev => {
-    const evSnaps = (window._snaps||[]).filter(s=>s.event_id===ev.id);
-    const floors = evSnaps.filter(x=>x.event_floor>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
-    const lists = evSnaps.filter(x=>x.total_listings>0).sort((a,b)=>new Date(b.scraped_at)-new Date(a.scraped_at));
-    const atps = evSnaps.filter(x=>x.section_avg>0);
-    const floor = floors[0]?.event_floor;
-    const listings = lists[0]?.total_listings;
-    const atp = atps.length ? Math.round(atps.reduce((a,x)=>a+x.section_avg,0)/atps.length) : null;
-    return `
-    <div class="card">
-      <div class="card-name">${ev.name||'—'}</div>
-      <div class="card-meta">${ev.date||'No date'} ${ev.venue?'· '+ev.venue.split(',')[0]:''}</div>
-      <div class="card-stats">
-        <div class="cs"><div class="cs-l">Floor</div><div class="cs-v gold">—</div></div>
-        <div class="cs"><div class="cs-l">ATP</div><div class="cs-v">—</div></div>
-        <div class="cs"><div class="cs-l">Listings</div><div class="cs-v">—</div></div>
-      </div>
-    </div>`).join('');
+function get(url) {
+  return fetch(SB + url, { headers: H }).then(function(r) { return r.json(); });
 }
+
+function load() {
+  get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=200&select=event_id')
+  .then(function(snaps) {
+    var ids = [];
+    var seen = {};
+    (snaps || []).forEach(function(s) {
+      if (!seen[s.event_id]) { seen[s.event_id] = true; ids.push(s.event_id); }
+    });
+    ids = ids.slice(0, 50);
+    if (!ids.length) {
+      document.getElementById('grid').innerHTML = '<div class="msg">No data yet. Visit StubHub event pages to start collecting.</div>';
+      return;
+    }
+    var idList = ids.map(function(i) { return '"' + i + '"'; }).join(',');
+    Promise.all([
+      get('/rest/v1/events?id=in.(' + idList + ')&select=id,name,date,venue'),
+      get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&order=scraped_at.desc&limit=500&select=event_id,total_listings,event_floor,section_avg,section,scraped_at')
+    ]).then(function(results) {
+      var events = results[0] || [];
+      var snaps2 = results[1] || [];
+      var junk = /hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
+      events = events.filter(function(e) { return e.name && e.name.length > 3 && !junk.test(e.name); });
+      events.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+      if (!events.length) {
+        document.getElementById('grid').innerHTML = '<div class="msg">No events found.</div>';
+        return;
+      }
+      var html = '';
+      events.forEach(function(ev) {
+        var evSnaps = snaps2.filter(function(s) { return s.event_id === ev.id; });
+        var floors = evSnaps.filter(function(x) { return x.event_floor > 0; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
+        var lists  = evSnaps.filter(function(x) { return x.total_listings > 0; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
+        var atps   = evSnaps.filter(function(x) { return x.section_avg > 0; });
+        var floor    = floors[0] ? '$' + floors[0].event_floor : '&mdash;';
+        var listings = lists[0]  ? lists[0].total_listings.toLocaleString() : '&mdash;';
+        var atp      = atps.length ? '$' + Math.round(atps.reduce(function(a,x){return a+x.section_avg;},0)/atps.length) : '&mdash;';
+        var date     = ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'No date';
+        var venue    = ev.venue ? ' &middot; ' + ev.venue.split(',')[0] : '';
+        html += '<div class="card">';
+        html += '<div class="card-name">' + ev.name + '</div>';
+        html += '<div class="card-meta">' + date + venue + '</div>';
+        html += '<div class="card-stats">';
+        html += '<div class="cs"><div class="cs-l">Floor</div><div class="cs-v gold">' + floor + '</div></div>';
+        html += '<div class="cs"><div class="cs-l">ATP</div><div class="cs-v">' + atp + '</div></div>';
+        html += '<div class="cs"><div class="cs-l">Listings</div><div class="cs-v">' + listings + '</div></div>';
+        html += '</div></div>';
+      });
+      document.getElementById('grid').innerHTML = html;
+    });
+  });
+}
+
 load();
 </script>
 </body>
