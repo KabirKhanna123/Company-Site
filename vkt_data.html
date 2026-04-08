@@ -1,581 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VKT Market Data</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f6f3;
-      color: #1a1a1a;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VKT Market Data</title>
 
-    nav {
-      background: #fff;
-      border-bottom: 1px solid #e4e2dc;
-      padding: 0 2rem;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; }
 
-    .logo {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-    }
+nav {
+  background:#fff;
+  border-bottom:1px solid #e4e2dc;
+  padding:0 2rem;
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
 
-    .logo span { color: #d4a843; }
+.logo {
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:4px;
+  text-transform:uppercase;
+}
+.logo span { color:#d4a843; }
 
-    .header {
-      padding: 1.5rem 2rem;
-      background: #fff;
-      border-bottom: 1px solid #e4e2dc;
-    }
+.header {
+  padding:1.5rem 2rem;
+  background:#fff;
+  border-bottom:1px solid #e4e2dc;
+}
 
-    h1 {
-      font-size: 22px;
-      font-weight: 300;
-    }
+h1 { font-size:22px; font-weight:300; }
+h1 strong { color:#d4a843; }
 
-    h1 strong { color: #d4a843; }
+.toolbar {
+  padding:1rem 2rem;
+  background:#fff;
+  border-bottom:1px solid #e4e2dc;
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:12px;
+}
 
-    .toolbar {
-      padding: 1rem 2rem;
-      background: #fff;
-      border-bottom: 1px solid #e4e2dc;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-      gap: 12px;
-    }
+.toolbar input, .toolbar select {
+  padding:10px;
+  border:1px solid #ccc;
+}
 
-    .toolbar input,
-    .toolbar select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d8d4cc;
-      background: #fff;
-      font-size: 13px;
-      outline: none;
-      border-radius: 6px;
-    }
+.summary {
+  padding:10px 2rem;
+  font-size:12px;
+  background:#faf9f6;
+}
 
-    .toolbar input:focus,
-    .toolbar select:focus {
-      border-color: #d4a843;
-    }
+.table-wrap {
+  padding:1.5rem 2rem;
+}
 
-    .summary-bar {
-      padding: 0.75rem 2rem;
-      background: #fcfbf8;
-      border-bottom: 1px solid #e4e2dc;
-      font-size: 12px;
-      color: #666;
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
 
-    .table-wrap {
-      padding: 1.5rem 2rem;
-      overflow-x: auto;
-    }
+th, td {
+  padding:10px;
+  border-bottom:1px solid #eee;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border: 1px solid #e4e2dc;
-      min-width: 1100px;
-    }
+th {
+  background:#f3f1ec;
+  cursor:pointer;
+}
 
-    thead th {
-      background: #f3f1ec;
-      border-bottom: 1px solid #e4e2dc;
-      padding: 12px 10px;
-      font-size: 11px;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: #666;
-      text-align: left;
-      cursor: pointer;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      user-select: none;
-      white-space: nowrap;
-    }
+tr:hover { background:#faf7f0; }
 
-    tbody td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #efede8;
-      font-size: 13px;
-      vertical-align: middle;
-    }
+.gold { color:#d4a843; font-weight:bold; }
+.mono { font-family:monospace; }
+.msg { padding:40px; text-align:center; }
 
-    tbody tr:hover {
-      background: #fcf8f0;
-    }
-
-    .gold { color: #d4a843; font-weight: 700; }
-    .mono { font-family: monospace; }
-    .muted { color: #888; }
-    .right { text-align: right; }
-    .center { text-align: center; }
-
-    .event-name {
-      font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .subtext {
-      font-size: 11px;
-      color: #888;
-    }
-
-    .tag {
-      display: inline-block;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #f3efe4;
-      color: #8a6a18;
-      font-weight: 600;
-    }
-
-    .msg {
-      padding: 3rem;
-      text-align: center;
-      color: #aaa;
-      background: #fff;
-      border: 1px solid #e4e2dc;
-    }
-
-    .sort-indicator {
-      margin-left: 6px;
-      font-size: 10px;
-      color: #b19137;
-    }
-
-    @media (max-width: 1100px) {
-      .toolbar {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 700px) {
-      .toolbar {
-        grid-template-columns: 1fr;
-      }
-      nav, .header, .toolbar, .summary-bar, .table-wrap {
-        padding-left: 1rem;
-        padding-right: 1rem;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <nav>
-    <div class="logo">Victory Kay <span>Tickets</span></div>
-    <a href="/" style="color:#888;font-size:11px;text-decoration:none;">Back</a>
-  </nav>
 
-  <div class="header">
-    <h1><strong>VKT</strong> Market Data</h1>
-  </div>
+<nav>
+  <div class="logo">Victory Kay <span>Tickets</span></div>
+</nav>
 
-  <div class="toolbar">
-    <input type="text" id="search" placeholder="Search event, venue, team..." />
-    
-    <select id="leagueFilter">
-      <option value="">All Categories</option>
-      <option value="MLB">MLB</option>
-      <option value="NBA">NBA</option>
-      <option value="NFL">NFL</option>
-      <option value="NHL">NHL</option>
-      <option value="MLS">MLS</option>
-      <option value="FIFA">FIFA</option>
-      <option value="Concert">Concert</option>
-      <option value="Show">Show</option>
-      <option value="Theater">Theater</option>
-      <option value="Comedy">Comedy</option>
-    </select>
+<div class="header">
+  <h1><strong>VKT</strong> Market Data</h1>
+</div>
 
-    <select id="dateFilter">
-      <option value="">All Dates</option>
-      <option value="7">Next 7 Days</option>
-      <option value="30">Next 30 Days</option>
-      <option value="90">Next 90 Days</option>
-      <option value="180">Next 180 Days</option>
-    </select>
+<div class="toolbar">
+  <input id="search" placeholder="Search event...">
 
-    <select id="sortField">
-      <option value="date">Sort: Date</option>
-      <option value="event_floor">Sort: Floor</option>
-      <option value="atp">Sort: ATP</option>
-      <option value="listings">Sort: Listings</option>
-      <option value="name">Sort: Event Name</option>
-    </select>
+  <select id="sortField">
+    <option value="date">Date</option>
+    <option value="floor">Floor</option>
+    <option value="atp">ATP</option>
+    <option value="listings">Listings</option>
+  </select>
 
-    <select id="sortDirection">
-      <option value="asc">Ascending</option>
-      <option value="desc">Descending</option>
-    </select>
-  </div>
+  <select id="sortDir">
+    <option value="asc">Asc</option>
+    <option value="desc">Desc</option>
+  </select>
 
-  <div class="summary-bar" id="summaryBar">
-    <span>Loading...</span>
-  </div>
+  <button onclick="load()">Refresh</button>
+</div>
 
-  <div class="table-wrap">
-    <div id="tableContainer" class="msg">Loading...</div>
-  </div>
+<div id="summary" class="summary">Loading...</div>
 
-  <script>
-    var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
-    var KEY = 'YOUR_SUPABASE_ANON_KEY';
-    var H   = { apikey: KEY, Authorization: 'Bearer ' + KEY };
+<div class="table-wrap">
+  <div id="table">Loading...</div>
+</div>
 
-    var rawEvents = [];
-    var processedRows = [];
-    var currentSortField = 'date';
-    var currentSortDirection = 'asc';
+<script>
 
-    function get(url) {
-      return fetch(SB + url, { headers: H }).then(function(r) {
-        if (!r.ok) throw new Error('Request failed: ' + r.status);
-        return r.json();
-      });
-    }
+/* ✅ YOUR ORIGINAL WORKING CONFIG */
+var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+var H   = { apikey: KEY, Authorization: 'Bearer ' + KEY };
 
-    function safeNumber(v) {
-      var n = Number(v);
-      return isNaN(n) ? 0 : n;
-    }
+var allRows = [];
 
-    function formatCurrency(v) {
-      if (!v || isNaN(v)) return '—';
-      return '$' + Math.round(v).toLocaleString();
-    }
+function get(url) {
+  return fetch(SB + url, { headers: H })
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+}
 
-    function formatInteger(v) {
-      if (!v || isNaN(v)) return '—';
-      return Number(v).toLocaleString();
-    }
+function load() {
+  document.getElementById('table').innerHTML = "Loading...";
 
-    function formatDate(dateStr) {
-      if (!dateStr) return 'No date';
-      var d = new Date(dateStr + 'T12:00:00');
-      if (isNaN(d.getTime())) return dateStr;
-      return d.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    }
+  get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=200&select=event_id')
+  .then(snaps => {
 
-    function shortVenue(venue) {
-      if (!venue) return '';
-      return venue.split(',')[0];
-    }
+    let ids = [];
+    let seen = {};
 
-    function cleanEventName(name) {
-      if (!name) return '';
-      return name
-        .replace(/Tickets\s*[–-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i, ' at ')
-        .replace(/Tickets\s*[–-]\s*/i, '')
-        .replace(/\s+at\s+Yankee Stadium.*$/i, '')
-        .replace(/\s+at\s+Dodger Stadium.*$/i, '')
-        .replace(/\s+at\s+Crypto\.com Arena.*$/i, '')
-        .replace(/\s+at\s+[A-Z][^,]{5,30}(?:Stadium|Arena|Field|Park|Center|Centre|Theatre|Theater).*$/i, '')
-        .trim();
-    }
-
-    function detectCategory(name, venue) {
-      var text = ((name || '') + ' ' + (venue || '')).toLowerCase();
-
-      if (text.includes('mlb') || text.includes('baseball') || text.includes('yankees') || text.includes('dodgers') || text.includes('cubs') || text.includes('red sox')) return 'MLB';
-      if (text.includes('nba') || text.includes('basketball') || text.includes('lakers') || text.includes('warriors') || text.includes('celtics') || text.includes('knicks')) return 'NBA';
-      if (text.includes('nfl') || text.includes('football') || text.includes('cowboys') || text.includes('49ers') || text.includes('chiefs') || text.includes('eagles')) return 'NFL';
-      if (text.includes('nhl') || text.includes('hockey') || text.includes('rangers') || text.includes('kings') || text.includes('bruins')) return 'NHL';
-      if (text.includes('mls') || text.includes('soccer') || text.includes('galaxy') || text.includes('lafc') || text.includes('inter miami')) return 'MLS';
-      if (text.includes('fifa') || text.includes('world cup')) return 'FIFA';
-      if (text.includes('comedy')) return 'Comedy';
-      if (text.includes('theater') || text.includes('theatre') || text.includes('broadway') || text.includes('show')) return 'Show';
-      if (text.includes('concert') || text.includes('tour') || text.includes('live')) return 'Concert';
-
-      return 'Other';
-    }
-
-    function processData(events, snaps) {
-      var junk = /hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
-
-      var filteredEvents = (events || []).filter(function(e) {
-        return e.name && e.name.length > 3 && !junk.test(e.name);
-      });
-
-      return filteredEvents.map(function(ev) {
-        var evSnaps = snaps.filter(function(s) { return s.event_id === ev.id; });
-
-        var floors = evSnaps
-          .filter(function(x) { return safeNumber(x.event_floor) > 0; })
-          .sort(function(a, b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
-
-        var lists = evSnaps
-          .filter(function(x) { return safeNumber(x.total_listings) > 0; })
-          .sort(function(a, b) { return safeNumber(b.total_listings) - safeNumber(a.total_listings); });
-
-        var atps = evSnaps.filter(function(x) { return safeNumber(x.section_avg) > 0; });
-
-        var latestFloor = floors[0] ? safeNumber(floors[0].event_floor) : 0;
-        var listings = lists[0] ? safeNumber(lists[0].total_listings) : 0;
-        var atp = atps.length
-          ? atps.reduce(function(sum, x) { return sum + safeNumber(x.section_avg); }, 0) / atps.length
-          : 0;
-
-        var cleanName = cleanEventName(ev.name);
-        var venue = ev.venue || '';
-        var category = detectCategory(cleanName, venue);
-
-        return {
-          id: ev.id,
-          name: cleanName,
-          raw_name: ev.name,
-          date: ev.date || '',
-          venue: shortVenue(venue),
-          full_venue: venue,
-          event_floor: latestFloor,
-          atp: atp,
-          listings: listings,
-          category: category,
-          snapshot_count: evSnaps.length
-        };
-      });
-    }
-
-    function matchesDateFilter(row, days) {
-      if (!days) return true;
-      if (!row.date) return false;
-
-      var today = new Date();
-      today.setHours(0,0,0,0);
-
-      var eventDate = new Date(row.date + 'T12:00:00');
-      if (isNaN(eventDate.getTime())) return false;
-
-      var maxDate = new Date(today);
-      maxDate.setDate(maxDate.getDate() + Number(days));
-
-      return eventDate >= today && eventDate <= maxDate;
-    }
-
-    function applyFilters(rows) {
-      var search = document.getElementById('search').value.trim().toLowerCase();
-      var league = document.getElementById('leagueFilter').value;
-      var days = document.getElementById('dateFilter').value;
-
-      return rows.filter(function(row) {
-        var haystack = [
-          row.name,
-          row.raw_name,
-          row.venue,
-          row.full_venue,
-          row.category
-        ].join(' ').toLowerCase();
-
-        var matchesSearch = !search || haystack.includes(search);
-        var matchesLeague = !league || row.category === league;
-        var matchesDate = matchesDateFilter(row, days);
-
-        return matchesSearch && matchesLeague && matchesDate;
-      });
-    }
-
-    function sortRows(rows, field, direction) {
-      var dir = direction === 'desc' ? -1 : 1;
-
-      return rows.slice().sort(function(a, b) {
-        var av = a[field];
-        var bv = b[field];
-
-        if (field === 'date') {
-          av = a.date ? new Date(a.date + 'T12:00:00').getTime() : 0;
-          bv = b.date ? new Date(b.date + 'T12:00:00').getTime() : 0;
-        }
-
-        if (field === 'name' || field === 'venue' || field === 'category') {
-          av = (av || '').toString().toLowerCase();
-          bv = (bv || '').toString().toLowerCase();
-          if (av < bv) return -1 * dir;
-          if (av > bv) return 1 * dir;
-          return 0;
-        }
-
-        av = safeNumber(av);
-        bv = safeNumber(bv);
-
-        return (av - bv) * dir;
-      });
-    }
-
-    function getSortIndicator(field) {
-      if (currentSortField !== field) return '';
-      return '<span class="sort-indicator">' + (currentSortDirection === 'asc' ? '▲' : '▼') + '</span>';
-    }
-
-    function renderSummary(rows) {
-      var count = rows.length;
-      var avgFloor = count ? rows.reduce(function(sum, r) { return sum + safeNumber(r.event_floor); }, 0) / count : 0;
-      var avgAtp = count ? rows.reduce(function(sum, r) { return sum + safeNumber(r.atp); }, 0) / count : 0;
-      var totalListings = rows.reduce(function(sum, r) { return sum + safeNumber(r.listings); }, 0);
-
-      document.getElementById('summaryBar').innerHTML =
-        '<span><strong>Events:</strong> ' + count.toLocaleString() + '</span>' +
-        '<span><strong>Avg Floor:</strong> ' + formatCurrency(avgFloor) + '</span>' +
-        '<span><strong>Avg ATP:</strong> ' + formatCurrency(avgAtp) + '</span>' +
-        '<span><strong>Total Listings:</strong> ' + totalListings.toLocaleString() + '</span>';
-    }
-
-    function renderTable(rows) {
-      if (!rows.length) {
-        document.getElementById('tableContainer').innerHTML =
-          '<div class="msg">No events match the current filters.</div>';
-        renderSummary([]);
-        return;
+    snaps.forEach(s => {
+      if (!seen[s.event_id]) {
+        seen[s.event_id] = true;
+        ids.push(s.event_id);
       }
+    });
 
-      var html = '';
-      html += '<table>';
-      html += '<thead><tr>';
-      html += '<th onclick="headerSort(\'name\')">Event' + getSortIndicator('name') + '</th>';
-      html += '<th onclick="headerSort(\'category\')">Category' + getSortIndicator('category') + '</th>';
-      html += '<th onclick="headerSort(\'date\')">Date' + getSortIndicator('date') + '</th>';
-      html += '<th onclick="headerSort(\'venue\')">Venue' + getSortIndicator('venue') + '</th>';
-      html += '<th class="right" onclick="headerSort(\'event_floor\')">Floor' + getSortIndicator('event_floor') + '</th>';
-      html += '<th class="right" onclick="headerSort(\'atp\')">ATP' + getSortIndicator('atp') + '</th>';
-      html += '<th class="right" onclick="headerSort(\'listings\')">Listings' + getSortIndicator('listings') + '</th>';
-      html += '<th class="center">Snapshots</th>';
-      html += '</tr></thead>';
-      html += '<tbody>';
+    ids = ids.slice(0, 50);
 
-      rows.forEach(function(row) {
-        html += '<tr>';
-        html += '<td>';
-        html += '<div class="event-name">' + escapeHtml(row.name || '—') + '</div>';
-        html += '<div class="subtext mono">' + escapeHtml(row.id || '') + '</div>';
-        html += '</td>';
-        html += '<td><span class="tag">' + escapeHtml(row.category) + '</span></td>';
-        html += '<td>' + escapeHtml(formatDate(row.date)) + '</td>';
-        html += '<td>' + escapeHtml(row.venue || '—') + '</td>';
-        html += '<td class="right gold mono">' + escapeHtml(formatCurrency(row.event_floor)) + '</td>';
-        html += '<td class="right mono">' + escapeHtml(formatCurrency(row.atp)) + '</td>';
-        html += '<td class="right mono">' + escapeHtml(formatInteger(row.listings)) + '</td>';
-        html += '<td class="center muted mono">' + escapeHtml(String(row.snapshot_count || 0)) + '</td>';
-        html += '</tr>';
-      });
-
-      html += '</tbody></table>';
-
-      document.getElementById('tableContainer').innerHTML = html;
-      renderSummary(rows);
+    if (!ids.length) {
+      throw new Error("No event IDs found");
     }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
+    let idList = ids.map(i => `"${i}"`).join(',');
 
-    function refreshTable() {
-      var rows = applyFilters(processedRows);
+    return Promise.all([
+      get('/rest/v1/events?id=in.(' + idList + ')&select=id,name,date,venue'),
+      get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&select=*')
+    ]);
 
-      currentSortField = document.getElementById('sortField').value;
-      currentSortDirection = document.getElementById('sortDirection').value;
+  }).then(([events, snaps]) => {
 
-      rows = sortRows(rows, currentSortField, currentSortDirection);
-      renderTable(rows);
-    }
+    allRows = events.map(ev => {
 
-    function headerSort(field) {
-      if (currentSortField === field) {
-        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        currentSortField = field;
-        currentSortDirection = (field === 'event_floor' || field === 'atp' || field === 'listings') ? 'desc' : 'asc';
-      }
+      let evSnaps = snaps.filter(s => s.event_id === ev.id);
 
-      document.getElementById('sortField').value = currentSortField;
-      document.getElementById('sortDirection').value = currentSortDirection;
-      refreshTable();
-    }
+      let floors = evSnaps.filter(x => x.event_floor > 0);
+      let lists  = evSnaps.filter(x => x.total_listings > 0);
+      let atps   = evSnaps.filter(x => x.section_avg > 0);
 
-    function bindFilters() {
-      ['search', 'leagueFilter', 'dateFilter', 'sortField', 'sortDirection'].forEach(function(id) {
-        document.getElementById(id).addEventListener('input', refreshTable);
-        document.getElementById(id).addEventListener('change', refreshTable);
-      });
-    }
+      let floor = floors[0]?.event_floor || 0;
+      let listings = lists[0]?.total_listings || 0;
+      let atp = atps.length
+        ? atps.reduce((a,x)=>a+x.section_avg,0)/atps.length
+        : 0;
 
-    function load() {
-      document.getElementById('tableContainer').innerHTML = '<div class="msg">Loading...</div>';
+      return {
+        name: ev.name,
+        date: ev.date,
+        venue: ev.venue,
+        floor,
+        atp,
+        listings
+      };
+    });
 
-      get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=200&select=event_id')
-        .then(function(snaps) {
-          var ids = [];
-          var seen = {};
+    render();
 
-          (snaps || []).forEach(function(s) {
-            if (s.event_id && !seen[s.event_id]) {
-              seen[s.event_id] = true;
-              ids.push(s.event_id);
-            }
-          });
+  }).catch(err => {
+    console.error(err);
+    document.getElementById('table').innerHTML =
+      '<div class="msg">Error: ' + err.message + '</div>';
+  });
+}
 
-          ids = ids.slice(0, 100);
+function render() {
 
-          if (!ids.length) {
-            document.getElementById('tableContainer').innerHTML =
-              '<div class="msg">No data yet. Visit StubHub event pages to start collecting.</div>';
-            document.getElementById('summaryBar').innerHTML = '<span>No data found.</span>';
-            return;
-          }
+  let search = document.getElementById('search').value.toLowerCase();
 
-          var idList = ids.map(function(i) { return '"' + i + '"'; }).join(',');
+  let rows = allRows.filter(r =>
+    r.name.toLowerCase().includes(search)
+  );
 
-          return Promise.all([
-            get('/rest/v1/events?id=in.(' + idList + ')&select=id,name,date,venue'),
-            get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&order=scraped_at.desc&limit=1000&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
-          ]);
-        })
-        .then(function(results) {
-          if (!results) return;
+  let field = document.getElementById('sortField').value;
+  let dir = document.getElementById('sortDir').value === 'desc' ? -1 : 1;
 
-          rawEvents = results[0] || [];
-          var snaps2 = results[1] || [];
+  rows.sort((a,b)=> (a[field] - b[field]) * dir);
 
-          processedRows = processData(rawEvents, snaps2);
-          refreshTable();
-        })
-        .catch(function(err) {
-          console.error(err);
-          document.getElementById('tableContainer').innerHTML =
-            '<div class="msg">Failed to load data.</div>';
-          document.getElementById('summaryBar').innerHTML =
-            '<span>Error loading market data.</span>';
-        });
-    }
+  let html = '<table>';
+  html += '<tr><th>Event</th><th>Date</th><th>Floor</th><th>ATP</th><th>Listings</th></tr>';
 
-    bindFilters();
-    load();
-  </script>
+  rows.forEach(r=>{
+    html += `
+      <tr>
+        <td>${r.name}</td>
+        <td>${r.date || ''}</td>
+        <td class="gold">$${Math.round(r.floor)}</td>
+        <td>$${Math.round(r.atp)}</td>
+        <td>${r.listings}</td>
+      </tr>`;
+  });
+
+  html += '</table>';
+
+  document.getElementById('table').innerHTML = html;
+
+  document.getElementById('summary').innerHTML =
+    rows.length + " events";
+}
+
+/* filters */
+document.getElementById('search').addEventListener('input', render);
+document.getElementById('sortField').addEventListener('change', render);
+document.getElementById('sortDir').addEventListener('change', render);
+
+load();
+
+</script>
+
 </body>
 </html>
