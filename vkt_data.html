@@ -37,7 +37,7 @@
     .logo span { color:#d4a843; }
 
     .header {
-      padding:1rem 1rem;
+      padding:1rem;
       background:#fff;
       border-bottom:1px solid #e4e2dc;
     }
@@ -101,7 +101,7 @@
       display:flex;
       gap:24px;
       flex-wrap:wrap;
-      margin-bottom:0;
+      margin:0;
     }
 
     .summary-bar strong {
@@ -109,6 +109,7 @@
       font-weight:700;
     }
 
+    /* FIXED: removes white gap under summary */
     .table-wrap {
       padding:0;
       margin:0;
@@ -117,15 +118,31 @@
       min-height:500px;
       background:#fff;
       border-top:none;
+      display:block;
+    }
+
+    #tableContainer {
+      padding:0;
+      margin:0;
+      background:#fff;
+      width:100%;
+      height:100%;
+      display:block;
     }
 
     table {
       width:100%;
       border-collapse:collapse;
+      border-spacing:0;
       background:#fff;
       border:none;
       min-width:1000px;
       margin:0;
+    }
+
+    thead, tbody, tr {
+      margin:0;
+      padding:0;
     }
 
     thead th {
@@ -587,8 +604,7 @@
             event_floor: latestFloor,
             atp: atp,
             listings: listings,
-            category: detectCategory(cleanName, venue),
-            snapshot_count: evSnaps.length
+            category: detectCategory(cleanName, venue)
           };
         })
         .filter(function(row) {
