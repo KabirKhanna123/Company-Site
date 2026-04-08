@@ -33,7 +33,6 @@
       text-transform:uppercase;
       color:#111;
     }
-
     .logo span { color:#d4a843; }
 
     .header {
@@ -47,7 +46,6 @@
       font-weight:300;
       color:#111;
     }
-
     h1 strong { color:#d4a843; }
 
     #app {
@@ -59,7 +57,7 @@
       background:#fff;
       border-bottom:1px solid #e4e2dc;
       display:grid;
-      grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+      grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr 1fr;
       gap:10px;
     }
 
@@ -81,6 +79,7 @@
       justify-content:center;
       cursor:pointer;
       min-height:40px;
+      width:100%;
     }
 
     .toolbar input:focus,
@@ -90,6 +89,25 @@
     .section-select:focus {
       border-color:#d4a843;
       background:#fcf8f0;
+    }
+
+    .date-filter-group {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      grid-column:span 2;
+    }
+
+    .date-input-wrap {
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    .date-label {
+      font-size:11px;
+      color:#666;
+      padding-left:2px;
     }
 
     .summary-bar {
@@ -109,7 +127,6 @@
       font-weight:700;
     }
 
-    /* Added small white gap/card around dashboard */
     .dashboard-shell {
       padding:10px;
       background:#f7f6f3;
@@ -126,10 +143,9 @@
       padding:0;
       margin:0;
       overflow:auto;
-      height:calc(100vh - 56px - 56px - 62px - 44px - 20px);
+      height:calc(100vh - 56px - 56px - 110px - 44px - 20px);
       min-height:500px;
       background:#fff;
-      border-top:none;
       display:block;
     }
 
@@ -148,52 +164,43 @@
       border-spacing:0;
       background:#fff;
       border:none;
-      min-width:1200px;
+      table-layout:fixed;
       margin:0;
-    }
-
-    thead, tbody, tr {
-      margin:0;
-      padding:0;
     }
 
     thead th {
       background:#f3f1ec;
       border-bottom:1px solid #e4e2dc;
-      padding:12px 10px;
-      font-size:11px;
-      letter-spacing:0.8px;
+      padding:10px 8px;
+      font-size:10px;
+      letter-spacing:0.7px;
       text-transform:uppercase;
       color:#111;
       text-align:left;
-      white-space:nowrap;
       position:sticky;
       top:0;
       z-index:2;
       font-weight:700;
+      white-space:normal;
+      line-height:1.2;
     }
 
     tbody td {
-      padding:12px 10px;
+      padding:10px 8px;
       border-bottom:1px solid #efede8;
-      font-size:13px;
+      font-size:12px;
       vertical-align:middle;
       text-align:left;
       color:#111;
       background:#fff;
+      overflow-wrap:anywhere;
+      word-break:break-word;
     }
 
-    tbody tr:hover {
-      background:#fcf8f0;
-    }
+    tbody tr:hover { background:#fcf8f0; }
+    tbody tr:hover td { background:#fcf8f0; }
 
-    tbody tr:hover td {
-      background:#fcf8f0;
-    }
-
-    .clickable-row {
-      cursor:pointer;
-    }
+    .clickable-row { cursor:pointer; }
 
     .gold { color:#d4a843; font-weight:700; }
     .mono { font-family:monospace; }
@@ -203,27 +210,25 @@
 
     .event-name {
       font-weight:700;
-      font-size:13px;
-      margin-bottom:0;
+      font-size:12px;
       text-align:left;
       white-space:normal;
-      line-height:1.35;
+      line-height:1.3;
       color:#111;
-    }
-
-    .subtext {
-      font-size:11px;
-      color:#666;
     }
 
     .tag {
       display:inline-block;
-      font-size:11px;
-      padding:4px 8px;
+      font-size:10px;
+      padding:3px 6px;
       border-radius:999px;
       background:#f3efe4;
       color:#8a6a18;
       font-weight:700;
+      max-width:100%;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .msg {
@@ -234,9 +239,7 @@
       border:none;
     }
 
-    .analysis-shell {
-      padding:1rem;
-    }
+    .analysis-shell { padding:1rem; }
 
     .analysis-topbar {
       display:flex;
@@ -305,9 +308,7 @@
       margin-top:14px;
     }
 
-    .full-width {
-      grid-column:1 / -1;
-    }
+    .full-width { grid-column:1 / -1; }
 
     .card {
       background:#fff;
@@ -338,6 +339,7 @@
       min-width:100%;
       border-collapse:collapse;
       background:#fff;
+      table-layout:auto;
     }
 
     .mini-table th,
@@ -357,9 +359,7 @@
       color:#111;
     }
 
-    .analysis-list strong {
-      color:#111;
-    }
+    .analysis-list strong { color:#111; }
 
     .section-chart-header {
       display:flex;
@@ -382,11 +382,18 @@
       padding:10px 0 0;
     }
 
-    @media (max-width:1350px) {
+    @media (max-width:1450px) {
+      .toolbar {
+        grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;
+      }
+      .date-filter-group { grid-column:span 2; }
+    }
+
+    @media (max-width:1200px) {
       .toolbar {
         grid-template-columns:1fr 1fr 1fr;
       }
-
+      .date-filter-group { grid-column:span 2; }
       .table-wrap {
         height:auto;
         min-height:calc(100vh - 260px);
@@ -397,20 +404,17 @@
       .stats-grid {
         grid-template-columns:repeat(2,1fr);
       }
-
       .analysis-grid,
       .section-chart-grid {
         grid-template-columns:1fr;
       }
-
-      .full-width {
-        grid-column:auto;
-      }
+      .full-width { grid-column:auto; }
     }
 
     @media (max-width:700px) {
       .toolbar,
-      .stats-grid {
+      .stats-grid,
+      .date-filter-group {
         grid-template-columns:1fr;
       }
 
@@ -423,16 +427,12 @@
         padding-right:0.75rem;
       }
 
-      .dashboard-shell {
-        padding:8px;
-      }
+      .dashboard-shell { padding:8px; }
+      .analysis-title { font-size:22px; }
+      .table-wrap { min-height:calc(100vh - 300px); }
 
-      .analysis-title {
-        font-size:22px;
-      }
-
-      .table-wrap {
-        min-height:calc(100vh - 300px);
+      table {
+        table-layout:auto;
       }
     }
   </style>
@@ -545,8 +545,8 @@
       var atMatch = cleaned.match(/^(.*?)\s+at\s+(.*?)$/i);
       if (atMatch) {
         return {
-          performer: atMatch[2].trim(),   // home team
-          opponent: atMatch[1].trim()     // non-home team
+          performer: atMatch[2].trim(),
+          opponent: atMatch[1].trim()
         };
       }
 
@@ -573,20 +573,28 @@
         .replace(/'/g, '&#039;');
     }
 
-    function matchesDateFilter(row, days) {
-      if (!days) return true;
-      if (!row.date) return false;
+    function parseDateOnly(dateStr) {
+      if (!dateStr) return null;
+      var d = new Date(dateStr + 'T12:00:00');
+      return isNaN(d.getTime()) ? null : d;
+    }
 
-      var today = new Date();
-      today.setHours(0,0,0,0);
+    function matchesDateRange(row, fromDate, toDate) {
+      if (!fromDate && !toDate) return true;
+      var eventDate = parseDateOnly(row.date);
+      if (!eventDate) return false;
 
-      var eventDate = new Date(row.date + 'T12:00:00');
-      if (isNaN(eventDate.getTime())) return false;
+      if (fromDate) {
+        var from = parseDateOnly(fromDate);
+        if (from && eventDate < from) return false;
+      }
 
-      var maxDate = new Date(today);
-      maxDate.setDate(maxDate.getDate() + Number(days));
+      if (toDate) {
+        var to = parseDateOnly(toDate);
+        if (to && eventDate > to) return false;
+      }
 
-      return eventDate >= today && eventDate <= maxDate;
+      return true;
     }
 
     function statCard(label, value, deltaHtml) {
@@ -708,15 +716,17 @@
         + '  <select id="performerFilter"><option value="">All Performers</option></select>'
         + '  <select id="opponentFilter"><option value="">All Opponents</option></select>'
         + '  <select id="venueFilter"><option value="">All Venues</option></select>'
-        + '  <select id="dateFilter">'
-        + '    <option value="">All Dates</option>'
-        + '    <option value="7">Next 7 Days</option>'
-        + '    <option value="30">Next 30 Days</option>'
-        + '    <option value="90">Next 90 Days</option>'
-        + '    <option value="180">Next 180 Days</option>'
-        + '  </select>'
+        + '  <div class="date-filter-group">'
+        + '    <div class="date-input-wrap">'
+        + '      <label class="date-label" for="dateFrom">Date From</label>'
+        + '      <input type="date" id="dateFrom" />'
+        + '    </div>'
+        + '    <div class="date-input-wrap">'
+        + '      <label class="date-label" for="dateTo">Date To</label>'
+        + '      <input type="date" id="dateTo" />'
+        + '    </div>'
+        + '  </div>'
         + '  <select id="sortField">'
-        + '    <option value="date">Sort: Date</option>'
         + '    <option value="event_floor">Sort: Floor</option>'
         + '    <option value="atp">Sort: ATP</option>'
         + '    <option value="listings">Sort: Listings</option>'
@@ -724,10 +734,6 @@
         + '    <option value="venue">Sort: Venue</option>'
         + '    <option value="performer">Sort: Performer</option>'
         + '    <option value="opponent">Sort: Opponent</option>'
-        + '  </select>'
-        + '  <select id="sortDirection">'
-        + '    <option value="asc">Ascending</option>'
-        + '    <option value="desc">Descending</option>'
         + '  </select>'
         + '</div>'
         + '<div class="summary-bar" id="summaryBar"><span>Loading...</span></div>'
@@ -739,9 +745,9 @@
         'performerFilter',
         'opponentFilter',
         'venueFilter',
-        'dateFilter',
-        'sortField',
-        'sortDirection'
+        'dateFrom',
+        'dateTo',
+        'sortField'
       ].forEach(function(id) {
         var el = document.getElementById(id);
         el.addEventListener('input', renderDashboardTable);
@@ -763,9 +769,9 @@
       var performer = document.getElementById('performerFilter').value;
       var opponent = document.getElementById('opponentFilter').value;
       var venue = document.getElementById('venueFilter').value;
-      var days = document.getElementById('dateFilter').value;
+      var dateFrom = document.getElementById('dateFrom').value;
+      var dateTo = document.getElementById('dateTo').value;
       var sortField = document.getElementById('sortField').value;
-      var sortDirection = document.getElementById('sortDirection').value === 'desc' ? -1 : 1;
 
       rows = rows.filter(function(row) {
         var haystack = [
@@ -784,25 +790,20 @@
         var matchesPerformer = !performer || row.performer === performer;
         var matchesOpponent = !opponent || row.opponent === opponent;
         var matchesVenue = !venue || row.venue === venue;
-        var matchesDate = matchesDateFilter(row, days);
+        var matchesDates = matchesDateRange(row, dateFrom, dateTo);
 
         return matchesSearch &&
           matchesLeague &&
           matchesPerformer &&
           matchesOpponent &&
           matchesVenue &&
-          matchesDate &&
+          matchesDates &&
           safeNumber(row.listings) > 0;
       });
 
       rows.sort(function(a, b) {
         var av = a[sortField];
         var bv = b[sortField];
-
-        if (sortField === 'date') {
-          av = a.date ? new Date(a.date + 'T12:00:00').getTime() : 0;
-          bv = b.date ? new Date(b.date + 'T12:00:00').getTime() : 0;
-        }
 
         if (
           sortField === 'name' ||
@@ -813,15 +814,15 @@
         ) {
           av = (av || '').toString().toLowerCase();
           bv = (bv || '').toString().toLowerCase();
-          if (av < bv) return -1 * sortDirection;
-          if (av > bv) return 1 * sortDirection;
+          if (av < bv) return -1;
+          if (av > bv) return 1;
           return 0;
         }
 
         av = safeNumber(av);
         bv = safeNumber(bv);
 
-        return (av - bv) * sortDirection;
+        return bv - av;
       });
 
       if (!rows.length) {
@@ -832,6 +833,17 @@
 
       var html = '';
       html += '<table>';
+      html += '<colgroup>';
+      html += '<col style="width:24%">';
+      html += '<col style="width:8%">';
+      html += '<col style="width:14%">';
+      html += '<col style="width:14%">';
+      html += '<col style="width:11%">';
+      html += '<col style="width:13%">';
+      html += '<col style="width:5.5%">';
+      html += '<col style="width:5.5%">';
+      html += '<col style="width:5%">';
+      html += '</colgroup>';
       html += '<thead><tr>';
       html += '<th>Event</th>';
       html += '<th>Category</th>';
