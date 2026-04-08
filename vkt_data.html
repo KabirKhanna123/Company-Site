@@ -4,12 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VKT Market Data</title>
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: Arial, sans-serif; background:#f7f6f3; color:#1a1a1a; }
+    body { font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; }
 
     nav {
       background:#fff;
@@ -27,6 +26,7 @@
       letter-spacing:4px;
       text-transform:uppercase;
     }
+
     .logo span { color:#d4a843; }
 
     .header {
@@ -35,7 +35,11 @@
       border-bottom:1px solid #e4e2dc;
     }
 
-    h1 { font-size:22px; font-weight:300; }
+    h1 {
+      font-size:22px;
+      font-weight:300;
+    }
+
     h1 strong { color:#d4a843; }
 
     .toolbar {
@@ -49,132 +53,160 @@
 
     .toolbar input,
     .toolbar select,
-    .toolbar button {
+    .toolbar button,
+    .back-btn,
+    .section-select {
       padding:10px 12px;
-      border:1px solid #d7d3cb;
-      border-radius:6px;
+      border:1px solid #d8d4cc;
       background:#fff;
       font-size:13px;
-    }
-
-    .toolbar button {
+      outline:none;
+      border-radius:6px;
+      text-decoration:none;
+      color:#1a1a1a;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       cursor:pointer;
-      font-weight:600;
     }
 
-    .toolbar button:hover {
-      background:#f8f4ea;
+    .toolbar input:focus,
+    .toolbar select:focus,
+    .toolbar button:hover,
+    .back-btn:hover,
+    .section-select:focus {
       border-color:#d4a843;
+      background:#fcf8f0;
     }
 
-    .summary {
-      padding:10px 2rem;
-      font-size:12px;
-      background:#faf9f6;
+    .summary-bar {
+      padding:0.75rem 2rem;
+      background:#fcfbf8;
       border-bottom:1px solid #e4e2dc;
+      font-size:12px;
+      color:#666;
       display:flex;
-      gap:20px;
+      gap:24px;
       flex-wrap:wrap;
-    }
-
-    .layout {
-      display:grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap:0;
-      min-height: calc(100vh - 170px);
-    }
-
-    .left-panel {
-      border-right:1px solid #e4e2dc;
-      background:#f7f6f3;
-      min-width:0;
-    }
-
-    .right-panel {
-      background:#fbfaf7;
-      min-width:0;
-      overflow:auto;
     }
 
     .table-wrap {
       padding:1.5rem 2rem;
-      overflow:auto;
-      height:100%;
+      overflow-x:auto;
     }
 
     table {
       width:100%;
       border-collapse:collapse;
       background:#fff;
+      border:1px solid #e4e2dc;
+      min-width:1000px;
     }
 
-    th, td {
-      padding:10px;
-      border-bottom:1px solid #eee;
-      vertical-align:top;
-      font-size:13px;
-    }
-
-    th {
+    thead th {
       background:#f3f1ec;
-      cursor:pointer;
-      position:sticky;
-      top:0;
-      z-index:1;
+      border-bottom:1px solid #e4e2dc;
+      padding:12px 10px;
+      font-size:11px;
+      letter-spacing:0.8px;
+      text-transform:uppercase;
+      color:#666;
       text-align:left;
+      white-space:nowrap;
     }
 
-    tr:hover { background:#faf7f0; }
-    .event-row { cursor:pointer; }
-    .event-row.active { background:#fff8e8 !important; }
+    tbody td {
+      padding:12px 10px;
+      border-bottom:1px solid #efede8;
+      font-size:13px;
+      vertical-align:middle;
+    }
 
-    .gold { color:#d4a843; font-weight:bold; }
+    tbody tr:hover {
+      background:#fcf8f0;
+    }
+
+    .clickable-row {
+      cursor:pointer;
+    }
+
+    .gold { color:#d4a843; font-weight:700; }
     .mono { font-family:monospace; }
-    .msg { padding:40px; text-align:center; color:#777; }
     .muted { color:#888; }
+    .right { text-align:right; }
+    .center { text-align:center; }
 
-    .detail-empty {
-      padding:3rem 2rem;
+    .event-name {
+      font-weight:600;
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .subtext {
+      font-size:11px;
       color:#888;
     }
 
-    .detail-header {
-      padding:1.5rem 1.5rem 1rem;
-      border-bottom:1px solid #e4e2dc;
+    .tag {
+      display:inline-block;
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#f3efe4;
+      color:#8a6a18;
+      font-weight:600;
+    }
+
+    .msg {
+      padding:3rem;
+      text-align:center;
+      color:#aaa;
       background:#fff;
-      position:sticky;
-      top:0;
-      z-index:3;
+      border:1px solid #e4e2dc;
     }
 
-    .detail-title {
-      font-size:20px;
+    .analysis-shell {
+      padding:1.5rem 2rem 2rem;
+    }
+
+    .analysis-topbar {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:1rem;
+      flex-wrap:wrap;
+    }
+
+    .analysis-title-wrap {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .analysis-title {
+      font-size:28px;
       font-weight:700;
-      margin-bottom:6px;
-      line-height:1.25;
+      line-height:1.2;
     }
 
-    .detail-subtitle {
-      font-size:13px;
+    .analysis-subtitle {
+      font-size:14px;
       color:#777;
-    }
-
-    .detail-body {
-      padding:1.5rem;
     }
 
     .stats-grid {
       display:grid;
       grid-template-columns:repeat(4,1fr);
-      gap:12px;
-      margin-bottom:18px;
+      gap:14px;
+      margin:18px 0;
     }
 
     .stat-card {
       background:#fff;
       border:1px solid #e7e3da;
-      border-radius:10px;
-      padding:14px;
+      border-radius:14px;
+      padding:16px;
     }
 
     .stat-label {
@@ -182,679 +214,889 @@
       color:#888;
       text-transform:uppercase;
       letter-spacing:.8px;
-      margin-bottom:6px;
+      margin-bottom:8px;
     }
 
     .stat-value {
-      font-size:22px;
+      font-size:28px;
       font-weight:700;
-    }
-
-    .detail-grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-    }
-
-    .card {
-      background:#fff;
-      border:1px solid #e7e3da;
-      border-radius:12px;
-      padding:14px;
-      margin-bottom:14px;
-    }
-
-    .card h3 {
-      font-size:14px;
-      margin-bottom:12px;
-    }
-
-    .chart-wrap {
-      position:relative;
-      height:260px;
-    }
-
-    .section-table-wrap,
-    .history-table-wrap {
-      overflow:auto;
-      max-height:380px;
-      border:1px solid #efede8;
-      border-radius:8px;
-    }
-
-    .mini-table th, .mini-table td {
-      font-size:12px;
-      padding:8px;
+      line-height:1.1;
     }
 
     .delta-up { color:#0a7a2f; font-weight:700; }
     .delta-down { color:#b42318; font-weight:700; }
     .delta-flat { color:#888; font-weight:700; }
 
-    .pill {
-      display:inline-block;
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:700;
-      background:#f6f1e3;
-      color:#8a6a18;
+    .analysis-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-top:14px;
     }
 
-    @media (max-width: 1200px) {
-      .layout { grid-template-columns: 1fr; }
-      .left-panel { border-right:none; border-bottom:1px solid #e4e2dc; }
-      .stats-grid { grid-template-columns:repeat(2,1fr); }
-      .detail-grid { grid-template-columns:1fr; }
+    .full-width {
+      grid-column:1 / -1;
     }
 
-    @media (max-width: 800px) {
-      .toolbar { grid-template-columns:1fr 1fr; }
-      .stats-grid { grid-template-columns:1fr; }
-      nav, .header, .toolbar, .summary, .table-wrap { padding-left:1rem; padding-right:1rem; }
-      .detail-header, .detail-body { padding-left:1rem; padding-right:1rem; }
+    .card {
+      background:#fff;
+      border:1px solid #e7e3da;
+      border-radius:14px;
+      padding:16px;
+    }
+
+    .card h3 {
+      font-size:15px;
+      margin-bottom:14px;
+    }
+
+    .chart-wrap {
+      position:relative;
+      height:320px;
+    }
+
+    .mini-table-wrap {
+      overflow:auto;
+      max-height:420px;
+      border:1px solid #efede8;
+      border-radius:10px;
+    }
+
+    .mini-table {
+      min-width:100%;
+      border-collapse:collapse;
+      background:#fff;
+    }
+
+    .mini-table th,
+    .mini-table td {
+      padding:9px 10px;
+      border-bottom:1px solid #f0ede7;
+      font-size:12px;
+      text-align:left;
+      white-space:nowrap;
+    }
+
+    .analysis-list {
+      display:grid;
+      gap:10px;
+      font-size:14px;
+    }
+
+    .analysis-list strong {
+      color:#1a1a1a;
+    }
+
+    .section-chart-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .section-chart-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+
+    .empty-note {
+      color:#888;
+      font-size:13px;
+      padding:10px 0 0;
+    }
+
+    @media (max-width:1100px) {
+      .toolbar {
+        grid-template-columns:1fr 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns:repeat(2,1fr);
+      }
+
+      .analysis-grid,
+      .section-chart-grid {
+        grid-template-columns:1fr;
+      }
+
+      .full-width {
+        grid-column:auto;
+      }
+    }
+
+    @media (max-width:700px) {
+      .toolbar,
+      .stats-grid {
+        grid-template-columns:1fr;
+      }
+
+      nav,
+      .header,
+      .toolbar,
+      .summary-bar,
+      .table-wrap,
+      .analysis-shell {
+        padding-left:1rem;
+        padding-right:1rem;
+      }
+
+      .analysis-title {
+        font-size:22px;
+      }
     }
   </style>
 </head>
 <body>
+  <nav>
+    <div class="logo">Victory Kay <span>Tickets</span></div>
+    <a href="/" style="color:#888;font-size:11px;text-decoration:none;">Back</a>
+  </nav>
 
-<nav>
-  <div class="logo">Victory Kay <span>Tickets</span></div>
-  <a href="/" style="color:#888;font-size:11px;text-decoration:none;">Back</a>
-</nav>
-
-<div class="header">
-  <h1><strong>VKT</strong> Market Data</h1>
-</div>
-
-<div class="toolbar">
-  <input id="search" placeholder="Search event, venue..." />
-
-  <select id="sortField">
-    <option value="date">Date</option>
-    <option value="floor">Floor</option>
-    <option value="atp">ATP</option>
-    <option value="listings">Listings</option>
-    <option value="name">Event Name</option>
-  </select>
-
-  <select id="sortDir">
-    <option value="asc">Asc</option>
-    <option value="desc">Desc</option>
-  </select>
-
-  <select id="dateFilter">
-    <option value="">All Dates</option>
-    <option value="7">Next 7 Days</option>
-    <option value="30">Next 30 Days</option>
-    <option value="90">Next 90 Days</option>
-    <option value="180">Next 180 Days</option>
-  </select>
-
-  <button onclick="load()">Refresh</button>
-</div>
-
-<div id="summary" class="summary">Loading...</div>
-
-<div class="layout">
-  <div class="left-panel">
-    <div class="table-wrap">
-      <div id="table">Loading...</div>
-    </div>
+  <div class="header">
+    <h1><strong>VKT</strong> Market Data</h1>
   </div>
 
-  <div class="right-panel" id="detailPanel">
-    <div class="detail-empty">
-      Click an event to open the full analysis panel.
-    </div>
-  </div>
-</div>
+  <div id="app"></div>
 
-<script>
-/* ===========================
-   CONFIG
-=========================== */
-var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
-var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
-var H   = { apikey: KEY, Authorization: 'Bearer ' + KEY };
+  <script>
+    var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
+    var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+    var H   = { apikey: KEY, Authorization: 'Bearer ' + KEY };
 
-/* ===========================
-   STATE
-=========================== */
-var allRows = [];
-var allEvents = [];
-var allSnapshots = [];
-var selectedEventId = null;
+    var dashboardRows = [];
+    var dashboardEvents = [];
+    var dashboardSnapshots = [];
 
-var floorChart = null;
-var listingsChart = null;
-var atpChart = null;
+    var floorChart = null;
+    var listingsChart = null;
+    var atpChart = null;
+    var sectionListingsChart = null;
+    var sectionAvgChart = null;
 
-/* ===========================
-   HELPERS
-=========================== */
-function get(url) {
-  return fetch(SB + url, { headers: H })
-    .then(function(r) {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
-    });
-}
+    function get(url) {
+      return fetch(SB + url, { headers: H }).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    }
 
-function safeNumber(v) {
-  var n = Number(v);
-  return isNaN(n) ? 0 : n;
-}
+    function safeNumber(v) {
+      var n = Number(v);
+      return isNaN(n) ? 0 : n;
+    }
 
-function formatCurrency(v) {
-  if (!v || isNaN(v)) return '—';
-  return '$' + Math.round(v).toLocaleString();
-}
+    function formatCurrency(v) {
+      if (!v || isNaN(v)) return '—';
+      return '$' + Math.round(v).toLocaleString();
+    }
 
-function formatNumber(v) {
-  if (v === null || v === undefined || isNaN(v)) return '—';
-  return Number(v).toLocaleString();
-}
+    function formatInteger(v) {
+      if (v === null || v === undefined || isNaN(v)) return '—';
+      return Number(v).toLocaleString();
+    }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  var d = new Date(dateStr + 'T12:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-US', {
-    weekday:'short',
-    month:'short',
-    day:'numeric',
-    year:'numeric'
-  });
-}
+    function formatDate(dateStr) {
+      if (!dateStr) return 'No date';
+      var d = new Date(dateStr + 'T12:00:00');
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
 
-function formatDateTime(dtStr) {
-  if (!dtStr) return '';
-  var d = new Date(dtStr);
-  if (isNaN(d.getTime())) return dtStr;
-  return d.toLocaleString('en-US', {
-    month:'short',
-    day:'numeric',
-    year:'numeric',
-    hour:'numeric',
-    minute:'2-digit'
-  });
-}
+    function formatDateTime(dtStr) {
+      if (!dtStr) return '';
+      var d = new Date(dtStr);
+      if (isNaN(d.getTime())) return dtStr;
+      return d.toLocaleString('en-US', {
+        month:'short',
+        day:'numeric',
+        year:'numeric',
+        hour:'numeric',
+        minute:'2-digit'
+      });
+    }
 
-function shortVenue(venue) {
-  if (!venue) return '';
-  return venue.split(',')[0];
-}
+    function shortVenue(venue) {
+      if (!venue) return '';
+      return venue.split(',')[0];
+    }
 
-function matchesDateFilter(dateStr, days) {
-  if (!days) return true;
-  if (!dateStr) return false;
+    function cleanEventName(name) {
+      if (!name) return '';
+      return name
+        .replace(/Tickets\s*[–-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i, ' at ')
+        .replace(/Tickets\s*[–-]\s*/i, '')
+        .trim();
+    }
 
-  var today = new Date();
-  today.setHours(0,0,0,0);
+    function detectCategory(name, venue) {
+      var text = ((name || '') + ' ' + (venue || '')).toLowerCase();
+      if (text.includes('mlb') || text.includes('baseball') || text.includes('yankees') || text.includes('dodgers') || text.includes('cubs') || text.includes('red sox')) return 'MLB';
+      if (text.includes('nba') || text.includes('basketball') || text.includes('lakers') || text.includes('warriors') || text.includes('celtics') || text.includes('knicks')) return 'NBA';
+      if (text.includes('nfl') || text.includes('football') || text.includes('cowboys') || text.includes('49ers') || text.includes('chiefs') || text.includes('eagles')) return 'NFL';
+      if (text.includes('nhl') || text.includes('hockey') || text.includes('rangers') || text.includes('kings') || text.includes('bruins')) return 'NHL';
+      if (text.includes('mls') || text.includes('soccer') || text.includes('galaxy') || text.includes('lafc') || text.includes('inter miami')) return 'MLS';
+      if (text.includes('fifa') || text.includes('world cup')) return 'FIFA';
+      if (text.includes('comedy')) return 'Comedy';
+      if (text.includes('theater') || text.includes('theatre') || text.includes('broadway')) return 'Theater';
+      if (text.includes('show')) return 'Show';
+      if (text.includes('concert') || text.includes('tour') || text.includes('live')) return 'Concert';
+      return 'Other';
+    }
 
-  var eventDate = new Date(dateStr + 'T12:00:00');
-  if (isNaN(eventDate.getTime())) return false;
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-  var maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + Number(days));
+    function matchesDateFilter(row, days) {
+      if (!days) return true;
+      if (!row.date) return false;
 
-  return eventDate >= today && eventDate <= maxDate;
-}
+      var today = new Date();
+      today.setHours(0,0,0,0);
 
-function deltaClass(v) {
-  if (v > 0) return 'delta-up';
-  if (v < 0) return 'delta-down';
-  return 'delta-flat';
-}
+      var eventDate = new Date(row.date + 'T12:00:00');
+      if (isNaN(eventDate.getTime())) return false;
 
-function deltaText(v, money) {
-  if (!v || isNaN(v)) return '0';
-  var abs = Math.abs(v);
-  var prefix = v > 0 ? '+' : '-';
-  return money ? prefix + '$' + Math.round(abs).toLocaleString() : prefix + Math.round(abs).toLocaleString();
-}
+      var maxDate = new Date(today);
+      maxDate.setDate(maxDate.getDate() + Number(days));
 
-function escapeHtml(str) {
-  return String(str == null ? '' : str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+      return eventDate >= today && eventDate <= maxDate;
+    }
 
-/* ===========================
-   LOAD
-=========================== */
-function load() {
-  document.getElementById('table').innerHTML = '<div class="msg">Loading...</div>';
-  document.getElementById('summary').innerHTML = 'Loading...';
+    function statCard(label, value, deltaHtml) {
+      return '' +
+        '<div class="stat-card">' +
+          '<div class="stat-label">' + escapeHtml(label) + '</div>' +
+          '<div class="stat-value">' + escapeHtml(value) + '</div>' +
+          (deltaHtml || '') +
+        '</div>';
+    }
 
-  get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=300&select=event_id')
-  .then(function(snaps) {
-    var ids = [];
-    var seen = {};
+    function deltaClass(v) {
+      if (v > 0) return 'delta-up';
+      if (v < 0) return 'delta-down';
+      return 'delta-flat';
+    }
 
-    snaps.forEach(function(s) {
-      if (s.event_id && !seen[s.event_id]) {
-        seen[s.event_id] = true;
-        ids.push(s.event_id);
+    function deltaText(v, money) {
+      if (!v || isNaN(v)) return '0';
+      var abs = Math.abs(v);
+      var prefix = v > 0 ? '+' : '-';
+      return money ? prefix + '$' + Math.round(abs).toLocaleString() : prefix + Math.round(abs).toLocaleString();
+    }
+
+    function getQueryParam(name) {
+      var params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    function buildDashboardRows(events, snaps) {
+      var junk = /hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
+
+      return (events || [])
+        .filter(function(e) {
+          return e.name && e.name.length > 3 && !junk.test(e.name);
+        })
+        .map(function(ev) {
+          var evSnaps = snaps.filter(function(s) { return s.event_id === ev.id; });
+
+          var latest = evSnaps.length ? evSnaps[evSnaps.length - 1] : null;
+          var atps = evSnaps.filter(function(x) { return safeNumber(x.section_avg) > 0; });
+
+          var latestFloor = latest ? safeNumber(latest.event_floor) : 0;
+          var listings = latest ? safeNumber(latest.total_listings) : 0;
+          var atp = atps.length
+            ? atps.reduce(function(sum, x) { return sum + safeNumber(x.section_avg); }, 0) / atps.length
+            : 0;
+
+          var cleanName = cleanEventName(ev.name);
+          var venue = ev.venue || '';
+
+          return {
+            id: ev.id,
+            name: cleanName,
+            raw_name: ev.name,
+            date: ev.date || '',
+            venue: shortVenue(venue),
+            full_venue: venue,
+            event_floor: latestFloor,
+            atp: atp,
+            listings: listings,
+            category: detectCategory(cleanName, venue),
+            snapshot_count: evSnaps.length
+          };
+        });
+    }
+
+    function renderDashboardShell() {
+      var app = document.getElementById('app');
+      app.innerHTML = ''
+        + '<div class="toolbar">'
+        + '  <input type="text" id="search" placeholder="Search event, venue, team..." />'
+        + '  <select id="leagueFilter">'
+        + '    <option value="">All Categories</option>'
+        + '    <option value="MLB">MLB</option>'
+        + '    <option value="NBA">NBA</option>'
+        + '    <option value="NFL">NFL</option>'
+        + '    <option value="NHL">NHL</option>'
+        + '    <option value="MLS">MLS</option>'
+        + '    <option value="FIFA">FIFA</option>'
+        + '    <option value="Concert">Concert</option>'
+        + '    <option value="Show">Show</option>'
+        + '    <option value="Theater">Theater</option>'
+        + '    <option value="Comedy">Comedy</option>'
+        + '    <option value="Other">Other</option>'
+        + '  </select>'
+        + '  <select id="dateFilter">'
+        + '    <option value="">All Dates</option>'
+        + '    <option value="7">Next 7 Days</option>'
+        + '    <option value="30">Next 30 Days</option>'
+        + '    <option value="90">Next 90 Days</option>'
+        + '    <option value="180">Next 180 Days</option>'
+        + '  </select>'
+        + '  <select id="sortField">'
+        + '    <option value="date">Sort: Date</option>'
+        + '    <option value="event_floor">Sort: Floor</option>'
+        + '    <option value="atp">Sort: ATP</option>'
+        + '    <option value="listings">Sort: Listings</option>'
+        + '    <option value="name">Sort: Event Name</option>'
+        + '  </select>'
+        + '  <select id="sortDirection">'
+        + '    <option value="asc">Ascending</option>'
+        + '    <option value="desc">Descending</option>'
+        + '  </select>'
+        + '</div>'
+        + '<div class="summary-bar" id="summaryBar"><span>Loading...</span></div>'
+        + '<div class="table-wrap"><div id="tableContainer" class="msg">Loading...</div></div>';
+
+      ['search', 'leagueFilter', 'dateFilter', 'sortField', 'sortDirection'].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.addEventListener('input', renderDashboardTable);
+        el.addEventListener('change', renderDashboardTable);
+      });
+    }
+
+    function renderDashboardTable() {
+      var rows = dashboardRows.slice();
+
+      var search = document.getElementById('search').value.trim().toLowerCase();
+      var league = document.getElementById('leagueFilter').value;
+      var days = document.getElementById('dateFilter').value;
+      var sortField = document.getElementById('sortField').value;
+      var sortDirection = document.getElementById('sortDirection').value === 'desc' ? -1 : 1;
+
+      rows = rows.filter(function(row) {
+        var haystack = [
+          row.name,
+          row.raw_name,
+          row.venue,
+          row.full_venue,
+          row.category
+        ].join(' ').toLowerCase();
+
+        var matchesSearch = !search || haystack.includes(search);
+        var matchesLeague = !league || row.category === league;
+        var matchesDate = matchesDateFilter(row, days);
+
+        return matchesSearch && matchesLeague && matchesDate;
+      });
+
+      rows.sort(function(a, b) {
+        var av = a[sortField];
+        var bv = b[sortField];
+
+        if (sortField === 'date') {
+          av = a.date ? new Date(a.date + 'T12:00:00').getTime() : 0;
+          bv = b.date ? new Date(b.date + 'T12:00:00').getTime() : 0;
+        }
+
+        if (sortField === 'name' || sortField === 'venue' || sortField === 'category') {
+          av = (av || '').toString().toLowerCase();
+          bv = (bv || '').toString().toLowerCase();
+          if (av < bv) return -1 * sortDirection;
+          if (av > bv) return 1 * sortDirection;
+          return 0;
+        }
+
+        av = safeNumber(av);
+        bv = safeNumber(bv);
+
+        return (av - bv) * sortDirection;
+      });
+
+      if (!rows.length) {
+        document.getElementById('tableContainer').innerHTML = '<div class="msg">No events match the current filters.</div>';
+        document.getElementById('summaryBar').innerHTML = '<span>0 events</span>';
+        return;
       }
-    });
 
-    ids = ids.slice(0, 100);
+      var html = '';
+      html += '<table>';
+      html += '<thead><tr>';
+      html += '<th>Event</th>';
+      html += '<th>Category</th>';
+      html += '<th>Date</th>';
+      html += '<th>Venue</th>';
+      html += '<th class="right">Floor</th>';
+      html += '<th class="right">ATP</th>';
+      html += '<th class="right">Listings</th>';
+      html += '<th class="center">Snapshots</th>';
+      html += '</tr></thead>';
+      html += '<tbody>';
 
-    if (!ids.length) {
-      throw new Error("No event IDs found");
+      rows.forEach(function(row) {
+        var analysisUrl = window.location.pathname + '?event_id=' + encodeURIComponent(row.id);
+        html += '<tr class="clickable-row" onclick="window.location.href=\'' + analysisUrl.replace(/'/g, "\\'") + '\'">';
+        html += '<td><div class="event-name">' + escapeHtml(row.name || '—') + '</div><div class="subtext mono">' + escapeHtml(row.id || '') + '</div></td>';
+        html += '<td><span class="tag">' + escapeHtml(row.category) + '</span></td>';
+        html += '<td>' + escapeHtml(formatDate(row.date)) + '</td>';
+        html += '<td>' + escapeHtml(row.venue || '—') + '</td>';
+        html += '<td class="right gold mono">' + escapeHtml(formatCurrency(row.event_floor)) + '</td>';
+        html += '<td class="right mono">' + escapeHtml(formatCurrency(row.atp)) + '</td>';
+        html += '<td class="right mono">' + escapeHtml(formatInteger(row.listings)) + '</td>';
+        html += '<td class="center muted mono">' + escapeHtml(String(row.snapshot_count || 0)) + '</td>';
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+
+      document.getElementById('tableContainer').innerHTML = html;
+
+      var count = rows.length;
+      var avgFloor = count ? rows.reduce(function(sum, r) { return sum + safeNumber(r.event_floor); }, 0) / count : 0;
+      var avgAtp = count ? rows.reduce(function(sum, r) { return sum + safeNumber(r.atp); }, 0) / count : 0;
+      var totalListings = rows.reduce(function(sum, r) { return sum + safeNumber(r.listings); }, 0);
+
+      document.getElementById('summaryBar').innerHTML =
+        '<span><strong>Events:</strong> ' + count.toLocaleString() + '</span>' +
+        '<span><strong>Avg Floor:</strong> ' + formatCurrency(avgFloor) + '</span>' +
+        '<span><strong>Avg ATP:</strong> ' + formatCurrency(avgAtp) + '</span>' +
+        '<span><strong>Total Listings:</strong> ' + totalListings.toLocaleString() + '</span>';
     }
 
-    var idList = ids.map(function(i) { return '"' + i + '"'; }).join(',');
-
-    return Promise.all([
-      get('/rest/v1/events?id=in.(' + idList + ')&select=id,name,date,venue'),
-      get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&order=scraped_at.asc&limit=5000&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
-    ]);
-  })
-  .then(function(results) {
-    allEvents = results[0] || [];
-    allSnapshots = results[1] || [];
-    buildRows();
-    renderTable();
-
-    if (selectedEventId) {
-      openEventDetail(selectedEventId);
-    }
-  })
-  .catch(function(err) {
-    console.error(err);
-    document.getElementById('table').innerHTML =
-      '<div class="msg">Error: ' + escapeHtml(err.message) + '</div>';
-    document.getElementById('summary').innerHTML = 'Error loading data';
-  });
-}
-
-function buildRows() {
-  allRows = allEvents.map(function(ev) {
-    var evSnaps = allSnapshots.filter(function(s) { return s.event_id === ev.id; });
-
-    var latest = evSnaps.length ? evSnaps[evSnaps.length - 1] : null;
-    var earliest = evSnaps.length ? evSnaps[0] : null;
-
-    var atps = evSnaps.filter(function(x) { return safeNumber(x.section_avg) > 0; });
-    var avgAtp = atps.length
-      ? atps.reduce(function(sum, x) { return sum + safeNumber(x.section_avg); }, 0) / atps.length
-      : 0;
-
-    var floor = latest ? safeNumber(latest.event_floor) : 0;
-    var listings = latest ? safeNumber(latest.total_listings) : 0;
-
-    return {
-      id: ev.id,
-      name: ev.name || '',
-      date: ev.date || '',
-      venue: ev.venue || '',
-      shortVenue: shortVenue(ev.venue || ''),
-      floor: floor,
-      atp: avgAtp,
-      listings: listings,
-      snapshots: evSnaps.length,
-      floorChange: latest && earliest ? safeNumber(latest.event_floor) - safeNumber(earliest.event_floor) : 0,
-      listingChange: latest && earliest ? safeNumber(latest.total_listings) - safeNumber(earliest.total_listings) : 0
-    };
-  });
-}
-
-/* ===========================
-   TABLE
-=========================== */
-function renderTable() {
-  var search = document.getElementById('search').value.toLowerCase().trim();
-  var sortField = document.getElementById('sortField').value;
-  var sortDir = document.getElementById('sortDir').value === 'desc' ? -1 : 1;
-  var dateFilter = document.getElementById('dateFilter').value;
-
-  var rows = allRows.filter(function(r) {
-    var hay = (r.name + ' ' + r.venue).toLowerCase();
-    var matchesSearch = !search || hay.indexOf(search) !== -1;
-    var matchesDate = matchesDateFilter(r.date, dateFilter);
-    return matchesSearch && matchesDate;
-  });
-
-  rows.sort(function(a, b) {
-    var av = a[sortField];
-    var bv = b[sortField];
-
-    if (sortField === 'name') {
-      av = (av || '').toLowerCase();
-      bv = (bv || '').toLowerCase();
-      if (av < bv) return -1 * sortDir;
-      if (av > bv) return 1 * sortDir;
-      return 0;
+    function renderAnalysisShell() {
+      var app = document.getElementById('app');
+      app.innerHTML = '<div class="analysis-shell"><div class="msg">Loading analysis...</div></div>';
     }
 
-    if (sortField === 'date') {
-      av = a.date ? new Date(a.date + 'T12:00:00').getTime() : 0;
-      bv = b.date ? new Date(b.date + 'T12:00:00').getTime() : 0;
+    function destroyCharts() {
+      if (floorChart) { floorChart.destroy(); floorChart = null; }
+      if (listingsChart) { listingsChart.destroy(); listingsChart = null; }
+      if (atpChart) { atpChart.destroy(); atpChart = null; }
+      if (sectionListingsChart) { sectionListingsChart.destroy(); sectionListingsChart = null; }
+      if (sectionAvgChart) { sectionAvgChart.destroy(); sectionAvgChart = null; }
     }
 
-    return (safeNumber(av) - safeNumber(bv)) * sortDir;
-  });
+    function chartOptions(yTitle) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: true } },
+        scales: {
+          x: { ticks: { maxTicksLimit: 8 } },
+          y: { title: { display: true, text: yTitle } }
+        }
+      };
+    }
 
-  if (!rows.length) {
-    document.getElementById('table').innerHTML = '<div class="msg">No events match your filters.</div>';
-    document.getElementById('summary').innerHTML = '0 events';
-    return;
-  }
+    function drawAnalysisCharts(labels, floorData, listingsData, atpData) {
+      destroyCharts();
 
-  var html = '<table>';
-  html += '<thead>';
-  html += '<tr>';
-  html += '<th>Event</th>';
-  html += '<th>Date</th>';
-  html += '<th>Venue</th>';
-  html += '<th>Floor</th>';
-  html += '<th>ATP</th>';
-  html += '<th>Listings</th>';
-  html += '<th>Snaps</th>';
-  html += '</tr>';
-  html += '</thead><tbody>';
+      floorChart = new Chart(document.getElementById('floorChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Floor',
+            data: floorData,
+            borderColor: '#d4a843',
+            backgroundColor: 'rgba(212,168,67,.12)',
+            borderWidth: 2,
+            tension: .25,
+            fill: true,
+            pointRadius: 2
+          }]
+        },
+        options: chartOptions('Price')
+      });
 
-  rows.forEach(function(r) {
-    var active = selectedEventId === r.id ? ' active' : '';
-    html += '<tr class="event-row' + active + '" onclick="openEventDetail(\'' + String(r.id).replace(/'/g, "\\'") + '\')">';
-    html += '<td><strong>' + escapeHtml(r.name) + '</strong></td>';
-    html += '<td>' + escapeHtml(formatDate(r.date)) + '</td>';
-    html += '<td>' + escapeHtml(r.shortVenue) + '</td>';
-    html += '<td class="gold">' + escapeHtml(formatCurrency(r.floor)) + '</td>';
-    html += '<td>' + escapeHtml(formatCurrency(r.atp)) + '</td>';
-    html += '<td>' + escapeHtml(formatNumber(r.listings)) + '</td>';
-    html += '<td class="mono">' + escapeHtml(formatNumber(r.snapshots)) + '</td>';
-    html += '</tr>';
-  });
+      listingsChart = new Chart(document.getElementById('listingsChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Listings',
+            data: listingsData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,.10)',
+            borderWidth: 2,
+            tension: .25,
+            fill: true,
+            pointRadius: 2
+          }]
+        },
+        options: chartOptions('Listings')
+      });
 
-  html += '</tbody></table>';
+      atpChart = new Chart(document.getElementById('atpChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'ATP / Section Avg',
+            data: atpData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16,185,129,.10)',
+            borderWidth: 2,
+            tension: .25,
+            fill: true,
+            pointRadius: 2
+          }]
+        },
+        options: chartOptions('ATP')
+      });
+    }
 
-  document.getElementById('table').innerHTML = html;
+    function drawSectionChartsForSelection(sectionName, snaps) {
+      if (sectionListingsChart) { sectionListingsChart.destroy(); sectionListingsChart = null; }
+      if (sectionAvgChart) { sectionAvgChart.destroy(); sectionAvgChart = null; }
 
-  var avgFloor = rows.reduce(function(sum, r) { return sum + safeNumber(r.floor); }, 0) / rows.length;
-  var avgAtp = rows.reduce(function(sum, r) { return sum + safeNumber(r.atp); }, 0) / rows.length;
-  var totalListings = rows.reduce(function(sum, r) { return sum + safeNumber(r.listings); }, 0);
+      var sectionSnaps = snaps
+        .filter(function(s) { return (s.section || '') === sectionName; })
+        .sort(function(a, b) { return new Date(a.scraped_at) - new Date(b.scraped_at); });
 
-  document.getElementById('summary').innerHTML =
-    '<span><strong>Events:</strong> ' + rows.length.toLocaleString() + '</span>' +
-    '<span><strong>Avg Floor:</strong> ' + formatCurrency(avgFloor) + '</span>' +
-    '<span><strong>Avg ATP:</strong> ' + formatCurrency(avgAtp) + '</span>' +
-    '<span><strong>Total Listings:</strong> ' + formatNumber(totalListings) + '</span>';
-}
+      var noteEl = document.getElementById('sectionChartNote');
+      if (!sectionSnaps.length) {
+        noteEl.innerHTML = 'No data found for the selected section.';
+        return;
+      }
 
-/* ===========================
-   DETAIL PANEL
-=========================== */
-function openEventDetail(eventId) {
-  selectedEventId = eventId;
-  renderTable();
+      noteEl.innerHTML = '';
 
-  var eventRow = allRows.find(function(r) { return r.id === eventId; });
-  var eventMeta = allEvents.find(function(e) { return e.id === eventId; });
-  var snaps = allSnapshots.filter(function(s) { return s.event_id === eventId; });
+      var labels = sectionSnaps.map(function(s) { return formatDateTime(s.scraped_at); });
+      var listingsData = sectionSnaps.map(function(s) { return safeNumber(s.section_listings); });
+      var avgData = sectionSnaps.map(function(s) { return safeNumber(s.section_avg); });
 
-  if (!eventRow || !eventMeta) {
-    document.getElementById('detailPanel').innerHTML = '<div class="detail-empty">Event not found.</div>';
-    return;
-  }
+      sectionListingsChart = new Chart(document.getElementById('sectionListingsChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: sectionName + ' Listings',
+            data: listingsData,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139,92,246,.10)',
+            borderWidth: 2,
+            tension: .25,
+            fill: true,
+            pointRadius: 2
+          }]
+        },
+        options: chartOptions('Section Listings')
+      });
 
-  if (!snaps.length) {
-    document.getElementById('detailPanel').innerHTML = '<div class="detail-empty">No snapshot data found for this event.</div>';
-    return;
-  }
+      sectionAvgChart = new Chart(document.getElementById('sectionAvgChart'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: sectionName + ' Avg Price',
+            data: avgData,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239,68,68,.10)',
+            borderWidth: 2,
+            tension: .25,
+            fill: true,
+            pointRadius: 2
+          }]
+        },
+        options: chartOptions('Section Avg Price')
+      });
+    }
 
-  var firstSnap = snaps[0];
-  var lastSnap = snaps[snaps.length - 1];
+    function loadDashboard() {
+      renderDashboardShell();
 
-  var floorStart = safeNumber(firstSnap.event_floor);
-  var floorEnd = safeNumber(lastSnap.event_floor);
-  var floorDelta = floorEnd - floorStart;
+      get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=200&select=event_id')
+        .then(function(snaps) {
+          var ids = [];
+          var seen = {};
 
-  var listingStart = safeNumber(firstSnap.total_listings);
-  var listingEnd = safeNumber(lastSnap.total_listings);
-  var listingDelta = listingEnd - listingStart;
+          (snaps || []).forEach(function(s) {
+            if (s.event_id && !seen[s.event_id]) {
+              seen[s.event_id] = true;
+              ids.push(s.event_id);
+            }
+          });
 
-  var sectionAvgSeries = snaps.filter(function(s) { return safeNumber(s.section_avg) > 0; });
-  var avgAtpOverall = sectionAvgSeries.length
-    ? sectionAvgSeries.reduce(function(sum, s) { return sum + safeNumber(s.section_avg); }, 0) / sectionAvgSeries.length
-    : 0;
+          ids = ids.slice(0, 100);
 
-  var latestBySection = {};
-  snaps.forEach(function(s) {
-    if (!s.section) return;
-    latestBySection[s.section] = s;
-  });
+          if (!ids.length) {
+            document.getElementById('tableContainer').innerHTML = '<div class="msg">No data yet. Visit StubHub event pages to start collecting.</div>';
+            document.getElementById('summaryBar').innerHTML = '<span>No data found.</span>';
+            return null;
+          }
 
-  var sections = Object.keys(latestBySection).map(function(section) {
-    var s = latestBySection[section];
-    return {
-      section: section,
-      listings: safeNumber(s.section_listings),
-      avg: safeNumber(s.section_avg),
-      floor: safeNumber(s.event_floor),
-      scraped_at: s.scraped_at
-    };
-  });
+          var idList = ids.map(function(i) {
+            return '"' + String(i).replace(/"/g, '\\"') + '"';
+          }).join(',');
 
-  sections.sort(function(a, b) {
-    return b.listings - a.listings;
-  });
+          return Promise.all([
+            get('/rest/v1/events?id=in.(' + idList + ')&select=id,name,date,venue'),
+            get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&order=scraped_at.asc&limit=5000&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
+          ]);
+        })
+        .then(function(results) {
+          if (!results) return;
+          dashboardEvents = results[0] || [];
+          dashboardSnapshots = results[1] || [];
+          dashboardRows = buildDashboardRows(dashboardEvents, dashboardSnapshots);
+          renderDashboardTable();
+        })
+        .catch(function(err) {
+          console.error(err);
+          document.getElementById('tableContainer').innerHTML = '<div class="msg">Failed to load data: ' + escapeHtml(err.message || 'Unknown error') + '</div>';
+          document.getElementById('summaryBar').innerHTML = '<span>Error loading market data.</span>';
+        });
+    }
 
-  var labels = snaps.map(function(s) { return formatDateTime(s.scraped_at); });
-  var floorData = snaps.map(function(s) { return safeNumber(s.event_floor); });
-  var listingsData = snaps.map(function(s) { return safeNumber(s.total_listings); });
-  var atpData = snaps.map(function(s) { return safeNumber(s.section_avg); });
+    function loadAnalysis(eventId) {
+      renderAnalysisShell();
 
-  var html = '';
-  html += '<div class="detail-header">';
-  html += '<div class="detail-title">' + escapeHtml(eventMeta.name) + '</div>';
-  html += '<div class="detail-subtitle">' +
-    escapeHtml(formatDate(eventMeta.date)) +
-    (eventMeta.venue ? ' • ' + escapeHtml(eventMeta.venue) : '') +
-    '</div>';
-  html += '</div>';
+      Promise.all([
+        get('/rest/v1/events?id=eq.' + encodeURIComponent(eventId) + '&select=id,name,date,venue'),
+        get('/rest/v1/volume_snapshots?event_id=eq.' + encodeURIComponent(eventId) + '&order=scraped_at.asc&limit=10000&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
+      ])
+      .then(function(results) {
+        var events = results[0] || [];
+        var snaps = results[1] || [];
+        var eventMeta = events[0];
 
-  html += '<div class="detail-body">';
+        if (!eventMeta) {
+          document.getElementById('app').innerHTML = '<div class="analysis-shell"><div class="msg">Event not found.</div></div>';
+          return;
+        }
 
-  html += '<div class="stats-grid">';
-  html += statCard('Current Floor', formatCurrency(floorEnd), floorDelta);
-  html += statCard('Current Listings', formatNumber(listingEnd), listingDelta, false);
-  html += statCard('Avg ATP', formatCurrency(avgAtpOverall), null);
-  html += statCard('Snapshots Collected', formatNumber(snaps.length), null);
-  html += '</div>';
+        if (!snaps.length) {
+          document.getElementById('app').innerHTML = '<div class="analysis-shell"><div class="msg">No snapshot data found for this event.</div></div>';
+          return;
+        }
 
-  html += '<div class="detail-grid">';
-  html += '<div class="card"><h3>Floor Over Time</h3><div class="chart-wrap"><canvas id="floorChart"></canvas></div></div>';
-  html += '<div class="card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="listingsChart"></canvas></div></div>';
-  html += '</div>';
+        var firstSnap = snaps[0];
+        var lastSnap = snaps[snaps.length - 1];
 
-  html += '<div class="card"><h3>ATP / Section Average Over Time</h3><div class="chart-wrap"><canvas id="atpChart"></canvas></div></div>';
+        var floorStart = safeNumber(firstSnap.event_floor);
+        var floorEnd = safeNumber(lastSnap.event_floor);
+        var floorDelta = floorEnd - floorStart;
 
-  html += '<div class="detail-grid">';
-  html += '<div class="card">';
-  html += '<h3>Latest Section Breakdown</h3>';
-  html += '<div class="section-table-wrap">';
-  html += '<table class="mini-table">';
-  html += '<thead><tr><th>Section</th><th>Listings</th><th>Avg</th><th>Last Seen</th></tr></thead><tbody>';
+        var listingStart = safeNumber(firstSnap.total_listings);
+        var listingEnd = safeNumber(lastSnap.total_listings);
+        var listingDelta = listingEnd - listingStart;
 
-  if (!sections.length) {
-    html += '<tr><td colspan="4" class="muted">No section data available.</td></tr>';
-  } else {
-    sections.forEach(function(s) {
-      html += '<tr>';
-      html += '<td>' + escapeHtml(s.section) + '</td>';
-      html += '<td>' + escapeHtml(formatNumber(s.listings)) + '</td>';
-      html += '<td>' + escapeHtml(formatCurrency(s.avg)) + '</td>';
-      html += '<td>' + escapeHtml(formatDateTime(s.scraped_at)) + '</td>';
-      html += '</tr>';
-    });
-  }
+        var validAtpRows = snaps.filter(function(s) { return safeNumber(s.section_avg) > 0; });
+        var avgAtpOverall = validAtpRows.length
+          ? validAtpRows.reduce(function(sum, s) { return sum + safeNumber(s.section_avg); }, 0) / validAtpRows.length
+          : 0;
 
-  html += '</tbody></table></div></div>';
+        var latestBySection = {};
+        snaps.forEach(function(s) {
+          if (!s.section) return;
+          latestBySection[s.section] = s;
+        });
 
-  html += '<div class="card">';
-  html += '<h3>Event Analysis</h3>';
-  html += '<div style="display:grid;gap:10px;">';
-  html += '<div><span class="pill">Floor Change</span> <span class="' + deltaClass(floorDelta) + '" style="margin-left:8px;">' + deltaText(floorDelta, true) + '</span></div>';
-  html += '<div><span class="pill">Listings Change</span> <span class="' + deltaClass(listingDelta) + '" style="margin-left:8px;">' + deltaText(listingDelta, false) + '</span></div>';
-  html += '<div><strong>First Snapshot:</strong> ' + escapeHtml(formatDateTime(firstSnap.scraped_at)) + '</div>';
-  html += '<div><strong>Latest Snapshot:</strong> ' + escapeHtml(formatDateTime(lastSnap.scraped_at)) + '</div>';
-  html += '<div><strong>Opening Floor:</strong> ' + escapeHtml(formatCurrency(floorStart)) + '</div>';
-  html += '<div><strong>Latest Floor:</strong> ' + escapeHtml(formatCurrency(floorEnd)) + '</div>';
-  html += '<div><strong>Opening Listings:</strong> ' + escapeHtml(formatNumber(listingStart)) + '</div>';
-  html += '<div><strong>Latest Listings:</strong> ' + escapeHtml(formatNumber(listingEnd)) + '</div>';
-  html += '<div><strong>Venue:</strong> ' + escapeHtml(eventMeta.venue || '') + '</div>';
-  html += '<div><strong>Event ID:</strong> <span class="mono">' + escapeHtml(eventMeta.id) + '</span></div>';
-  html += '</div>';
-  html += '</div>';
-  html += '</div>';
+        var sections = Object.keys(latestBySection).map(function(section) {
+          var s = latestBySection[section];
+          return {
+            section: section,
+            listings: safeNumber(s.section_listings),
+            avg: safeNumber(s.section_avg),
+            floor: safeNumber(s.event_floor),
+            scraped_at: s.scraped_at
+          };
+        });
 
-  html += '<div class="card">';
-  html += '<h3>Snapshot History</h3>';
-  html += '<div class="history-table-wrap">';
-  html += '<table class="mini-table">';
-  html += '<thead><tr><th>Scraped At</th><th>Floor</th><th>Total Listings</th><th>Section</th><th>Section Listings</th><th>Section Avg</th></tr></thead><tbody>';
+        sections.sort(function(a, b) {
+          return b.listings - a.listings;
+        });
 
-  snaps.forEach(function(s) {
-    html += '<tr>';
-    html += '<td>' + escapeHtml(formatDateTime(s.scraped_at)) + '</td>';
-    html += '<td>' + escapeHtml(formatCurrency(s.event_floor)) + '</td>';
-    html += '<td>' + escapeHtml(formatNumber(s.total_listings)) + '</td>';
-    html += '<td>' + escapeHtml(s.section || '') + '</td>';
-    html += '<td>' + escapeHtml(formatNumber(s.section_listings)) + '</td>';
-    html += '<td>' + escapeHtml(formatCurrency(s.section_avg)) + '</td>';
-    html += '</tr>';
-  });
+        var uniqueSections = Array.from(new Set(
+          snaps
+            .map(function(s) { return s.section || ''; })
+            .filter(function(s) { return s.trim().length > 0; })
+        )).sort();
 
-  html += '</tbody></table></div></div>';
+        var labels = snaps.map(function(s) { return formatDateTime(s.scraped_at); });
+        var floorData = snaps.map(function(s) { return safeNumber(s.event_floor); });
+        var listingsData = snaps.map(function(s) { return safeNumber(s.total_listings); });
+        var atpData = snaps.map(function(s) { return safeNumber(s.section_avg); });
 
-  html += '</div>';
+        var html = '';
+        html += '<div class="analysis-shell">';
+        html += '  <div class="analysis-topbar">';
+        html += '    <div class="analysis-title-wrap">';
+        html += '      <div class="analysis-title">' + escapeHtml(eventMeta.name) + '</div>';
+        html += '      <div class="analysis-subtitle">' + escapeHtml(formatDate(eventMeta.date)) + (eventMeta.venue ? ' • ' + escapeHtml(eventMeta.venue) : '') + '</div>';
+        html += '    </div>';
+        html += '    <a class="back-btn" href="' + window.location.pathname + '">← Back to Dashboard</a>';
+        html += '  </div>';
 
-  document.getElementById('detailPanel').innerHTML = html;
+        html += '  <div class="stats-grid">';
+        html +=       statCard('Current Floor', formatCurrency(floorEnd), '<div class="' + deltaClass(floorDelta) + '" style="margin-top:8px;font-size:12px;">' + deltaText(floorDelta, true) + '</div>');
+        html +=       statCard('Current Listings', formatInteger(listingEnd), '<div class="' + deltaClass(listingDelta) + '" style="margin-top:8px;font-size:12px;">' + deltaText(listingDelta, false) + '</div>');
+        html +=       statCard('Avg ATP', formatCurrency(avgAtpOverall), '');
+        html +=       statCard('Snapshots Collected', formatInteger(snaps.length), '');
+        html += '  </div>';
 
-  drawCharts(labels, floorData, listingsData, atpData);
-}
+        html += '  <div class="analysis-grid">';
+        html += '    <div class="card">';
+        html += '      <h3>Floor Over Time</h3>';
+        html += '      <div class="chart-wrap"><canvas id="floorChart"></canvas></div>';
+        html += '    </div>';
 
-function statCard(label, value, delta, money) {
-  var deltaHtml = '';
-  if (delta !== null && delta !== undefined) {
-    deltaHtml = '<div class="' + deltaClass(delta) + '" style="margin-top:8px;font-size:12px;">' +
-      deltaText(delta, money !== false) + '</div>';
-  }
-  return '' +
-    '<div class="stat-card">' +
-      '<div class="stat-label">' + escapeHtml(label) + '</div>' +
-      '<div class="stat-value">' + escapeHtml(value) + '</div>' +
-      deltaHtml +
-    '</div>';
-}
+        html += '    <div class="card">';
+        html += '      <h3>Listings Over Time</h3>';
+        html += '      <div class="chart-wrap"><canvas id="listingsChart"></canvas></div>';
+        html += '    </div>';
 
-/* ===========================
-   CHARTS
-=========================== */
-function destroyCharts() {
-  if (floorChart) { floorChart.destroy(); floorChart = null; }
-  if (listingsChart) { listingsChart.destroy(); listingsChart = null; }
-  if (atpChart) { atpChart.destroy(); atpChart = null; }
-}
+        html += '    <div class="card full-width">';
+        html += '      <h3>ATP / Section Average Over Time</h3>';
+        html += '      <div class="chart-wrap"><canvas id="atpChart"></canvas></div>';
+        html += '    </div>';
 
-function drawCharts(labels, floorData, listingsData, atpData) {
-  destroyCharts();
+        html += '    <div class="card full-width">';
+        html += '      <div class="section-chart-header">';
+        html += '        <h3 style="margin-bottom:0;">Section-Level Analysis</h3>';
+        html += '        <select id="sectionFilter" class="section-select">';
+        if (!uniqueSections.length) {
+          html += '          <option value="">No sections available</option>';
+        } else {
+          uniqueSections.forEach(function(section, idx) {
+            html += '        <option value="' + escapeHtml(section) + '"' + (idx === 0 ? ' selected' : '') + '>' + escapeHtml(section) + '</option>';
+          });
+        }
+        html += '        </select>';
+        html += '      </div>';
+        html += '      <div class="section-chart-grid">';
+        html += '        <div>';
+        html += '          <h3 style="margin-bottom:12px;">Selected Section Listings Over Time</h3>';
+        html += '          <div class="chart-wrap"><canvas id="sectionListingsChart"></canvas></div>';
+        html += '        </div>';
+        html += '        <div>';
+        html += '          <h3 style="margin-bottom:12px;">Selected Section Average Price Over Time</h3>';
+        html += '          <div class="chart-wrap"><canvas id="sectionAvgChart"></canvas></div>';
+        html += '        </div>';
+        html += '      </div>';
+        html += '      <div id="sectionChartNote" class="empty-note"></div>';
+        html += '    </div>';
 
-  var floorCtx = document.getElementById('floorChart');
-  var listingsCtx = document.getElementById('listingsChart');
-  var atpCtx = document.getElementById('atpChart');
+        html += '    <div class="card">';
+        html += '      <h3>Event Analysis</h3>';
+        html += '      <div class="analysis-list">';
+        html += '        <div><strong>First Snapshot:</strong> ' + escapeHtml(formatDateTime(firstSnap.scraped_at)) + '</div>';
+        html += '        <div><strong>Latest Snapshot:</strong> ' + escapeHtml(formatDateTime(lastSnap.scraped_at)) + '</div>';
+        html += '        <div><strong>Opening Floor:</strong> ' + escapeHtml(formatCurrency(floorStart)) + '</div>';
+        html += '        <div><strong>Latest Floor:</strong> ' + escapeHtml(formatCurrency(floorEnd)) + '</div>';
+        html += '        <div><strong>Opening Listings:</strong> ' + escapeHtml(formatInteger(listingStart)) + '</div>';
+        html += '        <div><strong>Latest Listings:</strong> ' + escapeHtml(formatInteger(listingEnd)) + '</div>';
+        html += '        <div><strong>Floor Change:</strong> <span class="' + deltaClass(floorDelta) + '">' + deltaText(floorDelta, true) + '</span></div>';
+        html += '        <div><strong>Listings Change:</strong> <span class="' + deltaClass(listingDelta) + '">' + deltaText(listingDelta, false) + '</span></div>';
+        html += '        <div><strong>Venue:</strong> ' + escapeHtml(eventMeta.venue || '') + '</div>';
+        html += '        <div><strong>Event ID:</strong> <span class="mono">' + escapeHtml(eventMeta.id) + '</span></div>';
+        html += '      </div>';
+        html += '    </div>';
 
-  floorChart = new Chart(floorCtx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Floor',
-        data: floorData,
-        borderColor: '#d4a843',
-        backgroundColor: 'rgba(212,168,67,.12)',
-        borderWidth: 2,
-        tension: .25,
-        fill: true,
-        pointRadius: 2
-      }]
-    },
-    options: chartOptions('Price')
-  });
+        html += '    <div class="card">';
+        html += '      <h3>Latest Section Breakdown</h3>';
+        html += '      <div class="mini-table-wrap">';
+        html += '        <table class="mini-table">';
+        html += '          <thead><tr><th>Section</th><th>Listings</th><th>Avg</th><th>Last Seen</th></tr></thead><tbody>';
 
-  listingsChart = new Chart(listingsCtx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Listings',
-        data: listingsData,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59,130,246,.10)',
-        borderWidth: 2,
-        tension: .25,
-        fill: true,
-        pointRadius: 2
-      }]
-    },
-    options: chartOptions('Listings')
-  });
+        if (!sections.length) {
+          html += '      <tr><td colspan="4" class="muted">No section data available.</td></tr>';
+        } else {
+          sections.forEach(function(s) {
+            html += '    <tr>';
+            html += '      <td>' + escapeHtml(s.section) + '</td>';
+            html += '      <td>' + escapeHtml(formatInteger(s.listings)) + '</td>';
+            html += '      <td>' + escapeHtml(formatCurrency(s.avg)) + '</td>';
+            html += '      <td>' + escapeHtml(formatDateTime(s.scraped_at)) + '</td>';
+            html += '    </tr>';
+          });
+        }
 
-  atpChart = new Chart(atpCtx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'ATP / Section Avg',
-        data: atpData,
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16,185,129,.10)',
-        borderWidth: 2,
-        tension: .25,
-        fill: true,
-        pointRadius: 2
-      }]
-    },
-    options: chartOptions('ATP')
-  });
-}
+        html += '          </tbody></table>';
+        html += '      </div>';
+        html += '    </div>';
 
-function chartOptions(yTitle) {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: true }
-    },
-    scales: {
-      x: {
-        ticks: { maxTicksLimit: 8 }
-      },
-      y: {
-        title: { display: true, text: yTitle }
+        html += '    <div class="card full-width">';
+        html += '      <h3>Snapshot History</h3>';
+        html += '      <div class="mini-table-wrap">';
+        html += '        <table class="mini-table">';
+        html += '          <thead><tr><th>Scraped At</th><th>Floor</th><th>Total Listings</th><th>Section</th><th>Section Listings</th><th>Section Avg</th></tr></thead><tbody>';
+
+        snaps.forEach(function(s) {
+          html += '        <tr>';
+          html += '          <td>' + escapeHtml(formatDateTime(s.scraped_at)) + '</td>';
+          html += '          <td>' + escapeHtml(formatCurrency(s.event_floor)) + '</td>';
+          html += '          <td>' + escapeHtml(formatInteger(s.total_listings)) + '</td>';
+          html += '          <td>' + escapeHtml(s.section || '') + '</td>';
+          html += '          <td>' + escapeHtml(formatInteger(s.section_listings)) + '</td>';
+          html += '          <td>' + escapeHtml(formatCurrency(s.section_avg)) + '</td>';
+          html += '        </tr>';
+        });
+
+        html += '          </tbody>';
+        html += '        </table>';
+        html += '      </div>';
+        html += '    </div>';
+
+        html += '  </div>';
+        html += '</div>';
+
+        document.getElementById('app').innerHTML = html;
+        drawAnalysisCharts(labels, floorData, listingsData, atpData);
+
+        var sectionFilterEl = document.getElementById('sectionFilter');
+        if (sectionFilterEl && uniqueSections.length) {
+          drawSectionChartsForSelection(sectionFilterEl.value, snaps);
+          sectionFilterEl.addEventListener('change', function() {
+            drawSectionChartsForSelection(this.value, snaps);
+          });
+        } else {
+          var noteEl = document.getElementById('sectionChartNote');
+          if (noteEl) noteEl.innerHTML = 'No section-level data available for this event.';
+        }
+      })
+      .catch(function(err) {
+        console.error(err);
+        document.getElementById('app').innerHTML = '<div class="analysis-shell"><div class="msg">Failed to load analysis: ' + escapeHtml(err.message || 'Unknown error') + '</div></div>';
+      });
+    }
+
+    function init() {
+      var eventId = getQueryParam('event_id');
+      if (eventId) {
+        loadAnalysis(eventId);
+      } else {
+        loadDashboard();
       }
     }
-  };
-}
 
-/* ===========================
-   EVENTS
-=========================== */
-document.getElementById('search').addEventListener('input', renderTable);
-document.getElementById('sortField').addEventListener('change', renderTable);
-document.getElementById('sortDir').addEventListener('change', renderTable);
-document.getElementById('dateFilter').addEventListener('change', renderTable);
-
-load();
-</script>
-
+    init();
+  </script>
 </body>
 </html>
