@@ -73,8 +73,8 @@ function load() {
       events.forEach(function(ev) {
         var evSnaps = snaps2.filter(function(s) { return s.event_id === ev.id; });
         var floors = evSnaps.filter(function(x) { return x.event_floor > 0; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
-        // Only use event-level snapshots (no section) for listing count
-        var lists  = evSnaps.filter(function(x) { return x.total_listings > 0 && !x.section; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
+        // Use total_listings from any snapshot, or count distinct sections as proxy
+        var lists  = evSnaps.filter(function(x) { return x.total_listings > 0; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
         var atps   = evSnaps.filter(function(x) { return x.section_avg > 0; });
         var floor    = floors[0] ? '$' + floors[0].event_floor : '&mdash;';
         var listings = lists[0]  ? lists[0].total_listings.toLocaleString() : '&mdash;';
@@ -82,7 +82,15 @@ function load() {
         var date     = ev.date ? new Date(ev.date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'No date';
         var venue    = ev.venue ? ' &middot; ' + ev.venue.split(',')[0] : '';
         html += '<div class="card">';
-        html += '<div class="card-name">' + ev.name + '</div>';
+        var displayName = ev.name
+          .replace(/Tickets\s*[–-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i, ' at ')
+          .replace(/Tickets\s*[–-]\s*/i, '')
+          .replace(/\s+at\s+Yankee Stadium.*$/i, '')
+          .replace(/\s+at\s+Dodger Stadium.*$/i, '')
+          .replace(/\s+at\s+Crypto\.com Arena.*$/i, '')
+          .replace(/\s+at\s+[A-Z][^,]{5,30}(?:Stadium|Arena|Field|Park).*$/i, '')
+          .trim();
+        html += '<div class="card-name">' + displayName + '</div>';
         html += '<div class="card-meta">' + date + venue + '</div>';
         html += '<div class="card-stats">';
         html += '<div class="cs"><div class="cs-l">Floor</div><div class="cs-v gold">' + floor + '</div></div>';
