@@ -59,7 +59,7 @@
       background:#fff;
       border-bottom:1px solid #e4e2dc;
       display:grid;
-      grid-template-columns:2fr 1fr 1fr 1fr 1fr;
+      grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 1fr;
       gap:10px;
     }
 
@@ -109,12 +109,24 @@
       font-weight:700;
     }
 
-    /* FIXED: removes white gap under summary */
+    /* Added small white gap/card around dashboard */
+    .dashboard-shell {
+      padding:10px;
+      background:#f7f6f3;
+    }
+
+    .dashboard-card {
+      background:#fff;
+      border:1px solid #e4e2dc;
+      border-radius:10px;
+      overflow:hidden;
+    }
+
     .table-wrap {
       padding:0;
       margin:0;
       overflow:auto;
-      height:calc(100vh - 56px - 56px - 62px - 44px);
+      height:calc(100vh - 56px - 56px - 62px - 44px - 20px);
       min-height:500px;
       background:#fff;
       border-top:none;
@@ -136,7 +148,7 @@
       border-spacing:0;
       background:#fff;
       border:none;
-      min-width:1000px;
+      min-width:1200px;
       margin:0;
     }
 
@@ -370,11 +382,18 @@
       padding:10px 0 0;
     }
 
-    @media (max-width:1100px) {
+    @media (max-width:1350px) {
       .toolbar {
-        grid-template-columns:1fr 1fr;
+        grid-template-columns:1fr 1fr 1fr;
       }
 
+      .table-wrap {
+        height:auto;
+        min-height:calc(100vh - 260px);
+      }
+    }
+
+    @media (max-width:1100px) {
       .stats-grid {
         grid-template-columns:repeat(2,1fr);
       }
@@ -386,11 +405,6 @@
 
       .full-width {
         grid-column:auto;
-      }
-
-      .table-wrap {
-        height:auto;
-        min-height:calc(100vh - 220px);
       }
     }
 
@@ -409,12 +423,16 @@
         padding-right:0.75rem;
       }
 
+      .dashboard-shell {
+        padding:8px;
+      }
+
       .analysis-title {
         font-size:22px;
       }
 
       .table-wrap {
-        min-height:calc(100vh - 260px);
+        min-height:calc(100vh - 300px);
       }
     }
   </style>
@@ -521,6 +539,31 @@
       return 'Other';
     }
 
+    function parsePerformerOpponent(name) {
+      var cleaned = cleanEventName(name || '');
+
+      var atMatch = cleaned.match(/^(.*?)\s+at\s+(.*?)$/i);
+      if (atMatch) {
+        return {
+          performer: atMatch[2].trim(),   // home team
+          opponent: atMatch[1].trim()     // non-home team
+        };
+      }
+
+      var vsMatch = cleaned.match(/^(.*?)\s+(?:vs\.?|v\.?)\s+(.*?)$/i);
+      if (vsMatch) {
+        return {
+          performer: vsMatch[1].trim(),
+          opponent: vsMatch[2].trim()
+        };
+      }
+
+      return {
+        performer: cleaned,
+        opponent: ''
+      };
+    }
+
     function escapeHtml(str) {
       return String(str == null ? '' : str)
         .replace(/&/g, '&amp;')
@@ -593,6 +636,7 @@
 
           var cleanName = cleanEventName(ev.name);
           var venue = ev.venue || '';
+          var parsed = parsePerformerOpponent(cleanName);
 
           return {
             id: ev.id,
@@ -604,12 +648,42 @@
             event_floor: latestFloor,
             atp: atp,
             listings: listings,
-            category: detectCategory(cleanName, venue)
+            category: detectCategory(cleanName, venue),
+            performer: parsed.performer,
+            opponent: parsed.opponent
           };
         })
         .filter(function(row) {
           return safeNumber(row.listings) > 0;
         });
+    }
+
+    function getUniqueValues(rows, field) {
+      var values = rows
+        .map(function(r) { return (r[field] || '').trim(); })
+        .filter(function(v) { return v.length > 0; });
+
+      return Array.from(new Set(values)).sort(function(a, b) {
+        return a.localeCompare(b);
+      });
+    }
+
+    function fillSelectOptions(selectId, values, defaultLabel) {
+      var el = document.getElementById(selectId);
+      if (!el) return;
+
+      var currentValue = el.value || '';
+      var html = '<option value="">' + escapeHtml(defaultLabel) + '</option>';
+
+      values.forEach(function(value) {
+        html += '<option value="' + escapeHtml(value) + '">' + escapeHtml(value) + '</option>';
+      });
+
+      el.innerHTML = html;
+
+      if (values.indexOf(currentValue) !== -1) {
+        el.value = currentValue;
+      }
     }
 
     function renderDashboardShell() {
@@ -631,6 +705,9 @@
         + '    <option value="Comedy">Comedy</option>'
         + '    <option value="Other">Other</option>'
         + '  </select>'
+        + '  <select id="performerFilter"><option value="">All Performers</option></select>'
+        + '  <select id="opponentFilter"><option value="">All Opponents</option></select>'
+        + '  <select id="venueFilter"><option value="">All Venues</option></select>'
         + '  <select id="dateFilter">'
         + '    <option value="">All Dates</option>'
         + '    <option value="7">Next 7 Days</option>'
@@ -645,6 +722,8 @@
         + '    <option value="listings">Sort: Listings</option>'
         + '    <option value="name">Sort: Event Name</option>'
         + '    <option value="venue">Sort: Venue</option>'
+        + '    <option value="performer">Sort: Performer</option>'
+        + '    <option value="opponent">Sort: Opponent</option>'
         + '  </select>'
         + '  <select id="sortDirection">'
         + '    <option value="asc">Ascending</option>'
@@ -652,13 +731,28 @@
         + '  </select>'
         + '</div>'
         + '<div class="summary-bar" id="summaryBar"><span>Loading...</span></div>'
-        + '<div class="table-wrap"><div id="tableContainer" class="msg">Loading...</div></div>';
+        + '<div class="dashboard-shell"><div class="dashboard-card"><div class="table-wrap"><div id="tableContainer" class="msg">Loading...</div></div></div></div>';
 
-      ['search', 'leagueFilter', 'dateFilter', 'sortField', 'sortDirection'].forEach(function(id) {
+      [
+        'search',
+        'leagueFilter',
+        'performerFilter',
+        'opponentFilter',
+        'venueFilter',
+        'dateFilter',
+        'sortField',
+        'sortDirection'
+      ].forEach(function(id) {
         var el = document.getElementById(id);
         el.addEventListener('input', renderDashboardTable);
         el.addEventListener('change', renderDashboardTable);
       });
+    }
+
+    function hydrateDashboardFilters() {
+      fillSelectOptions('performerFilter', getUniqueValues(dashboardRows, 'performer'), 'All Performers');
+      fillSelectOptions('opponentFilter', getUniqueValues(dashboardRows, 'opponent'), 'All Opponents');
+      fillSelectOptions('venueFilter', getUniqueValues(dashboardRows, 'venue'), 'All Venues');
     }
 
     function renderDashboardTable() {
@@ -666,6 +760,9 @@
 
       var search = document.getElementById('search').value.trim().toLowerCase();
       var league = document.getElementById('leagueFilter').value;
+      var performer = document.getElementById('performerFilter').value;
+      var opponent = document.getElementById('opponentFilter').value;
+      var venue = document.getElementById('venueFilter').value;
       var days = document.getElementById('dateFilter').value;
       var sortField = document.getElementById('sortField').value;
       var sortDirection = document.getElementById('sortDirection').value === 'desc' ? -1 : 1;
@@ -677,14 +774,25 @@
           row.venue,
           row.full_venue,
           row.category,
-          row.date
+          row.date,
+          row.performer,
+          row.opponent
         ].join(' ').toLowerCase();
 
         var matchesSearch = !search || haystack.includes(search);
         var matchesLeague = !league || row.category === league;
+        var matchesPerformer = !performer || row.performer === performer;
+        var matchesOpponent = !opponent || row.opponent === opponent;
+        var matchesVenue = !venue || row.venue === venue;
         var matchesDate = matchesDateFilter(row, days);
 
-        return matchesSearch && matchesLeague && matchesDate && safeNumber(row.listings) > 0;
+        return matchesSearch &&
+          matchesLeague &&
+          matchesPerformer &&
+          matchesOpponent &&
+          matchesVenue &&
+          matchesDate &&
+          safeNumber(row.listings) > 0;
       });
 
       rows.sort(function(a, b) {
@@ -696,7 +804,13 @@
           bv = b.date ? new Date(b.date + 'T12:00:00').getTime() : 0;
         }
 
-        if (sortField === 'name' || sortField === 'venue' || sortField === 'category') {
+        if (
+          sortField === 'name' ||
+          sortField === 'venue' ||
+          sortField === 'category' ||
+          sortField === 'performer' ||
+          sortField === 'opponent'
+        ) {
           av = (av || '').toString().toLowerCase();
           bv = (bv || '').toString().toLowerCase();
           if (av < bv) return -1 * sortDirection;
@@ -721,6 +835,8 @@
       html += '<thead><tr>';
       html += '<th>Event</th>';
       html += '<th>Category</th>';
+      html += '<th>Performer</th>';
+      html += '<th>Opponent</th>';
       html += '<th>Date</th>';
       html += '<th>Venue</th>';
       html += '<th class="right">Floor</th>';
@@ -734,6 +850,8 @@
         html += '<tr class="clickable-row" onclick="window.location.href=\'' + analysisUrl.replace(/'/g, "\\'") + '\'">';
         html += '<td><div class="event-name">' + escapeHtml(row.name || '—') + '</div></td>';
         html += '<td><span class="tag">' + escapeHtml(row.category) + '</span></td>';
+        html += '<td>' + escapeHtml(row.performer || '—') + '</td>';
+        html += '<td>' + escapeHtml(row.opponent || '—') + '</td>';
         html += '<td>' + escapeHtml(formatDate(row.date)) + '</td>';
         html += '<td>' + escapeHtml(row.venue || '—') + '</td>';
         html += '<td class="right gold mono">' + escapeHtml(formatCurrency(row.event_floor)) + '</td>';
@@ -743,7 +861,6 @@
       });
 
       html += '</tbody></table>';
-
       document.getElementById('tableContainer').innerHTML = html;
 
       var count = rows.length;
@@ -936,6 +1053,7 @@
           dashboardEvents = results[0] || [];
           dashboardSnapshots = results[1] || [];
           dashboardRows = buildDashboardRows(dashboardEvents, dashboardSnapshots);
+          hydrateDashboardFilters();
           renderDashboardTable();
         })
         .catch(function(err) {
