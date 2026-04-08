@@ -58,7 +58,7 @@ function load() {
     var idList = ids.map(function(i) { return '"' + i + '"'; }).join(',');
     Promise.all([
       get('/rest/v1/events?id=in.(' + idList + ')&select=id,name,date,venue'),
-      get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&order=scraped_at.desc&limit=500&select=event_id,total_listings,event_floor,section_avg,section,scraped_at')
+      get('/rest/v1/volume_snapshots?event_id=in.(' + idList + ')&order=scraped_at.desc&limit=500&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
     ]).then(function(results) {
       var events = results[0] || [];
       var snaps2 = results[1] || [];
@@ -74,7 +74,8 @@ function load() {
         var evSnaps = snaps2.filter(function(s) { return s.event_id === ev.id; });
         var floors = evSnaps.filter(function(x) { return x.event_floor > 0; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
         // Use total_listings from any snapshot, or count distinct sections as proxy
-        var lists  = evSnaps.filter(function(x) { return x.total_listings > 0; }).sort(function(a,b) { return new Date(b.scraped_at) - new Date(a.scraped_at); });
+        // Get highest total_listings — passive collector logs real count
+        var lists = evSnaps.filter(function(x) { return x.total_listings > 0; }).sort(function(a,b) { return b.total_listings - a.total_listings; });
         var atps   = evSnaps.filter(function(x) { return x.section_avg > 0; });
         var floor    = floors[0] ? '$' + floors[0].event_floor : '&mdash;';
         var listings = lists[0]  ? lists[0].total_listings.toLocaleString() : '&mdash;';
