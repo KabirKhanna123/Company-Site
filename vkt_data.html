@@ -57,8 +57,9 @@
       background:#fff;
       border-bottom:1px solid #e4e2dc;
       display:grid;
-      grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr 1fr;
+      grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1.8fr;
       gap:10px;
+      align-items:end;
     }
 
     .toolbar input,
@@ -91,23 +92,35 @@
       background:#fcf8f0;
     }
 
-    .date-filter-group {
+    .date-filter {
       display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      grid-column:span 2;
+      grid-template-columns:70px 1fr 1fr;
+      gap:8px;
+      align-items:end;
+      min-width:0;
+    }
+
+    .date-filter-title {
+      font-size:13px;
+      color:#111;
+      font-weight:700;
+      align-self:center;
+      padding-bottom:2px;
+      white-space:nowrap;
     }
 
     .date-input-wrap {
       display:flex;
       flex-direction:column;
       gap:4px;
+      min-width:0;
     }
 
     .date-label {
       font-size:11px;
       color:#666;
       padding-left:2px;
+      white-space:nowrap;
     }
 
     .summary-bar {
@@ -384,16 +397,18 @@
 
     @media (max-width:1450px) {
       .toolbar {
-        grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1.8fr;
       }
-      .date-filter-group { grid-column:span 2; }
     }
 
     @media (max-width:1200px) {
       .toolbar {
         grid-template-columns:1fr 1fr 1fr;
       }
-      .date-filter-group { grid-column:span 2; }
+      .date-filter {
+        grid-template-columns:60px 1fr 1fr;
+        grid-column:span 2;
+      }
       .table-wrap {
         height:auto;
         min-height:calc(100vh - 260px);
@@ -413,8 +428,11 @@
 
     @media (max-width:700px) {
       .toolbar,
-      .stats-grid,
-      .date-filter-group {
+      .stats-grid {
+        grid-template-columns:1fr;
+      }
+
+      .date-filter {
         grid-template-columns:1fr;
       }
 
@@ -716,25 +734,17 @@
         + '  <select id="performerFilter"><option value="">All Performers</option></select>'
         + '  <select id="opponentFilter"><option value="">All Opponents</option></select>'
         + '  <select id="venueFilter"><option value="">All Venues</option></select>'
-        + '  <div class="date-filter-group">'
+        + '  <div class="date-filter">'
+        + '    <div class="date-filter-title">Date</div>'
         + '    <div class="date-input-wrap">'
-        + '      <label class="date-label" for="dateFrom">Date From</label>'
+        + '      <label class="date-label" for="dateFrom">From</label>'
         + '      <input type="date" id="dateFrom" />'
         + '    </div>'
         + '    <div class="date-input-wrap">'
-        + '      <label class="date-label" for="dateTo">Date To</label>'
+        + '      <label class="date-label" for="dateTo">To</label>'
         + '      <input type="date" id="dateTo" />'
         + '    </div>'
         + '  </div>'
-        + '  <select id="sortField">'
-        + '    <option value="event_floor">Sort: Floor</option>'
-        + '    <option value="atp">Sort: ATP</option>'
-        + '    <option value="listings">Sort: Listings</option>'
-        + '    <option value="name">Sort: Event Name</option>'
-        + '    <option value="venue">Sort: Venue</option>'
-        + '    <option value="performer">Sort: Performer</option>'
-        + '    <option value="opponent">Sort: Opponent</option>'
-        + '  </select>'
         + '</div>'
         + '<div class="summary-bar" id="summaryBar"><span>Loading...</span></div>'
         + '<div class="dashboard-shell"><div class="dashboard-card"><div class="table-wrap"><div id="tableContainer" class="msg">Loading...</div></div></div></div>';
@@ -746,8 +756,7 @@
         'opponentFilter',
         'venueFilter',
         'dateFrom',
-        'dateTo',
-        'sortField'
+        'dateTo'
       ].forEach(function(id) {
         var el = document.getElementById(id);
         el.addEventListener('input', renderDashboardTable);
@@ -771,7 +780,6 @@
       var venue = document.getElementById('venueFilter').value;
       var dateFrom = document.getElementById('dateFrom').value;
       var dateTo = document.getElementById('dateTo').value;
-      var sortField = document.getElementById('sortField').value;
 
       rows = rows.filter(function(row) {
         var haystack = [
@@ -802,27 +810,7 @@
       });
 
       rows.sort(function(a, b) {
-        var av = a[sortField];
-        var bv = b[sortField];
-
-        if (
-          sortField === 'name' ||
-          sortField === 'venue' ||
-          sortField === 'category' ||
-          sortField === 'performer' ||
-          sortField === 'opponent'
-        ) {
-          av = (av || '').toString().toLowerCase();
-          bv = (bv || '').toString().toLowerCase();
-          if (av < bv) return -1;
-          if (av > bv) return 1;
-          return 0;
-        }
-
-        av = safeNumber(av);
-        bv = safeNumber(bv);
-
-        return bv - av;
+        return safeNumber(b.listings) - safeNumber(a.listings);
       });
 
       if (!rows.length) {
@@ -834,25 +822,21 @@
       var html = '';
       html += '<table>';
       html += '<colgroup>';
-      html += '<col style="width:24%">';
-      html += '<col style="width:8%">';
-      html += '<col style="width:14%">';
-      html += '<col style="width:14%">';
+      html += '<col style="width:30%">';
+      html += '<col style="width:9%">';
+      html += '<col style="width:16%">';
+      html += '<col style="width:16%">';
+      html += '<col style="width:12%">';
       html += '<col style="width:11%">';
-      html += '<col style="width:13%">';
-      html += '<col style="width:5.5%">';
-      html += '<col style="width:5.5%">';
-      html += '<col style="width:5%">';
+      html += '<col style="width:6%">';
       html += '</colgroup>';
       html += '<thead><tr>';
       html += '<th>Event</th>';
       html += '<th>Category</th>';
-      html += '<th>Performer</th>';
       html += '<th>Opponent</th>';
       html += '<th>Date</th>';
       html += '<th>Venue</th>';
       html += '<th class="right">Floor</th>';
-      html += '<th class="right">ATP</th>';
       html += '<th class="right">Listings</th>';
       html += '</tr></thead>';
       html += '<tbody>';
@@ -862,12 +846,10 @@
         html += '<tr class="clickable-row" onclick="window.location.href=\'' + analysisUrl.replace(/'/g, "\\'") + '\'">';
         html += '<td><div class="event-name">' + escapeHtml(row.name || '—') + '</div></td>';
         html += '<td><span class="tag">' + escapeHtml(row.category) + '</span></td>';
-        html += '<td>' + escapeHtml(row.performer || '—') + '</td>';
         html += '<td>' + escapeHtml(row.opponent || '—') + '</td>';
         html += '<td>' + escapeHtml(formatDate(row.date)) + '</td>';
         html += '<td>' + escapeHtml(row.venue || '—') + '</td>';
         html += '<td class="right gold mono">' + escapeHtml(formatCurrency(row.event_floor)) + '</td>';
-        html += '<td class="right mono">' + escapeHtml(formatCurrency(row.atp)) + '</td>';
         html += '<td class="right mono">' + escapeHtml(formatInteger(row.listings)) + '</td>';
         html += '</tr>';
       });
