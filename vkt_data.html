@@ -123,21 +123,106 @@
       white-space:nowrap;
     }
 
-    .summary-bar {
-      padding:0.625rem 1rem;
-      background:#fcfbf8;
-      border-bottom:1px solid #e4e2dc;
-      font-size:12px;
-      color:#111;
+    /* Trending ticker strip */
+    .ticker-shell {
+      background:#0f0f10;
+      border-bottom:1px solid #202022;
+      overflow:hidden;
+      white-space:nowrap;
+      position:relative;
+      min-height:44px;
       display:flex;
-      gap:24px;
-      flex-wrap:wrap;
-      margin:0;
+      align-items:center;
     }
 
-    .summary-bar strong {
+    .ticker-shell::before,
+    .ticker-shell::after {
+      content:"";
+      position:absolute;
+      top:0;
+      width:36px;
+      height:100%;
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .ticker-shell::before {
+      left:0;
+      background:linear-gradient(to right, #0f0f10, rgba(15,15,16,0));
+    }
+
+    .ticker-shell::after {
+      right:0;
+      background:linear-gradient(to left, #0f0f10, rgba(15,15,16,0));
+    }
+
+    .ticker-label {
+      position:absolute;
+      left:12px;
+      z-index:3;
+      background:#0f0f10;
       color:#d4a843;
+      font-size:11px;
       font-weight:700;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+      padding-right:18px;
+    }
+
+    .ticker-track-wrap {
+      overflow:hidden;
+      width:100%;
+      padding-left:140px;
+    }
+
+    .ticker-track {
+      display:inline-flex;
+      align-items:center;
+      gap:28px;
+      min-width:max-content;
+      animation:ticker-scroll 36s linear infinite;
+      padding:12px 0;
+    }
+
+    .ticker-shell:hover .ticker-track {
+      animation-play-state:paused;
+    }
+
+    .ticker-item {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:#f7f6f3;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .ticker-name {
+      color:#fff;
+      font-weight:700;
+      max-width:260px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .ticker-meta {
+      color:#adadad;
+      font-size:11px;
+    }
+
+    .ticker-up {
+      color:#30d158;
+      font-weight:700;
+    }
+
+    .ticker-flat {
+      color:#c7c7c7;
+      font-weight:700;
+    }
+
+    @keyframes ticker-scroll {
+      from { transform:translateX(0); }
+      to { transform:translateX(-50%); }
     }
 
     .dashboard-shell {
@@ -436,10 +521,18 @@
         grid-template-columns:1fr;
       }
 
+      .ticker-label {
+        position:static;
+        padding:0 12px 0 0;
+      }
+
+      .ticker-track-wrap {
+        padding-left:12px;
+      }
+
       nav,
       .header,
       .toolbar,
-      .summary-bar,
       .analysis-shell {
         padding-left:0.75rem;
         padding-right:0.75rem;
@@ -475,6 +568,7 @@
     var dashboardRows = [];
     var dashboardEvents = [];
     var dashboardSnapshots = [];
+    var trendingItems = [];
 
     var floorChart = null;
     var listingsChart = null;
@@ -684,6 +778,67 @@
         });
     }
 
+    function aggregateEventAveragesByTimestamp(eventId, snaps) {
+      var map = {};
+
+      snaps.forEach(function(s) {
+        if (s.event_id !== eventId) return;
+        if (!s.scraped_at) return;
+        var avg = safeNumber(s.section_avg);
+        if (avg <= 0) return;
+
+        if (!map[s.scraped_at]) {
+          map[s.scraped_at] = { sum: 0, count: 0 };
+        }
+        map[s.scraped_at].sum += avg;
+        map[s.scraped_at].count += 1;
+      });
+
+      return Object.keys(map)
+        .sort(function(a, b) { return new Date(a) - new Date(b); })
+        .map(function(ts) {
+          return {
+            scraped_at: ts,
+            avg_atp: map[ts].count ? map[ts].sum / map[ts].count : 0
+          };
+        });
+    }
+
+    function buildTrendingItems(rows, snaps) {
+      var sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      return rows.map(function(row) {
+        var series = aggregateEventAveragesByTimestamp(row.id, snaps).filter(function(point) {
+          return new Date(point.scraped_at) >= sevenDaysAgo;
+        });
+
+        if (series.length < 2) {
+          return null;
+        }
+
+        var first = series[0];
+        var last = series[series.length - 1];
+        var change = safeNumber(last.avg_atp) - safeNumber(first.avg_atp);
+
+        return {
+          id: row.id,
+          name: row.name,
+          venue: row.venue,
+          atpStart: first.avg_atp,
+          atpEnd: last.avg_atp,
+          atpChange: change
+        };
+      })
+      .filter(function(item) {
+        return item && item.atpChange > 0;
+      })
+      .sort(function(a, b) {
+        return b.atpChange - a.atpChange;
+      })
+      .slice(0, 12);
+    }
+
     function getUniqueValues(rows, field) {
       var values = rows
         .map(function(r) { return (r[field] || '').trim(); })
@@ -710,6 +865,43 @@
       if (values.indexOf(currentValue) !== -1) {
         el.value = currentValue;
       }
+    }
+
+    function renderTrendingTicker() {
+      var el = document.getElementById('tickerBar');
+      if (!el) return;
+
+      if (!trendingItems.length) {
+        el.innerHTML = ''
+          + '<div class="ticker-shell">'
+          + '  <div class="ticker-label">Trending ATP</div>'
+          + '  <div class="ticker-track-wrap">'
+          + '    <div class="ticker-track">'
+          + '      <div class="ticker-item"><span class="ticker-meta">Not enough 7-day ATP movement data yet.</span></div>'
+          + '    </div>'
+          + '  </div>'
+          + '</div>';
+        return;
+      }
+
+      var itemsHtml = trendingItems.map(function(item) {
+        return ''
+          + '<div class="ticker-item">'
+          + '  <span class="ticker-name">' + escapeHtml(item.name) + '</span>'
+          + '  <span class="ticker-meta">' + escapeHtml(item.venue || '—') + '</span>'
+          + '  <span class="ticker-up">+' + formatCurrency(item.atpChange).replace('$', '$') + '</span>'
+          + '</div>';
+      }).join('');
+
+      el.innerHTML = ''
+        + '<div class="ticker-shell">'
+        + '  <div class="ticker-label">Trending ATP · 7D</div>'
+        + '  <div class="ticker-track-wrap">'
+        + '    <div class="ticker-track">'
+        +        itemsHtml + itemsHtml
+        + '    </div>'
+        + '  </div>'
+        + '</div>';
     }
 
     function renderDashboardShell() {
@@ -746,7 +938,7 @@
         + '    </div>'
         + '  </div>'
         + '</div>'
-        + '<div class="summary-bar" id="summaryBar"><span>Loading...</span></div>'
+        + '<div id="tickerBar"></div>'
         + '<div class="dashboard-shell"><div class="dashboard-card"><div class="table-wrap"><div id="tableContainer" class="msg">Loading...</div></div></div></div>';
 
       [
@@ -815,7 +1007,6 @@
 
       if (!rows.length) {
         document.getElementById('tableContainer').innerHTML = '<div class="msg">No events match the current filters.</div>';
-        document.getElementById('summaryBar').innerHTML = '<span>0 events</span>';
         return;
       }
 
@@ -856,17 +1047,6 @@
 
       html += '</tbody></table>';
       document.getElementById('tableContainer').innerHTML = html;
-
-      var count = rows.length;
-      var avgFloor = count ? rows.reduce(function(sum, r) { return sum + safeNumber(r.event_floor); }, 0) / count : 0;
-      var avgAtp = count ? rows.reduce(function(sum, r) { return sum + safeNumber(r.atp); }, 0) / count : 0;
-      var totalListings = rows.reduce(function(sum, r) { return sum + safeNumber(r.listings); }, 0);
-
-      document.getElementById('summaryBar').innerHTML =
-        '<span><strong>Events:</strong> ' + count.toLocaleString() + '</span>' +
-        '<span><strong>Avg Floor:</strong> ' + formatCurrency(avgFloor) + '</span>' +
-        '<span><strong>Avg ATP:</strong> ' + formatCurrency(avgAtp) + '</span>' +
-        '<span><strong>Total Listings:</strong> ' + totalListings.toLocaleString() + '</span>';
     }
 
     function renderAnalysisShell() {
@@ -1029,7 +1209,7 @@
 
           if (!ids.length) {
             document.getElementById('tableContainer').innerHTML = '<div class="msg">No data yet. Visit StubHub event pages to start collecting.</div>';
-            document.getElementById('summaryBar').innerHTML = '<span>No data found.</span>';
+            document.getElementById('tickerBar').innerHTML = '<div class="ticker-shell"><div class="ticker-label">Trending ATP</div><div class="ticker-track-wrap"><div class="ticker-track"><div class="ticker-item"><span class="ticker-meta">No data found.</span></div></div></div></div>';
             return null;
           }
 
@@ -1047,13 +1227,15 @@
           dashboardEvents = results[0] || [];
           dashboardSnapshots = results[1] || [];
           dashboardRows = buildDashboardRows(dashboardEvents, dashboardSnapshots);
+          trendingItems = buildTrendingItems(dashboardRows, dashboardSnapshots);
           hydrateDashboardFilters();
+          renderTrendingTicker();
           renderDashboardTable();
         })
         .catch(function(err) {
           console.error(err);
           document.getElementById('tableContainer').innerHTML = '<div class="msg">Failed to load data: ' + escapeHtml(err.message || 'Unknown error') + '</div>';
-          document.getElementById('summaryBar').innerHTML = '<span>Error loading market data.</span>';
+          document.getElementById('tickerBar').innerHTML = '<div class="ticker-shell"><div class="ticker-label">Trending ATP</div><div class="ticker-track-wrap"><div class="ticker-track"><div class="ticker-item"><span class="ticker-meta">Unable to load trending events.</span></div></div></div></div>';
         });
     }
 
