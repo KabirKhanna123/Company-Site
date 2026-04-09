@@ -201,7 +201,7 @@
     function drawSectionCharts(sectionName,snaps){
       if(sectionListingsChart){sectionListingsChart.destroy();sectionListingsChart=null;}
       if(sectionAvgChart){sectionAvgChart.destroy();sectionAvgChart=null;}
-      var ss=snaps.filter(function(s){return(s.section||')===sectionName;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+      var ss=snaps.filter(function(s){return(s.section||'')===sectionName;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
       var note=document.getElementById('sectionChartNote');
       if(!ss.length){if(note)note.innerHTML='No data for selected section.';return;}
       if(note)note.innerHTML='';
