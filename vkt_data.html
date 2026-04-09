@@ -7,310 +7,624 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { height:100%; }
-    body { font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; min-height:100vh; }
-    nav { background:#fff; border-bottom:1px solid #e4e2dc; padding:0 1rem; height:56px; display:flex; align-items:center; justify-content:space-between; }
-    .logo { font-size:12px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#111; }
+    html, body { height:100%; font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; }
+
+    /* NAV */
+    nav {
+      background:#fff;
+      border-bottom:1px solid #e4e2dc;
+      padding:0 1.5rem;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+    .logo { font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#111; }
     .logo span { color:#d4a843; }
-    .header { padding:1rem; background:#fff; border-bottom:1px solid #e4e2dc; }
-    h1 { font-size:22px; font-weight:300; color:#111; }
-    h1 strong { color:#d4a843; }
-    #app { min-height:calc(100vh - 112px); }
-    .toolbar { padding:0.75rem 1rem; background:#fff; border-bottom:1px solid #e4e2dc; display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1.8fr; gap:10px; align-items:end; }
-    .toolbar input, .toolbar select, .toolbar button, .back-btn, .section-select { padding:10px 12px; border:1px solid #d8d4cc; background:#fff; font-size:13px; outline:none; border-radius:6px; text-decoration:none; color:#111; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; min-height:40px; width:100%; }
-    .toolbar input:focus, .toolbar select:focus, .toolbar button:hover, .back-btn:hover, .section-select:focus { border-color:#d4a843; background:#fcf8f0; }
-    .date-filter { display:grid; grid-template-columns:70px 1fr 1fr; gap:8px; align-items:end; min-width:0; }
-    .date-filter-title { font-size:13px; color:#111; font-weight:700; align-self:center; padding-bottom:2px; white-space:nowrap; }
-    .date-input-wrap { display:flex; flex-direction:column; gap:4px; min-width:0; }
-    .date-label { font-size:11px; color:#666; padding-left:2px; white-space:nowrap; }
-    .ticker-shell { background:#0f0f10; border-bottom:1px solid #202022; overflow:hidden; white-space:nowrap; position:relative; min-height:44px; display:flex; align-items:center; }
-    .ticker-shell::before, .ticker-shell::after { content:""; position:absolute; top:0; width:36px; height:100%; z-index:2; pointer-events:none; }
-    .ticker-shell::before { left:0; background:linear-gradient(to right,#0f0f10,rgba(15,15,16,0)); }
-    .ticker-shell::after { right:0; background:linear-gradient(to left,#0f0f10,rgba(15,15,16,0)); }
-    .ticker-label { position:absolute; left:12px; z-index:3; background:#0f0f10; color:#d4a843; font-size:11px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; padding-right:18px; }
-    .ticker-track-wrap { overflow:hidden; width:100%; padding-left:140px; }
-    .ticker-track { display:inline-flex; align-items:center; gap:28px; min-width:max-content; animation:ticker-scroll 36s linear infinite; padding:12px 0; }
+    nav a { color:#888; font-size:11px; text-decoration:none; letter-spacing:1px; }
+    nav a:hover { color:#d4a843; }
+
+    /* HEADER */
+    .header { padding:1.25rem 1.5rem; background:#fff; border-bottom:1px solid #e4e2dc; }
+    .header h1 { font-size:22px; font-weight:300; color:#111; }
+    .header h1 strong { color:#d4a843; }
+
+    /* TICKER */
+    .ticker-shell {
+      background:#111;
+      border-bottom:1px solid #222;
+      height:40px;
+      display:flex;
+      align-items:center;
+      overflow:hidden;
+      position:relative;
+    }
+    .ticker-shell::before, .ticker-shell::after {
+      content:"";
+      position:absolute;
+      top:0;
+      width:60px;
+      height:100%;
+      z-index:2;
+      pointer-events:none;
+    }
+    .ticker-shell::before { left:0; background:linear-gradient(to right,#111,transparent); }
+    .ticker-shell::after  { right:0; background:linear-gradient(to left,#111,transparent); }
+    .ticker-label {
+      position:absolute;
+      left:12px;
+      z-index:3;
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:#d4a843;
+      background:#111;
+      padding-right:16px;
+      white-space:nowrap;
+    }
+    .ticker-wrap { overflow:hidden; width:100%; padding-left:120px; }
+    .ticker-track {
+      display:inline-flex;
+      align-items:center;
+      gap:36px;
+      white-space:nowrap;
+      animation:ticker 40s linear infinite;
+    }
     .ticker-shell:hover .ticker-track { animation-play-state:paused; }
-    .ticker-item { display:inline-flex; align-items:center; gap:10px; color:#f7f6f3; font-size:12px; white-space:nowrap; }
-    .ticker-name { color:#fff; font-weight:700; max-width:260px; overflow:hidden; text-overflow:ellipsis; }
-    .ticker-meta { color:#adadad; font-size:11px; }
-    .ticker-up { color:#30d158; font-weight:700; }
-    @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-    .dashboard-shell { padding:10px; background:#f7f6f3; }
-    .dashboard-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; overflow:hidden; }
-    .table-wrap { overflow:auto; height:calc(100vh - 56px - 56px - 110px - 44px - 20px); min-height:500px; background:#fff; }
-    #tableContainer { padding:0; background:#fff; width:100%; }
-    table { width:100%; border-collapse:collapse; background:#fff; table-layout:fixed; }
-    thead th { background:#f3f1ec; border-bottom:1px solid #e4e2dc; padding:10px 8px; font-size:10px; letter-spacing:0.7px; text-transform:uppercase; color:#111; text-align:left; position:sticky; top:0; z-index:2; font-weight:700; }
-    tbody td { padding:10px 8px; border-bottom:1px solid #efede8; font-size:12px; color:#111; background:#fff; }
-    tbody tr:hover td { background:#fcf8f0; cursor:pointer; }
+    @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    .ticker-item {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:11px;
+      color:#ccc;
+    }
+    .ticker-name { color:#fff; font-weight:700; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+    .ticker-listings { color:#888; font-size:10px; }
+    .ticker-up   { color:#22c55e; font-weight:700; font-size:11px; }
+    .ticker-down { color:#ef4444; font-weight:700; font-size:11px; }
+    .ticker-flat { color:#888; font-weight:700; font-size:11px; }
+    .ticker-dot  { color:#333; }
+
+    /* TOOLBAR */
+    .toolbar {
+      padding:0.75rem 1.5rem;
+      background:#fff;
+      border-bottom:1px solid #e4e2dc;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .toolbar input,
+    .toolbar select {
+      padding:8px 12px;
+      border:1px solid #ddd;
+      background:#fff;
+      font-size:12px;
+      border-radius:6px;
+      outline:none;
+      color:#111;
+      min-height:36px;
+    }
+    .toolbar input { width:220px; }
+    .toolbar input:focus, .toolbar select:focus { border-color:#d4a843; }
+    .toolbar input::placeholder { color:#bbb; }
+    .date-group { display:flex; align-items:center; gap:6px; font-size:11px; color:#888; }
+    .date-group input { width:130px; }
+
+    /* MAIN TABLE */
+    .table-shell { padding:12px 1.5rem; }
+    .table-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; overflow:hidden; }
+    .table-wrap { overflow:auto; max-height:calc(100vh - 280px); }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    thead th {
+      background:#f7f6f3;
+      border-bottom:1px solid #e4e2dc;
+      padding:9px 12px;
+      font-size:10px;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+      color:#888;
+      text-align:left;
+      position:sticky;
+      top:0;
+      z-index:2;
+      font-weight:700;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    thead th:hover { color:#d4a843; }
+    tbody td { padding:10px 12px; border-bottom:1px solid #f0eeea; font-size:12px; color:#111; vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr { cursor:pointer; }
+    tbody tr:hover td { background:#fdf9f2; }
+    .col-name  { width:32%; }
+    .col-cat   { width:9%; }
+    .col-date  { width:13%; }
+    .col-venue { width:15%; }
+    .col-num   { width:9%; text-align:right; }
+    .event-name { font-weight:600; font-size:12px; line-height:1.3; }
+    .tag { display:inline-block; font-size:9px; padding:2px 7px; border-radius:999px; background:#f3efe4; color:#8a6a18; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
     .gold { color:#d4a843; font-weight:700; }
     .mono { font-family:monospace; }
-    .muted { color:#666; }
     .right { text-align:right; }
-    .event-name { font-weight:700; font-size:12px; line-height:1.3; }
-    .tag { display:inline-block; font-size:10px; padding:3px 6px; border-radius:999px; background:#f3efe4; color:#8a6a18; font-weight:700; }
-    .msg { padding:3rem; text-align:center; color:#777; background:#fff; }
-    .analysis-shell { padding:1rem; }
-    .analysis-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1rem; flex-wrap:wrap; }
-    .analysis-title { font-size:28px; font-weight:700; line-height:1.2; color:#111; }
-    .analysis-subtitle { font-size:14px; color:#777; margin-top:6px; }
-    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:18px 0; }
-    .stat-card { background:#fff; border:1px solid #e7e3da; border-radius:14px; padding:16px; }
-    .stat-label { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
-    .stat-value { font-size:28px; font-weight:700; color:#111; }
-    .delta-up { color:#0a7a2f; font-weight:700; }
-    .delta-down { color:#b42318; font-weight:700; }
-    .delta-flat { color:#888; font-weight:700; }
-    .analysis-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
-    .full-width { grid-column:1/-1; }
-    .card { background:#fff; border:1px solid #e7e3da; border-radius:14px; padding:16px; }
-    .card h3 { font-size:15px; margin-bottom:14px; color:#111; }
-    .chart-wrap { position:relative; height:320px; }
-    .mini-table-wrap { overflow:auto; max-height:420px; border:1px solid #efede8; border-radius:10px; }
-    .mini-table { min-width:100%; border-collapse:collapse; background:#fff; }
-    .mini-table th, .mini-table td { padding:9px 10px; border-bottom:1px solid #f0ede7; font-size:12px; text-align:left; white-space:nowrap; color:#111; }
-    .analysis-list { display:grid; gap:10px; font-size:14px; color:#111; }
-    .section-chart-header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
-    .section-chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .empty-note { color:#888; font-size:13px; padding:10px 0 0; }
-    @media(max-width:1200px) { .toolbar{grid-template-columns:1fr 1fr 1fr} .stats-grid{grid-template-columns:repeat(2,1fr)} .analysis-grid,.section-chart-grid{grid-template-columns:1fr} }
-    @media(max-width:700px) { .toolbar,.stats-grid{grid-template-columns:1fr} .analysis-title{font-size:22px} }
+    .muted { color:#aaa; }
+    .chg-up   { color:#22c55e; font-weight:700; font-family:monospace; }
+    .chg-down { color:#ef4444; font-weight:700; font-family:monospace; }
+    .chg-flat { color:#aaa; font-family:monospace; }
+    .msg { padding:3rem; text-align:center; color:#aaa; }
+
+    /* ANALYSIS VIEW */
+    .analysis-shell { padding:1.5rem; max-width:1400px; margin:0 auto; }
+    .analysis-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .analysis-title { font-size:26px; font-weight:700; color:#111; line-height:1.2; }
+    .analysis-sub   { font-size:13px; color:#888; margin-top:5px; }
+    .back-btn { padding:8px 16px; border:1px solid #ddd; border-radius:6px; font-size:12px; color:#555; text-decoration:none; background:#fff; cursor:pointer; white-space:nowrap; }
+    .back-btn:hover { border-color:#d4a843; color:#d4a843; }
+
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:1.5rem; }
+    .stat-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
+    .stat-label { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+    .stat-value { font-size:26px; font-weight:700; color:#111; }
+    .stat-delta { font-size:12px; margin-top:6px; font-weight:700; }
+    .delta-up   { color:#22c55e; }
+    .delta-down { color:#ef4444; }
+    .delta-flat { color:#aaa; }
+
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .chart-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
+    .chart-card.full { grid-column:1/-1; }
+    .chart-card h3 { font-size:13px; font-weight:700; color:#111; margin-bottom:14px; letter-spacing:.3px; }
+    .chart-wrap { position:relative; height:260px; }
+
+    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+    .section-select { padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:12px; outline:none; background:#fff; color:#111; min-width:160px; }
+    .section-select:focus { border-color:#d4a843; }
+    .section-charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .detail-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
+    .detail-card h3 { font-size:13px; font-weight:700; color:#111; margin-bottom:12px; }
+    .detail-list { display:grid; gap:8px; font-size:13px; }
+    .detail-list div { display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #f0eeea; }
+    .detail-list div:last-child { border:none; padding:0; }
+    .detail-list strong { color:#888; font-weight:400; }
+    .detail-list span { font-weight:600; color:#111; }
+
+    .mini-wrap { overflow:auto; max-height:380px; border:1px solid #f0eeea; border-radius:8px; }
+    .mini-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .mini-table th { background:#f7f6f3; padding:8px 10px; text-align:left; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; border-bottom:1px solid #e4e2dc; white-space:nowrap; }
+    .mini-table td { padding:8px 10px; border-bottom:1px solid #f5f3ef; color:#111; white-space:nowrap; }
+    .mini-table tr:last-child td { border:none; }
+
+    @media(max-width:1100px) { .stats-grid{grid-template-columns:repeat(2,1fr)} .charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr} .chart-card.full{grid-column:auto} }
+    @media(max-width:700px) { .toolbar{flex-direction:column;align-items:stretch} .toolbar input{width:100%} .analysis-title{font-size:20px} }
   </style>
 </head>
 <body>
-  <nav>
-    <div class="logo">Victory Kay <span>Tickets</span></div>
-    <a href="/" style="color:#888;font-size:11px;text-decoration:none;">Back</a>
-  </nav>
-  <div class="header"><h1><strong>VKT</strong> Market Data</h1></div>
-  <div id="app"></div>
-  <script>
-    var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
-    var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
-    var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
-    var dashboardRows=[], dashboardEvents=[], dashboardSnapshots=[], trendingItems=[];
-    var floorChart=null, listingsChart=null, atpChart=null, sectionListingsChart=null, sectionAvgChart=null;
 
-    function get(url) { return fetch(SB+url,{headers:H}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}); }
-    function safeNumber(v){var n=Number(v);return isNaN(n)?0:n;}
-    function formatCurrency(v){if(!v||isNaN(v))return '—';return '$'+Math.round(v).toLocaleString();}
-    function formatInteger(v){if(v===null||v===undefined||isNaN(v))return '—';return Number(v).toLocaleString();}
-    function formatDate(d){if(!d)return 'No date';var dt=new Date(d+'T12:00:00');if(isNaN(dt.getTime()))return d;return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}
-    function formatDateTime(d){if(!d)return '';var dt=new Date(d);if(isNaN(dt.getTime()))return d;return dt.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}
-    function shortVenue(v){if(!v)return '';return v.split(',')[0];}
-    function cleanName(n){if(!n)return '';return n.replace(/Tickets\s*[–-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i,' at ').replace(/Tickets\s*[–-]\s*/i,'').trim();}
-    function detectCat(name,venue){var t=((name||'')+(venue||'')).toLowerCase();if(/yankees|dodgers|cubs|red sox|baseball|mlb/.test(t))return 'MLB';if(/lakers|warriors|celtics|knicks|basketball|nba/.test(t))return 'NBA';if(/cowboys|chiefs|patriots|packers|football|nfl/.test(t))return 'NFL';if(/rangers|bruins|blackhawks|hockey|nhl/.test(t))return 'NHL';if(/soccer|mls|galaxy|lafc/.test(t))return 'MLS';if(/concert|tour|live/.test(t))return 'Concert';if(/comedy/.test(t))return 'Comedy';if(/theater|theatre|broadway/.test(t))return 'Theater';return 'Other';}
-    function parsePerformerOpponent(name){var c=cleanName(name||'');var m=c.match(/^(.*?)\s+at\s+(.*?)$/i);if(m)return{performer:m[2].trim(),opponent:m[1].trim()};m=c.match(/^(.*?)\s+(?:vs\.?|v\.?)\s+(.*?)$/i);if(m)return{performer:m[1].trim(),opponent:m[2].trim()};return{performer:c,opponent:''};}
-    function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-    function parseDateOnly(d){if(!d)return null;var dt=new Date(d+'T12:00:00');return isNaN(dt.getTime())?null:dt;}
-    function matchesDates(row,from,to){if(!from&&!to)return true;var d=parseDateOnly(row.date);if(!d)return false;if(from){var f=parseDateOnly(from);if(f&&d<f)return false;}if(to){var t=parseDateOnly(to);if(t&&d>t)return false;}return true;}
-    function statCard(label,value,deltaHtml){return '<div class="stat-card"><div class="stat-label">'+esc(label)+'</div><div class="stat-value">'+esc(value)+'</div>'+(deltaHtml||'')+'</div>';}
-    function deltaClass(v){if(v>0)return 'delta-up';if(v<0)return 'delta-down';return 'delta-flat';}
-    function deltaText(v,money){if(!v||isNaN(v))return '0';var abs=Math.abs(v),prefix=v>0?'+':'-';return money?prefix+'$'+Math.round(abs).toLocaleString():prefix+Math.round(abs).toLocaleString();}
-    function getQueryParam(n){return new URLSearchParams(window.location.search).get(n);}
+<nav>
+  <div class="logo">Victory Kay <span>Tickets</span></div>
+  <a href="/">← Back to site</a>
+</nav>
 
-    function buildRows(events,snaps){
-      var junk=/hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
-      return (events||[]).filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
-        var es=snaps.filter(function(s){return s.event_id===ev.id;});
-        var latest=es.length?es[es.length-1]:null;
-        var atps=es.filter(function(x){return safeNumber(x.section_avg)>0;});
-        var p=parsePerformerOpponent(ev.name);
-        return {id:ev.id,name:cleanName(ev.name),raw_name:ev.name,date:ev.date||'',venue:shortVenue(ev.venue),full_venue:ev.venue||'',event_floor:latest?safeNumber(latest.event_floor):0,atp:atps.length?atps.reduce(function(s,x){return s+safeNumber(x.section_avg);},0)/atps.length:0,listings:latest?safeNumber(latest.total_listings):0,category:detectCat(ev.name,ev.venue),performer:p.performer,opponent:p.opponent};
-      }).filter(function(r){return safeNumber(r.listings)>0;});
+<div class="header">
+  <h1><strong>VKT</strong> Market Data</h1>
+</div>
+
+<div id="ticker-bar">
+  <div class="ticker-shell">
+    <div class="ticker-label">24H VOL</div>
+    <div class="ticker-wrap"><div class="ticker-track" id="ticker-track">
+      <div class="ticker-item"><span class="ticker-meta" style="color:#555">Loading market data...</span></div>
+    </div></div>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<script>
+var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
+var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
+
+var allRows=[], allSnaps=[], allEvents=[];
+var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
+
+function get(url) {
+  return fetch(SB+url,{headers:H}).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  });
+}
+
+function n(v){var x=Number(v);return isNaN(x)?0:x;}
+function cur(v){if(!v||isNaN(v))return '—';return '$'+Math.round(v).toLocaleString();}
+function fmt(v){if(v===null||v===undefined||isNaN(v))return '—';return Number(v).toLocaleString();}
+function fmtDate(d){if(!d)return '—';var dt=new Date(d+'T12:00:00');if(isNaN(dt))return d;return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}
+function fmtDT(d){if(!d)return '';var dt=new Date(d);if(isNaN(dt))return d;return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+function shortV(v){return v?(v.split(',')[0]):'—';}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function qp(n){return new URLSearchParams(window.location.search).get(n);}
+
+function cleanName(n){
+  if(!n)return '';
+  return n.replace(/Tickets\s*[–\-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i,' at ').replace(/Tickets\s*[–\-]\s*/i,'').trim();
+}
+
+function cat(name,venue){
+  var t=((name||'')+(venue||'')).toLowerCase();
+  if(/yankees|dodgers|cubs|red.sox|baseball|mlb|mets|astros|braves|phillies/.test(t))return 'MLB';
+  if(/lakers|warriors|celtics|knicks|basketball|nba|heat|bulls|nets|76ers|mavericks|bucks/.test(t))return 'NBA';
+  if(/cowboys|chiefs|patriots|packers|football|nfl|49ers|eagles|giants|ravens/.test(t))return 'NFL';
+  if(/rangers|bruins|blackhawks|hockey|nhl|maple.leaf/.test(t))return 'NHL';
+  if(/soccer|mls|galaxy|lafc|inter.miami/.test(t))return 'MLS';
+  if(/concert|tour|live/.test(t))return 'Concert';
+  if(/comedy/.test(t))return 'Comedy';
+  if(/theater|theatre|broadway/.test(t))return 'Theater';
+  return 'Other';
+}
+
+function parseNames(name){
+  var c=cleanName(name||'');
+  var m=c.match(/^(.*?)\s+at\s+(.*?)$/i);
+  if(m)return{performer:m[2].trim(),opponent:m[1].trim()};
+  m=c.match(/^(.*?)\s+(?:vs?\.?)\s+(.*?)$/i);
+  if(m)return{performer:m[1].trim(),opponent:m[2].trim()};
+  return{performer:c,opponent:''};
+}
+
+function pct(a,b){
+  if(!a||!b||b===0)return null;
+  return Math.round(((a-b)/b)*100);
+}
+
+// ── BUILD ROWS ──
+function buildRows(events,snaps){
+  var junk=/hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
+  var now=Date.now();
+  var cutoff24=new Date(now-24*3600000).toISOString();
+
+  return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
+    var es=snaps.filter(function(s){return s.event_id===ev.id&&!s.section;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    if(!es.length)return null;
+
+    var latest=es[es.length-1];
+    var old24=es.filter(function(s){return s.scraped_at<cutoff24;});
+    var prev=old24.length?old24[old24.length-1]:null;
+
+    var curListings=n(latest.total_listings);
+    var prevListings=prev?n(prev.total_listings):null;
+    var listingsPct=pct(curListings,prevListings);
+
+    var atpSnaps=snaps.filter(function(s){return s.event_id===ev.id&&n(s.section_avg)>0;});
+    var atp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
+
+    var p=parseNames(ev.name);
+    return {
+      id:ev.id,
+      name:cleanName(ev.name),
+      raw:ev.name,
+      date:ev.date||'',
+      venue:shortV(ev.venue),
+      fullVenue:ev.venue||'',
+      floor:n(latest.event_floor),
+      atp:atp,
+      listings:curListings,
+      prevListings:prevListings,
+      listingsPct:listingsPct,
+      category:cat(ev.name,ev.venue),
+      performer:p.performer,
+      opponent:p.opponent
+    };
+  }).filter(function(r){return r&&r.listings>0;});
+}
+
+// ── TICKER ──
+function buildTicker(rows){
+  var items=rows.filter(function(r){return r.listingsPct!==null;}).sort(function(a,b){return Math.abs(b.listingsPct)-Math.abs(a.listingsPct);}).slice(0,15);
+  if(!items.length){
+    document.getElementById('ticker-track').innerHTML='<div class="ticker-item"><span style="color:#555">Not enough 24h data yet — check back after the next scrape run.</span></div>';
+    return;
+  }
+  var html=items.map(function(r){
+    var pct=r.listingsPct;
+    var cls=pct>0?'ticker-up':pct<0?'ticker-down':'ticker-flat';
+    var sign=pct>0?'+':'';
+    return '<div class="ticker-item">'+
+      '<span class="ticker-name">'+esc(r.name)+'</span>'+
+      '<span class="ticker-listings">'+fmt(r.listings)+' listings</span>'+
+      '<span class="'+cls+'">'+sign+pct+'%</span>'+
+      '<span class="ticker-dot">&bull;</span>'+
+      '</div>';
+  }).join('');
+  // Duplicate for seamless loop
+  document.getElementById('ticker-track').innerHTML=html+html;
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  document.getElementById('app').innerHTML=
+    '<div class="toolbar">'+
+      '<input type="text" id="q" placeholder="Search events, teams, artists..."/>'+
+      '<select id="catF"><option value="">All Categories</option><option>MLB</option><option>NBA</option><option>NFL</option><option>NHL</option><option>MLS</option><option>Concert</option><option>Comedy</option><option>Theater</option><option>Other</option></select>'+
+      '<select id="perfF"><option value="">All Performers</option></select>'+
+      '<select id="venF"><option value="">All Venues</option></select>'+
+      '<div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div>'+
+    '</div>'+
+    '<div class="table-shell"><div class="table-card"><div class="table-wrap">'+
+      '<div id="tbl" class="msg">Loading...</div>'+
+    '</div></div></div>';
+
+  ['q','catF','perfF','venF','df','dt'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.addEventListener('input',drawTable);el.addEventListener('change',drawTable);}
+  });
+}
+
+function fillSel(id,vals,label){
+  var el=document.getElementById(id);if(!el)return;
+  var cur=el.value;
+  el.innerHTML='<option value="">'+esc(label)+'</option>'+vals.map(function(v){return'<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
+  if(vals.indexOf(cur)!==-1)el.value=cur;
+}
+
+function unique(rows,field){
+  return Array.from(new Set(rows.map(function(r){return(r[field]||'').trim();}).filter(Boolean))).sort();
+}
+
+function drawTable(){
+  var q=(document.getElementById('q')||{}).value||'';q=q.trim().toLowerCase();
+  var catF=(document.getElementById('catF')||{}).value||'';
+  var perfF=(document.getElementById('perfF')||{}).value||'';
+  var venF=(document.getElementById('venF')||{}).value||'';
+  var df=(document.getElementById('df')||{}).value||'';
+  var dt=(document.getElementById('dt')||{}).value||'';
+
+  var rows=allRows.filter(function(r){
+    var hay=[r.name,r.raw,r.venue,r.fullVenue,r.category,r.date,r.performer,r.opponent].join(' ').toLowerCase();
+    if(q&&!hay.includes(q))return false;
+    if(catF&&r.category!==catF)return false;
+    if(perfF&&r.performer!==perfF)return false;
+    if(venF&&r.venue!==venF)return false;
+    if(df||dt){
+      if(!r.date)return false;
+      var d=new Date(r.date+'T12:00:00');
+      if(df&&d<new Date(df+'T12:00:00'))return false;
+      if(dt&&d>new Date(dt+'T12:00:00'))return false;
+    }
+    return true;
+  });
+
+  rows.sort(function(a,b){return b.listings-a.listings;});
+
+  var tbl=document.getElementById('tbl');
+  if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
+
+  var html='<table>'+
+    '<colgroup><col class="col-name"><col class="col-cat"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-num"></colgroup>'+
+    '<thead><tr>'+
+      '<th>Event</th><th>Cat</th><th>Date</th><th>Venue</th>'+
+      '<th class="right">Floor</th><th class="right">ATP</th><th class="right">Listings</th><th class="right">24h Vol</th>'+
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
+    var pctStr='—';
+    var pctCls='chg-flat';
+    if(r.listingsPct!==null){
+      pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';
+      pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';
+    }
+    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">';
+    html+='<td><div class="event-name">'+esc(r.name)+'</div></td>';
+    html+='<td><span class="tag">'+esc(r.category)+'</span></td>';
+    html+='<td>'+esc(fmtDate(r.date))+'</td>';
+    html+='<td>'+esc(r.venue)+'</td>';
+    html+='<td class="right gold mono">'+esc(cur(r.floor))+'</td>';
+    html+='<td class="right mono">'+esc(cur(r.atp))+'</td>';
+    html+='<td class="right mono">'+esc(fmt(r.listings))+'</td>';
+    html+='<td class="right '+pctCls+'">'+esc(pctStr)+'</td>';
+    html+='</tr>';
+  });
+
+  html+='</tbody></table>';
+  tbl.innerHTML=html;
+}
+
+function go(href){window.location.href=href;}
+
+// ── ANALYSIS ──
+function destroyCharts(){
+  [fChart,lChart,aChart,slChart,saChart].forEach(function(c){if(c)c.destroy();});
+  fChart=lChart=aChart=slChart=saChart=null;
+}
+
+function mkChart(id,label,data,labels,color){
+  return new Chart(document.getElementById(id),{
+    type:'line',
+    data:{labels:labels,datasets:[{label:label,data:data,borderColor:color,backgroundColor:color.replace(')',', .1)').replace('rgb','rgba'),borderWidth:2,tension:.3,fill:true,pointRadius:2,pointHoverRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:10}}},y:{ticks:{font:{size:10}}}}}
+  });
+}
+
+function drawSectionCharts(secName,snaps){
+  if(slChart){slChart.destroy();slChart=null;}
+  if(saChart){saChart.destroy();saChart=null;}
+  var ss=snaps.filter(function(s){return (s.section||'')===secName;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+  var note=document.getElementById('secNote');
+  if(!ss.length){if(note)note.textContent='No data for this section.';return;}
+  if(note)note.textContent='';
+  var labels=ss.map(function(s){return fmtDT(s.scraped_at);});
+  slChart=mkChart('slChart',secName+' Listings',ss.map(function(s){return n(s.section_listings);}),labels,'rgb(139,92,246)');
+  saChart=mkChart('saChart',secName+' Avg Price',ss.map(function(s){return n(s.section_avg);}),labels,'rgb(239,68,68)');
+}
+
+function loadAnalysis(eventId){
+  destroyCharts();
+  document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
+
+  Promise.all([
+    get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),
+    get('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&limit=10000&select=id,event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
+  ]).then(function(res){
+    var ev=(res[0]||[])[0];
+    var snaps=res[1]||[];
+    if(!ev||!snaps.length){
+      document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">No data for this event yet.</div></div>';
+      return;
     }
 
-    function buildTrending(rows,snaps){
-      var cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);
-      return rows.map(function(row){
-        var series={};
-        snaps.forEach(function(s){if(s.event_id!==row.id||!s.scraped_at||safeNumber(s.section_avg)<=0)return;if(!series[s.scraped_at])series[s.scraped_at]={sum:0,count:0};series[s.scraped_at].sum+=safeNumber(s.section_avg);series[s.scraped_at].count++;});
-        var pts=Object.keys(series).filter(function(k){return new Date(k)>=cutoff;}).sort().map(function(k){return{scraped_at:k,avg:series[k].sum/series[k].count};});
-        if(pts.length<2)return null;
-        var chg=pts[pts.length-1].avg-pts[0].avg;
-        return chg>0?{id:row.id,name:row.name,venue:row.venue,atpChange:chg}:null;
-      }).filter(Boolean).sort(function(a,b){return b.atpChange-a.atpChange;}).slice(0,12);
+    var eventSnaps=snaps.filter(function(s){return!s.section;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var first=eventSnaps[0]||snaps[0];
+    var last=eventSnaps[eventSnaps.length-1]||snaps[snaps.length-1];
+    var floorDelta=n(last.event_floor)-n(first.event_floor);
+    var listDelta=n(last.total_listings)-n(first.total_listings);
+    var atpSnaps=snaps.filter(function(s){return n(s.section_avg)>0;});
+    var avgAtp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
+
+    var listingsPct=pct(n(last.total_listings),n(first.total_listings));
+
+    var bySection={};
+    snaps.forEach(function(s){if(s.section)bySection[s.section]=s;});
+    var sections=Object.keys(bySection).map(function(sec){var s=bySection[sec];return{section:sec,listings:n(s.section_listings),avg:n(s.section_avg),scraped_at:s.scraped_at};}).sort(function(a,b){return b.listings-a.listings;});
+    var secNames=Array.from(new Set(snaps.map(function(s){return s.section||'';}).filter(Boolean))).sort();
+
+    var dEl=function(v){return v>0?'delta-up':v<0?'delta-down':'delta-flat';};
+    var dTxt=function(v,money){if(!v||isNaN(v))return '—';var sign=v>0?'+':'-';var abs=Math.abs(v);return money?sign+'$'+Math.round(abs).toLocaleString():sign+Math.round(abs).toLocaleString();};
+
+    function sc(label,value,delta,money){
+      return '<div class="stat-card"><div class="stat-label">'+esc(label)+'</div><div class="stat-value">'+esc(value)+'</div>'+(delta!==null&&!isNaN(delta)?'<div class="stat-delta '+dEl(delta)+'">'+dTxt(delta,money)+'</div>':'')+'</div>';
     }
 
-    function getUnique(rows,field){return Array.from(new Set(rows.map(function(r){return(r[field]||'').trim();}).filter(function(v){return v.length>0;}))).sort();}
+    var labels=eventSnaps.map(function(s){return fmtDT(s.scraped_at);});
+    var floorData=eventSnaps.map(function(s){return n(s.event_floor);});
+    var listData=eventSnaps.map(function(s){return n(s.total_listings);});
+    var atpLabels=atpSnaps.map(function(s){return fmtDT(s.scraped_at);});
+    var atpData=atpSnaps.map(function(s){return n(s.section_avg);});
 
-    function fillSelect(id,values,label){var el=document.getElementById(id);if(!el)return;var cur=el.value;var html='<option value="">'+esc(label)+'</option>';values.forEach(function(v){html+='<option value="'+esc(v)+'">'+esc(v)+'</option>';});el.innerHTML=html;if(values.indexOf(cur)!==-1)el.value=cur;}
+    var html='<div class="analysis-shell">';
+    html+='<div class="analysis-topbar">';
+    html+='<div><div class="analysis-title">'+esc(cleanName(ev.name))+'</div><div class="analysis-sub">'+esc(fmtDate(ev.date))+(ev.venue?' &bull; '+esc(ev.venue):'')+'</div></div>';
+    html+='<a class="back-btn" href="'+esc(window.location.pathname)+'">&#8592; All Events</a>';
+    html+='</div>';
 
-    function renderTicker(){
-      var el=document.getElementById('tickerBar');if(!el)return;
-      if(!trendingItems.length){el.innerHTML='<div class="ticker-shell"><div class="ticker-label">Trending ATP</div><div class="ticker-track-wrap"><div class="ticker-track"><div class="ticker-item"><span class="ticker-meta">Not enough 7-day data yet.</span></div></div></div></div>';return;}
-      var items=trendingItems.map(function(item){return '<div class="ticker-item"><span class="ticker-name">'+esc(item.name)+'</span><span class="ticker-meta">'+esc(item.venue||'')+'</span><span class="ticker-up">+'+formatCurrency(item.atpChange)+'</span></div>';}).join('');
-      el.innerHTML='<div class="ticker-shell"><div class="ticker-label">Trending ATP · 7D</div><div class="ticker-track-wrap"><div class="ticker-track">'+items+items+'</div></div></div>';
+    html+='<div class="stats-grid">';
+    html+=sc('Current Floor',cur(n(last.event_floor)),floorDelta,true);
+    html+=sc('Current Listings',fmt(n(last.total_listings)),listDelta,false);
+    html+=sc('Avg ATP',cur(avgAtp),null,false);
+    html+='<div class="stat-card"><div class="stat-label">24h Vol Change</div><div class="stat-value '+(listingsPct!==null?(listingsPct>0?'delta-up':listingsPct<0?'delta-down':'delta-flat'):'')+'">'+esc(listingsPct!==null?(listingsPct>0?'+':'')+listingsPct+'%':'—')+'</div></div>';
+    html+='</div>';
+
+    html+='<div class="charts-grid">';
+    html+='<div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div>';
+    html+='<div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div>';
+    html+='<div class="chart-card full"><h3>ATP / Section Avg Over Time</h3><div class="chart-wrap"><canvas id="aChart"></canvas></div></div>';
+    html+='<div class="chart-card full">';
+    html+='<div class="section-header"><h3>Section Deep Dive</h3>';
+    if(secNames.length){html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';}
+    html+='</div>';
+    if(secNames.length){
+      html+='<div class="section-charts"><div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div>';
+      html+='<div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';
+    } else {
+      html+='<div class="msg" style="padding:2rem;">No section data yet — run the section scraper on this event.</div>';
+    }
+    html+='</div>';
+    html+='</div>';
+
+    html+='<div class="detail-grid">';
+    html+='<div class="detail-card"><h3>Event Summary</h3><div class="detail-list">';
+    html+='<div><strong>Date</strong><span>'+esc(fmtDate(ev.date))+'</span></div>';
+    html+='<div><strong>Venue</strong><span>'+esc(ev.venue||'—')+'</span></div>';
+    html+='<div><strong>First Scraped</strong><span>'+esc(fmtDT(first.scraped_at))+'</span></div>';
+    html+='<div><strong>Last Updated</strong><span>'+esc(fmtDT(last.scraped_at))+'</span></div>';
+    html+='<div><strong>Floor Change</strong><span class="'+dEl(floorDelta)+'">'+dTxt(floorDelta,true)+'</span></div>';
+    html+='<div><strong>Listings Change</strong><span class="'+dEl(listDelta)+'">'+dTxt(listDelta,false)+'</span></div>';
+    html+='<div><strong>Total Snapshots</strong><span>'+fmt(snaps.length)+'</span></div>';
+    html+='<div><strong>Event ID</strong><span class="mono" style="font-size:11px;color:#888">'+esc(ev.id)+'</span></div>';
+    html+='</div></div>';
+
+    html+='<div class="detail-card"><h3>Top Sections by Listings</h3>';
+    if(sections.length){
+      html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Section</th><th class="right">Listings</th><th class="right">Avg Price</th><th>Last Seen</th></tr></thead><tbody>';
+      sections.slice(0,20).forEach(function(s){html+='<tr><td>'+esc(s.section)+'</td><td class="right">'+fmt(s.listings)+'</td><td class="right gold">'+cur(s.avg)+'</td><td>'+esc(fmtDT(s.scraped_at))+'</td></tr>';});
+      html+='</tbody></table></div>';
+    } else {
+      html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
+    }
+    html+='</div>';
+    html+='</div>';
+
+    html+='<div class="detail-card" style="margin-bottom:14px"><h3>Snapshot History</h3>';
+    html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th class="right">Floor</th><th class="right">Listings</th><th class="right">Sec Listings</th><th class="right">Sec Avg</th></tr></thead><tbody>';
+    snaps.slice().reverse().slice(0,100).forEach(function(s){
+      html+='<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'—')+'</td><td class="right gold">'+esc(cur(s.event_floor))+'</td><td class="right">'+esc(fmt(s.total_listings))+'</td><td class="right">'+esc(fmt(s.section_listings))+'</td><td class="right">'+esc(cur(s.section_avg))+'</td></tr>';
+    });
+    html+='</tbody></table></div></div>';
+
+    html+='</div>';
+    document.getElementById('app').innerHTML=html;
+
+    // Draw charts
+    destroyCharts();
+    if(labels.length>1){
+      fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');
+      lChart=mkChart('lChart','Listings',listData,labels,'rgb(59,130,246)');
+    }
+    if(atpLabels.length>1) aChart=mkChart('aChart','ATP',atpData,atpLabels,'rgb(16,185,129)');
+
+    var sf=document.getElementById('secSel');
+    if(sf&&secNames.length){
+      drawSectionCharts(sf.value,snaps);
+      sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});
     }
 
-    function renderDashboardShell(){
-      document.getElementById('app').innerHTML=
-        '<div class="toolbar">'+
-        '<input type="text" id="search" placeholder="Search event, venue, team..."/>'+
-        '<select id="leagueFilter"><option value="">All Categories</option><option>MLB</option><option>NBA</option><option>NFL</option><option>NHL</option><option>MLS</option><option>Concert</option><option>Comedy</option><option>Theater</option><option>Other</option></select>'+
-        '<select id="performerFilter"><option value="">All Performers</option></select>'+
-        '<select id="opponentFilter"><option value="">All Opponents</option></select>'+
-        '<select id="venueFilter"><option value="">All Venues</option></select>'+
-        '<div class="date-filter"><div class="date-filter-title">Date</div><div class="date-input-wrap"><label class="date-label">From</label><input type="date" id="dateFrom"/></div><div class="date-input-wrap"><label class="date-label">To</label><input type="date" id="dateTo"/></div></div>'+
-        '</div>'+
-        '<div id="tickerBar"></div>'+
-        '<div class="dashboard-shell"><div class="dashboard-card"><div class="table-wrap"><div id="tableContainer" class="msg">Loading...</div></div></div></div>';
-      ['search','leagueFilter','performerFilter','opponentFilter','venueFilter','dateFrom','dateTo'].forEach(function(id){var el=document.getElementById(id);if(el){el.addEventListener('input',renderTable);el.addEventListener('change',renderTable);}});
-    }
+  }).catch(function(err){
+    document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';
+  });
+}
 
-    function renderTable(){
-      var rows=dashboardRows.slice();
-      var search=document.getElementById('search').value.trim().toLowerCase();
-      var league=document.getElementById('leagueFilter').value;
-      var performer=document.getElementById('performerFilter').value;
-      var opponent=document.getElementById('opponentFilter').value;
-      var venue=document.getElementById('venueFilter').value;
-      var dateFrom=document.getElementById('dateFrom').value;
-      var dateTo=document.getElementById('dateTo').value;
-      rows=rows.filter(function(row){
-        var hay=[row.name,row.raw_name,row.venue,row.full_venue,row.category,row.date,row.performer,row.opponent].join(' ').toLowerCase();
-        return(!search||hay.includes(search))&&(!league||row.category===league)&&(!performer||row.performer===performer)&&(!opponent||row.opponent===opponent)&&(!venue||row.venue===venue)&&matchesDates(row,dateFrom,dateTo)&&safeNumber(row.listings)>0;
-      });
-      rows.sort(function(a,b){return safeNumber(b.listings)-safeNumber(a.listings);});
-      if(!rows.length){document.getElementById('tableContainer').innerHTML='<div class="msg">No events match filters.</div>';return;}
-      var html='<table><colgroup><col style="width:34%"><col style="width:10%"><col style="width:14%"><col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:8%"></colgroup>';
-      html+='<thead><tr><th>Event</th><th>Category</th><th>Date</th><th>Venue</th><th class="right">Floor</th><th class="right">ATP</th><th class="right">Listings</th></tr></thead><tbody>';
-      rows.forEach(function(row){
-        var href=window.location.pathname+'?event_id='+encodeURIComponent(row.id);
-        html+='<tr onclick="window.location.href=\''+href.replace(/'/g,"\\'")+'\'"><td><div class="event-name">'+esc(row.name||'—')+'</div></td><td><span class="tag">'+esc(row.category)+'</span></td><td>'+esc(formatDate(row.date))+'</td><td>'+esc(row.venue||'—')+'</td><td class="right gold mono">'+esc(formatCurrency(row.event_floor))+'</td><td class="right mono">'+esc(formatCurrency(row.atp))+'</td><td class="right mono">'+esc(formatInteger(row.listings))+'</td></tr>';
-      });
-      html+='</tbody></table>';
-      document.getElementById('tableContainer').innerHTML=html;
-    }
+// ── INIT ──
+function init(){
+  var eventId=qp('event_id');
+  if(eventId){loadAnalysis(eventId);return;}
 
-    function destroyCharts(){
-      [floorChart,listingsChart,atpChart,sectionListingsChart,sectionAvgChart].forEach(function(c){if(c)c.destroy();});
-      floorChart=listingsChart=atpChart=sectionListingsChart=sectionAvgChart=null;
-    }
+  renderDashboard();
 
-    function chartOpts(yTitle){return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true}},scales:{x:{ticks:{maxTicksLimit:8}},y:{title:{display:true,text:yTitle}}}};}
+  get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=300&select=event_id,scraped_at')
+  .then(function(snaps){
+    var ids=[],seen={};
+    snaps.forEach(function(s){if(s.event_id&&!seen[s.event_id]){seen[s.event_id]=true;ids.push(s.event_id);}});
+    ids=ids.slice(0,100);
+    if(!ids.length){document.getElementById('tbl').innerHTML='<div class="msg">No data yet. Run the scraper to start collecting.</div>';return null;}
+    var idList=ids.map(function(i){return'"'+String(i).replace(/"/g,'\\"')+'"';}).join(',');
+    return Promise.all([
+      get('/rest/v1/events?id=in.('+idList+')&select=id,name,date,venue'),
+      get('/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&limit=8000&select=event_id,total_listings,event_floor,section_avg,section,scraped_at')
+    ]);
+  })
+  .then(function(res){
+    if(!res)return;
+    allEvents=res[0]||[];
+    allSnaps=res[1]||[];
+    allRows=buildRows(allEvents,allSnaps);
+    fillSel('perfF',unique(allRows,'performer'),'All Performers');
+    fillSel('venF',unique(allRows,'venue'),'All Venues');
+    buildTicker(allRows);
+    drawTable();
+  })
+  .catch(function(err){
+    document.getElementById('tbl').innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>';
+  });
+}
 
-    function drawCharts(labels,floorData,listingsData,atpData){
-      destroyCharts();
-      floorChart=new Chart(document.getElementById('floorChart'),{type:'line',data:{labels:labels,datasets:[{label:'Floor',data:floorData,borderColor:'#d4a843',backgroundColor:'rgba(212,168,67,.12)',borderWidth:2,tension:.25,fill:true,pointRadius:2}]},options:chartOpts('Price')});
-      listingsChart=new Chart(document.getElementById('listingsChart'),{type:'line',data:{labels:labels,datasets:[{label:'Listings',data:listingsData,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.10)',borderWidth:2,tension:.25,fill:true,pointRadius:2}]},options:chartOpts('Listings')});
-      atpChart=new Chart(document.getElementById('atpChart'),{type:'line',data:{labels:labels,datasets:[{label:'ATP',data:atpData,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.10)',borderWidth:2,tension:.25,fill:true,pointRadius:2}]},options:chartOpts('ATP')});
-    }
-
-    function drawSectionCharts(sectionName,snaps){
-      if(sectionListingsChart){sectionListingsChart.destroy();sectionListingsChart=null;}
-      if(sectionAvgChart){sectionAvgChart.destroy();sectionAvgChart=null;}
-      var ss=snaps.filter(function(s){return(s.section||'')===sectionName;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
-      var note=document.getElementById('sectionChartNote');
-      if(!ss.length){if(note)note.innerHTML='No data for selected section.';return;}
-      if(note)note.innerHTML='';
-      var labels=ss.map(function(s){return formatDateTime(s.scraped_at);});
-      sectionListingsChart=new Chart(document.getElementById('sectionListingsChart'),{type:'line',data:{labels:labels,datasets:[{label:sectionName+' Listings',data:ss.map(function(s){return safeNumber(s.section_listings);}),borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.10)',borderWidth:2,tension:.25,fill:true,pointRadius:2}]},options:chartOpts('Listings')});
-      sectionAvgChart=new Chart(document.getElementById('sectionAvgChart'),{type:'line',data:{labels:labels,datasets:[{label:sectionName+' Avg',data:ss.map(function(s){return safeNumber(s.section_avg);}),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.10)',borderWidth:2,tension:.25,fill:true,pointRadius:2}]},options:chartOpts('Avg Price')});
-    }
-
-    function loadDashboard(){
-      renderDashboardShell();
-      get('/rest/v1/volume_snapshots?order=scraped_at.desc&limit=200&select=event_id')
-      .then(function(snaps){
-        var ids=[],seen={};
-        (snaps||[]).forEach(function(s){if(s.event_id&&!seen[s.event_id]){seen[s.event_id]=true;ids.push(s.event_id);}});
-        ids=ids.slice(0,100);
-        if(!ids.length){document.getElementById('tableContainer').innerHTML='<div class="msg">No data yet. Run the scraper to start collecting.</div>';return null;}
-        var idList=ids.map(function(i){return '"'+String(i).replace(/"/g,'\\"')+'"';}).join(',');
-        return Promise.all([
-          get('/rest/v1/events?id=in.('+idList+')&select=id,name,date,venue'),
-          get('/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&limit=5000&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
-        ]);
-      })
-      .then(function(results){
-        if(!results)return;
-        dashboardEvents=results[0]||[];dashboardSnapshots=results[1]||[];
-        dashboardRows=buildRows(dashboardEvents,dashboardSnapshots);
-        trendingItems=buildTrending(dashboardRows,dashboardSnapshots);
-        fillSelect('performerFilter',getUnique(dashboardRows,'performer'),'All Performers');
-        fillSelect('opponentFilter',getUnique(dashboardRows,'opponent'),'All Opponents');
-        fillSelect('venueFilter',getUnique(dashboardRows,'venue'),'All Venues');
-        renderTicker();renderTable();
-      })
-      .catch(function(err){document.getElementById('tableContainer').innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>';});
-    }
-
-    function loadAnalysis(eventId){
-      document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
-      Promise.all([
-        get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),
-        get('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&limit=10000&select=event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
-      ]).then(function(results){
-        var events=results[0]||[],snaps=results[1]||[];
-        var ev=events[0];
-        if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
-        if(!snaps.length){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">No data for this event yet.</div></div>';return;}
-
-        var first=snaps[0],last=snaps[snaps.length-1];
-        var floorDelta=safeNumber(last.event_floor)-safeNumber(first.event_floor);
-        var listingDelta=safeNumber(last.total_listings)-safeNumber(first.total_listings);
-        var validAtps=snaps.filter(function(s){return safeNumber(s.section_avg)>0;});
-        var avgAtp=validAtps.length?validAtps.reduce(function(s,x){return s+safeNumber(x.section_avg);},0)/validAtps.length:0;
-
-        var latestBySection={};
-        snaps.forEach(function(s){if(s.section)latestBySection[s.section]=s;});
-        var sections=Object.keys(latestBySection).map(function(sec){var s=latestBySection[sec];return{section:sec,listings:safeNumber(s.section_listings),avg:safeNumber(s.section_avg),scraped_at:s.scraped_at};}).sort(function(a,b){return b.listings-a.listings;});
-        var uniqueSections=Array.from(new Set(snaps.map(function(s){return s.section||'';}).filter(function(s){return s.trim().length>0;}))).sort();
-
-        var labels=snaps.map(function(s){return formatDateTime(s.scraped_at);});
-        var floorData=snaps.map(function(s){return safeNumber(s.event_floor);});
-        var listingsData=snaps.map(function(s){return safeNumber(s.total_listings);});
-        var atpData=snaps.map(function(s){return safeNumber(s.section_avg);});
-
-        var html='<div class="analysis-shell">';
-        html+='<div class="analysis-topbar"><div><div class="analysis-title">'+esc(ev.name)+'</div><div class="analysis-subtitle">'+esc(formatDate(ev.date))+(ev.venue?' &bull; '+esc(ev.venue):'')+'</div></div><a class="back-btn" href="'+window.location.pathname+'">&#8592; Back</a></div>';
-        html+='<div class="stats-grid">';
-        html+=statCard('Current Floor',formatCurrency(safeNumber(last.event_floor)),'<div class="'+deltaClass(floorDelta)+'" style="margin-top:8px;font-size:12px;">'+deltaText(floorDelta,true)+'</div>');
-        html+=statCard('Current Listings',formatInteger(safeNumber(last.total_listings)),'<div class="'+deltaClass(listingDelta)+'" style="margin-top:8px;font-size:12px;">'+deltaText(listingDelta,false)+'</div>');
-        html+=statCard('Avg ATP',formatCurrency(avgAtp),'');
-        html+=statCard('Snapshots',formatInteger(snaps.length),'');
-        html+='</div>';
-        html+='<div class="analysis-grid">';
-        html+='<div class="card"><h3>Floor Over Time</h3><div class="chart-wrap"><canvas id="floorChart"></canvas></div></div>';
-        html+='<div class="card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="listingsChart"></canvas></div></div>';
-        html+='<div class="card full-width"><h3>ATP Over Time</h3><div class="chart-wrap"><canvas id="atpChart"></canvas></div></div>';
-        html+='<div class="card full-width"><div class="section-chart-header"><h3 style="margin-bottom:0">Section Analysis</h3>';
-        if(uniqueSections.length){html+='<select id="sectionFilter" class="section-select">'+uniqueSections.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';}
-        html+='</div><div class="section-chart-grid"><div><h3 style="margin-bottom:12px">Section Listings</h3><div class="chart-wrap"><canvas id="sectionListingsChart"></canvas></div></div><div><h3 style="margin-bottom:12px">Section Avg Price</h3><div class="chart-wrap"><canvas id="sectionAvgChart"></canvas></div></div></div><div id="sectionChartNote" class="empty-note"></div></div>';
-        html+='<div class="card"><h3>Event Summary</h3><div class="analysis-list">';
-        html+='<div><strong>Date:</strong> '+esc(formatDate(ev.date))+'</div>';
-        html+='<div><strong>Venue:</strong> '+esc(ev.venue||'—')+'</div>';
-        html+='<div><strong>Opening Floor:</strong> '+esc(formatCurrency(safeNumber(first.event_floor)))+'</div>';
-        html+='<div><strong>Current Floor:</strong> '+esc(formatCurrency(safeNumber(last.event_floor)))+'</div>';
-        html+='<div><strong>Floor Change:</strong> <span class="'+deltaClass(floorDelta)+'">'+deltaText(floorDelta,true)+'</span></div>';
-        html+='<div><strong>Opening Listings:</strong> '+esc(formatInteger(safeNumber(first.total_listings)))+'</div>';
-        html+='<div><strong>Current Listings:</strong> '+esc(formatInteger(safeNumber(last.total_listings)))+'</div>';
-        html+='<div><strong>Listings Change:</strong> <span class="'+deltaClass(listingDelta)+'">'+deltaText(listingDelta,false)+'</span></div>';
-        html+='<div><strong>First Seen:</strong> '+esc(formatDateTime(first.scraped_at))+'</div>';
-        html+='<div><strong>Last Updated:</strong> '+esc(formatDateTime(last.scraped_at))+'</div>';
-        html+='</div></div>';
-        html+='<div class="card"><h3>Section Breakdown</h3><div class="mini-table-wrap"><table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Avg</th><th>Last Seen</th></tr></thead><tbody>';
-        if(!sections.length){html+='<tr><td colspan="4" class="muted">No section data yet.</td></tr>';}
-        else{sections.forEach(function(s){html+='<tr><td>'+esc(s.section)+'</td><td>'+esc(formatInteger(s.listings))+'</td><td>'+esc(formatCurrency(s.avg))+'</td><td>'+esc(formatDateTime(s.scraped_at))+'</td></tr>';});}
-        html+='</tbody></table></div></div>';
-        html+='<div class="card full-width"><h3>Snapshot History</h3><div class="mini-table-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Floor</th><th>Listings</th><th>Section</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
-        snaps.slice().reverse().forEach(function(s){html+='<tr><td>'+esc(formatDateTime(s.scraped_at))+'</td><td>'+esc(formatCurrency(s.event_floor))+'</td><td>'+esc(formatInteger(s.total_listings))+'</td><td>'+esc(s.section||'')+'</td><td>'+esc(formatInteger(s.section_listings))+'</td><td>'+esc(formatCurrency(s.section_avg))+'</td></tr>';});
-        html+='</tbody></table></div></div>';
-        html+='</div></div>';
-
-        document.getElementById('app').innerHTML=html;
-        drawCharts(labels,floorData,listingsData,atpData);
-        var sf=document.getElementById('sectionFilter');
-        if(sf&&uniqueSections.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
-        else{var n=document.getElementById('sectionChartNote');if(n)n.innerHTML='No section data available yet.';}
-      })
-      .catch(function(err){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';});
-    }
-
-    function init(){var id=getQueryParam('event_id');if(id)loadAnalysis(id);else loadDashboard();}
-    init();
-  </script>
+init();
+</script>
 </body>
 </html>
