@@ -292,7 +292,7 @@ function buildRows(events,snaps){
   var cutoff24=new Date(now-24*3600000).toISOString();
 
   return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
-    var es=snaps.filter(function(s){return s.event_id===ev.id&&!s.section;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var es=snaps.filter(function(s){return s.event_id===ev.id&&(!s.section||s.section==='');}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     if(!es.length)return null;
 
     var latest=es[es.length-1];
@@ -481,7 +481,7 @@ function loadAnalysis(eventId){
       return;
     }
 
-    var eventSnaps=snaps.filter(function(s){return!s.section;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var eventSnaps=snaps.filter(function(s){return!s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var first=eventSnaps[0]||snaps[0];
     var last=eventSnaps[eventSnaps.length-1]||snaps[snaps.length-1];
     var floorDelta=n(last.event_floor)-n(first.event_floor);
