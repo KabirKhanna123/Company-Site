@@ -288,19 +288,23 @@ function pct(a,b){
 // ── BUILD ROWS ──
 function buildRows(events,snaps){
   var junk=/hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
-  var now=Date.now();
-  var cutoff24=new Date(now-24*3600000).toISOString();
-
   return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
     var es=snaps.filter(function(s){return s.event_id===ev.id&&(!s.section||s.section==='');}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     if(!es.length)return null;
 
     var latest=es[es.length-1];
-    var old24=es.filter(function(s){return s.scraped_at<cutoff24;});
-    var prev=old24.length?old24[old24.length-1]:null;
+
+    // Find snapshot closest to 24h before the latest one
+    var latestTime=new Date(latest.scraped_at).getTime();
+    var cutoff24=new Date(latestTime-24*3600000).toISOString();
+    var before24=es.filter(function(s){return s.scraped_at<=cutoff24;});
+    var prev=before24.length?before24[before24.length-1]:null;
+
+    // If no snapshot 24h ago, use the oldest one we have
+    if(!prev&&es.length>1) prev=es[0];
 
     var curListings=n(latest.total_listings);
-    var prevListings=prev?n(prev.total_listings):null;
+    var prevListings=prev&&prev!==latest?n(prev.total_listings):null;
     var listingsPct=pct(curListings,prevListings);
 
     var atpSnaps=snaps.filter(function(s){return s.event_id===ev.id&&n(s.section_avg)>0;});
