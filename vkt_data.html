@@ -294,17 +294,25 @@ function buildRows(events,snaps){
 
     var latest=es[es.length-1];
 
-    // Find snapshot closest to 24h before the latest one
-    var latestTime=new Date(latest.scraped_at).getTime();
-    var cutoff24=new Date(latestTime-24*3600000).toISOString();
-    var before24=es.filter(function(s){return s.scraped_at<=cutoff24;});
-    var prev=before24.length?before24[before24.length-1]:null;
+    // Use max total_listings across ALL snapshots for this event (any section)
+    var allEvSnaps=snaps.filter(function(s){return s.event_id===ev.id;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
 
-    // If no snapshot 24h ago, use the oldest one we have
-    if(!prev&&es.length>1) prev=es[0];
+    // Group by scraped_at date — get max listings per scrape run
+    var runMap={};
+    allEvSnaps.forEach(function(s){
+      var day=s.scraped_at.slice(0,13); // group by hour
+      if(!runMap[day]||n(s.total_listings)>n(runMap[day].total_listings)){
+        runMap[day]=s;
+      }
+    });
+    var runs=Object.keys(runMap).sort().map(function(k){return runMap[k];});
 
-    var curListings=n(latest.total_listings);
-    var prevListings=prev&&prev!==latest?n(prev.total_listings):null;
+    var curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
+
+    // Compare to a run from 24h+ ago
+    var latestTime=runs.length?new Date(runs[runs.length-1].scraped_at).getTime():Date.now();
+    var prevRuns=runs.filter(function(r){return new Date(r.scraped_at).getTime()<latestTime-20*3600000;});
+    var prevListings=prevRuns.length?n(prevRuns[prevRuns.length-1].total_listings):null;
     var listingsPct=pct(curListings,prevListings);
 
     var atpSnaps=snaps.filter(function(s){return s.event_id===ev.id&&n(s.section_avg)>0;});
