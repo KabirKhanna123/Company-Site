@@ -454,7 +454,7 @@ function init(){
   var today=new Date().toISOString().slice(0,10);
 
   // Fetch ALL upcoming events directly — no snapshot dependency
-  get('/rest/v1/events?date=gte.'+today+'&not.id=like.tm_%25&order=date.asc&limit=2000&select=id,name,date,venue')
+  get('/rest/v1/events?date=gte.'+today+'&order=date.asc&limit=2000&select=id,name,date,venue')
   .then(function(events){
     allEvents=events||[];
     if(!allEvents.length){document.getElementById('tbl').innerHTML='<div class="msg">No upcoming events found.</div>';return null;}
