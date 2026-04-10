@@ -1,489 +1,310 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VKT Market Data</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { height:100%; font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; }
-    nav { background:#fff; border-bottom:1px solid #e4e2dc; padding:0 1.5rem; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
-    .logo { font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#111; }
-    .logo span { color:#d4a843; }
-    nav a { color:#888; font-size:11px; text-decoration:none; letter-spacing:1px; }
-    nav a:hover { color:#d4a843; }
-    .header { padding:1.25rem 1.5rem; background:#fff; border-bottom:1px solid #e4e2dc; }
-    .header h1 { font-size:22px; font-weight:300; color:#111; }
-    .header h1 strong { color:#d4a843; }
-    .ticker-shell { background:#111; border-bottom:1px solid #222; height:40px; display:flex; align-items:center; overflow:hidden; position:relative; }
-    .ticker-shell::before, .ticker-shell::after { content:""; position:absolute; top:0; width:60px; height:100%; z-index:2; pointer-events:none; }
-    .ticker-shell::before { left:0; background:linear-gradient(to right,#111,transparent); }
-    .ticker-shell::after { right:0; background:linear-gradient(to left,#111,transparent); }
-    .ticker-label { position:absolute; left:12px; z-index:3; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#d4a843; background:#111; padding-right:16px; white-space:nowrap; }
-    .ticker-wrap { overflow:hidden; width:100%; padding-left:120px; }
-    .ticker-track { display:inline-flex; align-items:center; gap:36px; white-space:nowrap; animation:ticker 40s linear infinite; }
-    .ticker-shell:hover .ticker-track { animation-play-state:paused; }
-    @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-    .ticker-item { display:inline-flex; align-items:center; gap:8px; font-size:11px; color:#ccc; }
-    .ticker-name { color:#fff; font-weight:700; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
-    .ticker-listings { color:#888; font-size:10px; }
-    .ticker-up { color:#22c55e; font-weight:700; font-size:11px; }
-    .ticker-down { color:#ef4444; font-weight:700; font-size:11px; }
-    .ticker-flat { color:#888; font-weight:700; font-size:11px; }
-    .ticker-dot { color:#333; }
-    .toolbar { padding:0.75rem 1.5rem; background:#fff; border-bottom:1px solid #e4e2dc; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .toolbar input, .toolbar select { padding:8px 12px; border:1px solid #ddd; background:#fff; font-size:12px; border-radius:6px; outline:none; color:#111; min-height:36px; }
-    .toolbar input { width:220px; }
-    .toolbar input:focus, .toolbar select:focus { border-color:#d4a843; }
-    .toolbar input::placeholder { color:#bbb; }
-    .date-group { display:flex; align-items:center; gap:6px; font-size:11px; color:#888; }
-    .date-group input { width:130px; }
-    .table-shell { padding:12px 1.5rem; }
-    .table-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; overflow:hidden; }
-    .table-wrap { overflow:auto; max-height:calc(100vh - 280px); }
-    table { width:100%; border-collapse:collapse; table-layout:fixed; }
-    thead th { background:#f7f6f3; border-bottom:1px solid #e4e2dc; padding:9px 12px; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; text-align:left; position:sticky; top:0; z-index:2; font-weight:700; cursor:pointer; white-space:nowrap; }
-    thead th:hover { color:#d4a843; }
-    thead th.th-right { text-align:right; }
-    tbody td { padding:10px 12px; border-bottom:1px solid #f0eeea; font-size:12px; color:#111; vertical-align:middle; }
-    tbody tr:last-child td { border-bottom:none; }
-    tbody tr { cursor:pointer; }
-    tbody tr:hover td { background:#fdf9f2; }
-    .col-name { width:30%; } .col-cat { width:8%; } .col-date { width:13%; } .col-venue { width:14%; } .col-num { width:9%; }
-    .event-name { font-weight:600; font-size:12px; line-height:1.3; }
-    .tag { display:inline-block; font-size:9px; padding:2px 7px; border-radius:999px; background:#f3efe4; color:#8a6a18; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
-    .gold { color:#d4a843; font-weight:700; }
-    .mono { font-family:monospace; }
-    .td-right { text-align:right; }
-    .muted { color:#aaa; }
-    .no-data { color:#ddd; }
-    .chg-up { color:#22c55e; font-weight:700; font-family:monospace; text-align:right; }
-    .chg-down { color:#ef4444; font-weight:700; font-family:monospace; text-align:right; }
-    .chg-flat { color:#aaa; font-family:monospace; text-align:right; }
-    .msg { padding:3rem; text-align:center; color:#aaa; }
-    .analysis-shell { padding:1.5rem; max-width:1400px; margin:0 auto; }
-    .analysis-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; }
-    .analysis-title { font-size:26px; font-weight:700; color:#111; line-height:1.2; }
-    .analysis-sub { font-size:13px; color:#888; margin-top:5px; }
-    .back-btn { padding:8px 16px; border:1px solid #ddd; border-radius:6px; font-size:12px; color:#555; text-decoration:none; background:#fff; cursor:pointer; white-space:nowrap; }
-    .back-btn:hover { border-color:#d4a843; color:#d4a843; }
-    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:1.5rem; }
-    .stat-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
-    .stat-label { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
-    .stat-value { font-size:26px; font-weight:700; color:#111; }
-    .stat-delta { font-size:12px; margin-top:6px; font-weight:700; }
-    .delta-up { color:#22c55e; } .delta-down { color:#ef4444; } .delta-flat { color:#aaa; }
-    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
-    .chart-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
-    .chart-card.full { grid-column:1/-1; }
-    .chart-card h3 { font-size:13px; font-weight:700; color:#111; margin-bottom:14px; }
-    .chart-wrap { position:relative; height:260px; }
-    .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
-    .section-select { padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:12px; outline:none; background:#fff; color:#111; min-width:160px; }
-    .section-charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
-    .detail-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
-    .detail-card h3 { font-size:13px; font-weight:700; color:#111; margin-bottom:12px; }
-    .detail-list { display:grid; gap:8px; font-size:13px; }
-    .detail-list div { display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #f0eeea; }
-    .detail-list div:last-child { border:none; padding:0; }
-    .detail-list strong { color:#888; font-weight:400; }
-    .detail-list span { font-weight:600; color:#111; }
-    .mini-wrap { overflow:auto; max-height:380px; border:1px solid #f0eeea; border-radius:8px; }
-    .mini-table { width:100%; border-collapse:collapse; font-size:12px; }
-    .mini-table th { background:#f7f6f3; padding:8px 10px; text-align:left; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; border-bottom:1px solid #e4e2dc; white-space:nowrap; }
-    .mini-table td { padding:8px 10px; border-bottom:1px solid #f5f3ef; color:#111; white-space:nowrap; }
-    .mini-table tr:last-child td { border:none; }
-    @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
-    @media(max-width:700px){.toolbar{flex-direction:column;align-items:stretch}.toolbar input{width:100%}.analysis-title{font-size:20px}}
-  </style>
-</head>
-<body>
+const { chromium } = require('playwright-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const { createClient } = require('@supabase/supabase-js');
 
-<nav>
-  <div class="logo">Victory Kay <span>Tickets</span></div>
-  <a href="/">← Back to site</a>
-</nav>
+chromium.use(StealthPlugin());
 
-<div class="header">
-  <h1><strong>VKT</strong> Market Data</h1>
-</div>
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://unypasitbzulafehbqtj.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
+const VKT_API = process.env.VKT_API || 'https://vkt-volume-api.vercel.app';
 
-<div id="ticker-bar">
-  <div class="ticker-shell">
-    <div class="ticker-label">24H VOL</div>
-    <div class="ticker-wrap"><div class="ticker-track" id="ticker-track">
-      <div class="ticker-item"><span style="color:#555">Loading market data...</span></div>
-    </div></div>
-  </div>
-</div>
+const SCRAPE_DELAY_MS = parseInt(process.env.SCRAPE_DELAY_MS || '8000', 10);
+const SECTION_DELAY_MS = parseInt(process.env.SECTION_DELAY_MS || '3000', 10);
+const RECENT_HOURS = parseInt(process.env.RECENT_HOURS || '20', 10);
+const EVENT_LIMIT = parseInt(process.env.EVENT_LIMIT || '200', 10);
+const MIN_PRICE = 10; // ignore prices below $10 to filter UI noise
+const MAX_PRICE = 25000;
 
-<div id="app"></div>
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<script>
-var SB  = 'https://unypasitbzulafehbqtj.supabase.co';
-var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI';
-var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+function randomDelay(min, max) { return sleep(min + Math.random() * (max - min)); }
+function safeNum(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
 
-var allRows=[], allSnaps=[], allEvents=[];
-var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
-
-function get(url){
-  return fetch(SB+url,{headers:H}).then(function(r){
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  });
+function normalizeDateString(value) {
+  if (!value) return null;
+  const s = String(value).trim();
+  const isoMatch = s.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+  if (isoMatch) return isoMatch[1];
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  return null;
 }
 
-function n(v){var x=Number(v);return isNaN(x)?0:x;}
-function cur(v){if(!v||isNaN(v))return '—';return '$'+Math.round(v).toLocaleString();}
-function fmt(v){if(v===null||v===undefined||isNaN(v))return '—';return Number(v).toLocaleString();}
-function fmtDate(d){if(!d)return '—';var dt=new Date(d+'T12:00:00');if(isNaN(dt))return d;return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}
-function fmtDT(d){if(!d)return '';var dt=new Date(d);if(isNaN(dt))return d;return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
-function shortV(v){return v?(v.split(',')[0]):'—';}
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function qp(n){return new URLSearchParams(window.location.search).get(n);}
-
-function cleanName(n){
-  if(!n)return '';
-  return n.replace(/Tickets\s*[–\-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i,' at ').replace(/Tickets\s*[–\-]\s*/i,'').trim();
+function summarizePrices(prices) {
+  const valid = (prices||[]).map(safeNum).filter(v => v >= MIN_PRICE && v <= MAX_PRICE).sort((a,b) => a-b);
+  if (!valid.length) return { floor:null, avg:null, ceiling:null };
+  return {
+    floor: Math.round(valid[0]),
+    avg: Math.round(valid.reduce((a,b) => a+b, 0) / valid.length),
+    ceiling: Math.round(valid[valid.length-1])
+  };
 }
 
-function cat(name,venue){
-  var t=((name||'')+(venue||'')).toLowerCase();
-  if(/yankees|dodgers|cubs|red.sox|baseball|mlb|mets|astros|braves|phillies/.test(t))return 'MLB';
-  if(/lakers|warriors|celtics|knicks|basketball|nba|heat|bulls|nets|76ers|mavericks|bucks/.test(t))return 'NBA';
-  if(/cowboys|chiefs|patriots|packers|football|nfl|49ers|eagles|giants|ravens/.test(t))return 'NFL';
-  if(/rangers|bruins|blackhawks|hockey|nhl|maple.leaf/.test(t))return 'NHL';
-  if(/soccer|mls|galaxy|lafc|inter.miami/.test(t))return 'MLS';
-  if(/concert|tour|live/.test(t))return 'Concert';
-  if(/comedy/.test(t))return 'Comedy';
-  if(/theater|theatre|broadway/.test(t))return 'Theater';
-  return 'Other';
+async function getEvents() {
+  const { data, error } = await supabase
+    .from('events')
+    .select('id,name,date,venue,platform,is_major')
+    .not('id','like','tm_%')
+    .order('date', { ascending: true })
+    .limit(EVENT_LIMIT);
+  if (error) { console.error('Failed to fetch events:', error.message); return []; }
+  return data || [];
 }
 
-function parseNames(name){
-  var c=cleanName(name||'');
-  var m=c.match(/^(.*?)\s+at\s+(.*?)$/i);
-  if(m)return{performer:m[2].trim(),opponent:m[1].trim()};
-  m=c.match(/^(.*?)\s+(?:vs?\.?)\s+(.*?)$/i);
-  if(m)return{performer:m[1].trim(),opponent:m[2].trim()};
-  return{performer:c,opponent:''};
+async function scrapedRecently(eventId, hours=RECENT_HOURS) {
+  const since = new Date(Date.now() - hours*3600000).toISOString();
+  const { data } = await supabase.from('volume_snapshots').select('id').eq('event_id',eventId).is('section',null).gte('scraped_at',since).limit(1);
+  return !!(data && data.length > 0);
 }
 
-function pct(a,b){
-  if(!a||!b||b===0)return null;
-  return Math.round(((a-b)/b)*100);
-}
-
-function buildRows(events,snaps){
-  var junk=/hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
-  var snapIndex={};
-  snaps.forEach(function(s){
-    if(!snapIndex[s.event_id])snapIndex[s.event_id]=[];
-    snapIndex[s.event_id].push(s);
-  });
-
-  return events.filter(function(e){
-    return e.name&&e.name.length>3&&!junk.test(e.name);
-  }).map(function(ev){
-    var es=(snapIndex[ev.id]||[]).filter(function(s){return !s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
-    var latest=es.length?es[es.length-1]:null;
-
-    var allEvSnaps=(snapIndex[ev.id]||[]).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
-    var runMap={};
-    allEvSnaps.forEach(function(s){
-      var hr=s.scraped_at.slice(0,13);
-      if(!runMap[hr]||n(s.total_listings)>n(runMap[hr].total_listings))runMap[hr]=s;
-    });
-    var runs=Object.keys(runMap).sort().map(function(k){return runMap[k];});
-    var curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
-
-    var latestTime=runs.length?new Date(runs[runs.length-1].scraped_at).getTime():Date.now();
-    var prevRuns=runs.filter(function(r){return new Date(r.scraped_at).getTime()<latestTime-20*3600000;});
-    var prevListings=prevRuns.length?n(prevRuns[prevRuns.length-1].total_listings):null;
-    var listingsPct=pct(curListings,prevListings);
-
-    var atpSnaps=(snapIndex[ev.id]||[]).filter(function(s){return n(s.section_avg)>0;});
-    var atp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
-
-    var p=parseNames(ev.name);
-    return {
-      id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',
-      venue:shortV(ev.venue),fullVenue:ev.venue||'',
-      floor:latest?n(latest.event_floor):0,atp:atp,
-      listings:curListings,prevListings:prevListings,listingsPct:listingsPct,
-      category:cat(ev.name,ev.venue),performer:p.performer,opponent:p.opponent,
-      hasData:!!latest
-    };
-  });
-}
-
-function buildTicker(rows){
-  var items=rows.filter(function(r){return r.listingsPct!==null;}).sort(function(a,b){return Math.abs(b.listingsPct)-Math.abs(a.listingsPct);}).slice(0,15);
-  if(!items.length){document.getElementById('ticker-track').innerHTML='<div class="ticker-item"><span style="color:#555">Not enough 24h data yet.</span></div>';return;}
-  var html=items.map(function(r){
-    var p=r.listingsPct;
-    var cls=p>0?'ticker-up':p<0?'ticker-down':'ticker-flat';
-    var sign=p>0?'+':'';
-    return '<div class="ticker-item"><span class="ticker-name">'+esc(r.name)+'</span><span class="ticker-listings">'+fmt(r.listings)+' listings</span><span class="'+cls+'">'+sign+p+'%</span><span class="ticker-dot">&bull;</span></div>';
-  }).join('');
-  document.getElementById('ticker-track').innerHTML=html+html;
-}
-
-function renderDashboard(){
-  document.getElementById('app').innerHTML=
-    '<div class="toolbar">'+
-      '<input type="text" id="q" placeholder="Search events, teams, artists..."/>'+
-      '<select id="catF"><option value="">All Categories</option><option>MLB</option><option>NBA</option><option>NFL</option><option>NHL</option><option>MLS</option><option>Concert</option><option>Comedy</option><option>Theater</option><option>Other</option></select>'+
-      '<select id="perfF"><option value="">All Performers</option></select>'+
-      '<select id="venF"><option value="">All Venues</option></select>'+
-      '<div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div>'+
-      '<select id="dataF"><option value="">All Events</option><option value="data">Has Data</option><option value="nodata">No Data Yet</option></select>'+
-    '</div>'+
-    '<div class="table-shell"><div class="table-card"><div class="table-wrap"><div id="tbl" class="msg">Loading...</div></div></div></div>';
-
-  ['q','catF','perfF','venF','df','dt','dataF'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el){el.addEventListener('input',drawTable);el.addEventListener('change',drawTable);}
-  });
-}
-
-function fillSel(id,vals,label){
-  var el=document.getElementById(id);if(!el)return;
-  var cur=el.value;
-  el.innerHTML='<option value="">'+esc(label)+'</option>'+vals.map(function(v){return'<option value="'+esc(v)+'">'+esc(v)+'</option>';}).join('');
-  if(vals.indexOf(cur)!==-1)el.value=cur;
-}
-
-function unique(rows,field){
-  return Array.from(new Set(rows.map(function(r){return(r[field]||'').trim();}).filter(Boolean))).sort();
-}
-
-function drawTable(){
-  var q=((document.getElementById('q')||{}).value||'').trim().toLowerCase();
-  var catF=(document.getElementById('catF')||{}).value||'';
-  var perfF=(document.getElementById('perfF')||{}).value||'';
-  var venF=(document.getElementById('venF')||{}).value||'';
-  var df=(document.getElementById('df')||{}).value||'';
-  var dt=(document.getElementById('dt')||{}).value||'';
-  var dataF=(document.getElementById('dataF')||{}).value||'';
-
-  var rows=allRows.filter(function(r){
-    var hay=[r.name,r.raw,r.venue,r.fullVenue,r.category,r.date,r.performer,r.opponent].join(' ').toLowerCase();
-    if(q&&!hay.includes(q))return false;
-    if(catF&&r.category!==catF)return false;
-    if(perfF&&r.performer!==perfF)return false;
-    if(venF&&r.venue!==venF)return false;
-    if(dataF==='data'&&!r.hasData)return false;
-    if(dataF==='nodata'&&r.hasData)return false;
-    if(df||dt){
-      if(!r.date)return false;
-      var d=new Date(r.date+'T12:00:00');
-      if(df&&d<new Date(df+'T12:00:00'))return false;
-      if(dt&&d>new Date(dt+'T12:00:00'))return false;
-    }
+async function postSnapshot(payload) {
+  try {
+    const r = await fetch(VKT_API+'/api/snapshot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    if (!r.ok) { console.error('  Snapshot failed:', r.status, await r.text()); return false; }
     return true;
-  });
-
-  // Events with data sorted by listings desc, then no-data events by date asc
-  rows.sort(function(a,b){
-    if(a.hasData&&!b.hasData)return -1;
-    if(!a.hasData&&b.hasData)return 1;
-    if(a.hasData&&b.hasData)return b.listings-a.listings;
-    return (a.date||'').localeCompare(b.date||'');
-  });
-
-  var tbl=document.getElementById('tbl');
-  if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
-
-  var html='<table><colgroup><col class="col-name"><col class="col-cat"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-num"></colgroup>'+
-    '<thead><tr><th>Event</th><th>Cat</th><th>Date</th><th>Venue</th><th class="th-right">Floor</th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right">24h Vol</th></tr></thead><tbody>';
-
-  rows.forEach(function(r){
-    var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
-    var pctStr='—',pctCls='chg-flat';
-    if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}
-    var dim=r.hasData?'':'opacity:0.45;';
-    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
-      '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
-      '<td style="'+dim+'"><span class="tag">'+esc(r.category)+'</span></td>'+
-      '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
-      '<td style="'+dim+'">'+esc(r.venue)+'</td>'+
-      '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">—</span>')+'</td>'+
-      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">—</span>')+'</td>'+
-      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">—</span>')+'</td>'+
-      '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">—</span>')+'</td>'+
-      '</tr>';
-  });
-
-  tbl.innerHTML=html+'</tbody></table>';
+  } catch(e) { console.error('  Snapshot error:', e.message); return false; }
 }
 
-function go(href){window.location.href=href;}
-
-function destroyCharts(){
-  [fChart,lChart,aChart,slChart,saChart].forEach(function(c){if(c)c.destroy();});
-  fChart=lChart=aChart=slChart=saChart=null;
+async function dismissModals(page) {
+  for (const sel of ['button:has-text("Accept")','button:has-text("Continue")','button:has-text("Close")','button[aria-label="Close"]','[data-testid="close-button"]']) {
+    try {
+      const el = page.locator(sel).first();
+      if (await el.isVisible({timeout:600})) { await el.click({timeout:800}); await page.waitForTimeout(400); }
+    } catch(_) {}
+  }
 }
 
-function mkChart(id,label,data,labels,color){
-  return new Chart(document.getElementById(id),{
-    type:'line',
-    data:{labels:labels,datasets:[{label:label,data:data,borderColor:color,backgroundColor:color.replace(')',', .1)').replace('rgb','rgba'),borderWidth:2,tension:.3,fill:true,pointRadius:2,pointHoverRadius:5}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:10}}},y:{ticks:{font:{size:10}}}}}
-  });
+async function navigateTo(page, url, waitMs=4000) {
+  await page.goto(url, { waitUntil:'domcontentloaded', timeout:30000 });
+  await randomDelay(waitMs, waitMs + 2000);
+  await dismissModals(page);
+  const title = await page.title();
+  if (!title || title.toLowerCase().includes('just a moment')) {
+    await randomDelay(5000, 8000);
+  }
 }
 
-function drawSectionCharts(secName,snaps){
-  if(slChart){slChart.destroy();slChart=null;}
-  if(saChart){saChart.destroy();saChart=null;}
-  var ss=snaps.filter(function(s){return(s.section||'')===secName;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
-  var note=document.getElementById('secNote');
-  if(!ss.length){if(note)note.textContent='No data for this section.';return;}
-  if(note)note.textContent='';
-  var labels=ss.map(function(s){return fmtDT(s.scraped_at);});
-  slChart=mkChart('slChart',secName+' Listings',ss.map(function(s){return n(s.section_listings);}),labels,'rgb(139,92,246)');
-  saChart=mkChart('saChart',secName+' Avg Price',ss.map(function(s){return n(s.section_avg);}),labels,'rgb(239,68,68)');
-}
-
-function loadAnalysis(eventId){
-  destroyCharts();
-  document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
-
-  Promise.all([
-    get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),
-    get('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&limit=10000&select=id,event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
-  ]).then(function(res){
-    var ev=(res[0]||[])[0];
-    var snaps=res[1]||[];
-    if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
-
-    var eventSnaps=snaps.filter(function(s){return !s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
-    var first=eventSnaps[0]||snaps[0];
-    var last=eventSnaps[eventSnaps.length-1]||snaps[snaps.length-1];
-    var floorDelta=first&&last?n(last.event_floor)-n(first.event_floor):0;
-    var listDelta=first&&last?n(last.total_listings)-n(first.total_listings):0;
-    var atpSnaps=snaps.filter(function(s){return n(s.section_avg)>0;});
-    var avgAtp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
-    var listingsPct=first&&last?pct(n(last.total_listings),n(first.total_listings)):null;
-
-    var bySection={};
-    snaps.forEach(function(s){if(s.section)bySection[s.section]=s;});
-    var sections=Object.keys(bySection).map(function(sec){var s=bySection[sec];return{section:sec,listings:n(s.section_listings),avg:n(s.section_avg),scraped_at:s.scraped_at};}).sort(function(a,b){return b.listings-a.listings;});
-    var secNames=Array.from(new Set(snaps.map(function(s){return s.section||'';}).filter(Boolean))).sort();
-
-    var dEl=function(v){return v>0?'delta-up':v<0?'delta-down':'delta-flat';};
-    var dTxt=function(v,money){if(!v||isNaN(v))return '—';var sign=v>0?'+':'-';var abs=Math.abs(v);return money?sign+'$'+Math.round(abs).toLocaleString():sign+Math.round(abs).toLocaleString();};
-    function sc(label,value,delta,money){return '<div class="stat-card"><div class="stat-label">'+esc(label)+'</div><div class="stat-value">'+esc(value)+'</div>'+(delta!==null&&!isNaN(delta)?'<div class="stat-delta '+dEl(delta)+'">'+dTxt(delta,money)+'</div>':'')+'</div>';}
-
-    var labels=eventSnaps.map(function(s){return fmtDT(s.scraped_at);});
-    var floorData=eventSnaps.map(function(s){return n(s.event_floor);});
-    var listData=eventSnaps.map(function(s){return n(s.total_listings);});
-    var atpLabels=atpSnaps.map(function(s){return fmtDT(s.scraped_at);});
-    var atpData=atpSnaps.map(function(s){return n(s.section_avg);});
-
-    var html='<div class="analysis-shell">';
-    html+='<div class="analysis-topbar"><div><div class="analysis-title">'+esc(cleanName(ev.name))+'</div><div class="analysis-sub">'+esc(fmtDate(ev.date))+(ev.venue?' &bull; '+esc(ev.venue):'')+'</div></div>';
-    html+='<a class="back-btn" href="'+esc(window.location.pathname)+'">&#8592; All Events</a></div>';
-
-    if(!snaps.length){
-      html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event. It will appear here after the next scrape run.</div>';
-    } else {
-      html+='<div class="stats-grid">';
-      html+=sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true);
-      html+=sc('Current Listings',fmt(last?n(last.total_listings):0),listDelta,false);
-      html+=sc('Avg ATP',cur(avgAtp),null,false);
-      html+='<div class="stat-card"><div class="stat-label">24h Vol Change</div><div class="stat-value '+(listingsPct!==null?(listingsPct>0?'delta-up':listingsPct<0?'delta-down':'delta-flat'):'')+'">'+esc(listingsPct!==null?(listingsPct>0?'+':'')+listingsPct+'%':'—')+'</div></div>';
-      html+='</div>';
-      html+='<div class="charts-grid">';
-      html+='<div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div>';
-      html+='<div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div>';
-      html+='<div class="chart-card full"><h3>ATP Over Time</h3><div class="chart-wrap"><canvas id="aChart"></canvas></div></div>';
-      html+='<div class="chart-card full"><div class="section-header"><h3>Section Deep Dive</h3>';
-      if(secNames.length)html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
-      html+='</div>';
-      if(secNames.length){html+='<div class="section-charts"><div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div><div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';}
-      else html+='<div class="msg" style="padding:2rem;">No section data yet for this event.</div>';
-      html+='</div></div>';
+async function extractPageData(page) {
+  return await page.evaluate(({minPrice, maxPrice}) => {
+    // Event metadata from JSON-LD
+    let name = null, date = null, venue = null;
+    const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+    for (const script of scripts) {
+      try {
+        const parsed = JSON.parse(script.textContent);
+        const items = Array.isArray(parsed) ? parsed : [parsed];
+        for (const item of items) {
+          if (!item || typeof item !== 'object') continue;
+          if (item['@type'] !== 'Event' && item['@type'] !== 'SportsEvent') continue;
+          if (!name && item.name && !item.name.toLowerCase().includes('tickets')) name = item.name;
+          if (!date && item.startDate) date = item.startDate;
+          if (!venue && item.location?.name) {
+            const city = item.location.address?.addressLocality || '';
+            const state = item.location.address?.addressRegion || '';
+            venue = [item.location.name, city, state].filter(Boolean).join(', ');
+          }
+          if (name && date && venue) break;
+        }
+      } catch(_) {}
+      if (name && date && venue) break;
     }
 
-    html+='<div class="detail-grid">';
-    html+='<div class="detail-card"><h3>Event Summary</h3><div class="detail-list">';
-    html+='<div><strong>Date</strong><span>'+esc(fmtDate(ev.date))+'</span></div>';
-    html+='<div><strong>Venue</strong><span>'+esc(ev.venue||'—')+'</span></div>';
-    if(first)html+='<div><strong>First Scraped</strong><span>'+esc(fmtDT(first.scraped_at))+'</span></div>';
-    if(last)html+='<div><strong>Last Updated</strong><span>'+esc(fmtDT(last.scraped_at))+'</span></div>';
-    if(first&&last){html+='<div><strong>Floor Change</strong><span class="'+dEl(floorDelta)+'">'+dTxt(floorDelta,true)+'</span></div>';}
-    if(first&&last){html+='<div><strong>Listings Change</strong><span class="'+dEl(listDelta)+'">'+dTxt(listDelta,false)+'</span></div>';}
-    html+='<div><strong>Total Snapshots</strong><span>'+fmt(snaps.length)+'</span></div>';
-    html+='<div><strong>Event ID</strong><span class="mono" style="font-size:11px;color:#888">'+esc(ev.id)+'</span></div>';
-    html+='</div></div>';
-    html+='<div class="detail-card"><h3>Top Sections by Listings</h3>';
-    if(sections.length){html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Avg Price</th><th>Last Seen</th></tr></thead><tbody>';sections.slice(0,20).forEach(function(s){html+='<tr><td>'+esc(s.section)+'</td><td>'+fmt(s.listings)+'</td><td class="gold">'+cur(s.avg)+'</td><td>'+esc(fmtDT(s.scraped_at))+'</td></tr>';});html+='</tbody></table></div>';}
-    else html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
-    html+='</div></div>';
+    // Listing count — look for the most prominent number followed by "listings"
+    const bodyText = document.body?.innerText || '';
 
-    if(snaps.length){
-      html+='<div class="detail-card" style="margin-bottom:14px"><h3>Snapshot History</h3><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
-      snaps.slice().reverse().slice(0,100).forEach(function(s){html+='<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'—')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';});
-      html+='</tbody></table></div></div>';
+    // Primary: look for standalone "X listings" text (the main counter)
+    const listingMatches = [...bodyText.matchAll(/\b(\d[\d,]*)\s+listings?\b/gi)]
+      .map(m => parseInt(m[1].replace(/,/g,''), 10))
+      .filter(v => Number.isFinite(v) && v > 0);
+    const totalListings = listingMatches.length ? Math.max(...listingMatches) : 0;
+
+    // Prices — walk visible text nodes, filter to realistic ticket price range
+    const prices = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (!node.parentElement) continue;
+      if (node.parentElement.closest('script,style,noscript,svg')) continue;
+      const style = window.getComputedStyle(node.parentElement);
+      if (style.display === 'none' || style.visibility === 'hidden') continue;
+      for (const match of node.textContent.matchAll(/\$\s*([\d,]+(?:\.\d{2})?)/g)) {
+        const value = parseFloat(match[1].replace(/,/g,''));
+        if (Number.isFinite(value) && value >= minPrice && value <= maxPrice) prices.push(value);
+      }
+    }
+    prices.sort((a,b) => a-b);
+
+    // Section numbers from map
+    const sectionNumbers = new Set();
+    const lines = bodyText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    for (const line of lines) {
+      if (/^\d{2,3}[A-Z]?$/.test(line)) {
+        const n = parseInt(line, 10);
+        if (n >= 100 && n <= 599) sectionNumbers.add(line.trim());
+      }
     }
 
-    html+='</div>';
-    document.getElementById('app').innerHTML=html;
-
-    destroyCharts();
-    if(labels.length>1){fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');lChart=mkChart('lChart','Listings',listData,labels,'rgb(59,130,246)');}
-    if(atpLabels.length>1)aChart=mkChart('aChart','ATP',atpData,atpLabels,'rgb(16,185,129)');
-    var sf=document.getElementById('secSel');
-    if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
-
-  }).catch(function(err){
-    document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';
-  });
+    return { name, date, venue, totalListings, prices, sectionNumbers: Array.from(sectionNumbers) };
+  }, {minPrice: MIN_PRICE, maxPrice: MAX_PRICE});
 }
 
-function init(){
-  var eventId=qp('event_id');
-  if(eventId){loadAnalysis(eventId);return;}
+async function extractSectionPrices(page, eventTotalListings) {
+  return await page.evaluate(({minPrice, maxPrice, eventTotal}) => {
+    const bodyText = document.body?.innerText || '';
+    const listingMatches = [...bodyText.matchAll(/\b(\d[\d,]*)\s+listings?\b/gi)]
+      .map(m => parseInt(m[1].replace(/,/g,''), 10))
+      .filter(v => Number.isFinite(v) && v > 0);
+    const totalListings = listingMatches.length ? Math.max(...listingMatches) : 0;
 
-  renderDashboard();
-
-  var today=new Date().toISOString().slice(0,10);
-
-  // Fetch ALL upcoming events directly — no snapshot dependency
-  get('/rest/v1/events?date=gte.'+today+'&order=date.asc&limit=2000&select=id,name,date,venue')
-  .then(function(events){
-    allEvents=events||[];
-    if(!allEvents.length){document.getElementById('tbl').innerHTML='<div class="msg">No upcoming events found.</div>';return null;}
-
-    // Batch snapshot fetches in chunks of 200
-    var ids=allEvents.map(function(e){return e.id;});
-    var chunks=[];
-    for(var i=0;i<ids.length;i+=200)chunks.push(ids.slice(i,i+200));
-
-    return Promise.all(chunks.map(function(chunk){
-      var idList=chunk.map(function(i){return'"'+String(i).replace(/"/g,'\\"')+'"';}).join(',');
-      return get('/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&limit=10000&select=event_id,total_listings,event_floor,section_avg,section,scraped_at');
-    }));
-  })
-  .then(function(snapChunks){
-    if(!snapChunks)return;
-    allSnaps=[].concat.apply([],snapChunks);
-    allRows=buildRows(allEvents,allSnaps);
-    fillSel('perfF',unique(allRows,'performer'),'All Performers');
-    fillSel('venF',unique(allRows,'venue'),'All Venues');
-    buildTicker(allRows);
-    drawTable();
-  })
-  .catch(function(err){
-    document.getElementById('tbl').innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>';
-  });
+    const prices = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (!node.parentElement) continue;
+      if (node.parentElement.closest('script,style,noscript,svg')) continue;
+      const style = window.getComputedStyle(node.parentElement);
+      if (style.display === 'none' || style.visibility === 'hidden') continue;
+      for (const match of node.textContent.matchAll(/\$\s*([\d,]+(?:\.\d{2})?)/g)) {
+        const value = parseFloat(match[1].replace(/,/g,''));
+        if (Number.isFinite(value) && value >= minPrice && value <= maxPrice) prices.push(value);
+      }
+    }
+    prices.sort((a,b) => a-b);
+    return { totalListings, prices };
+  }, {minPrice: MIN_PRICE, maxPrice: MAX_PRICE, eventTotal: eventTotalListings});
 }
 
-init();
-</script>
-</body>
-</html>
+async function scrapeEvent(page, event) {
+  const eventId = event.id;
+  const originalName = event.name || 'Event '+eventId;
+  const isMajor = event.is_major === true;
+
+  try {
+    const url = 'https://www.stubhub.com/event/'+eventId+'/?quantity=0';
+    await navigateTo(page, url);
+    const data = await extractPageData(page);
+
+    let name = data.name || originalName;
+    if (name && name.toLowerCase().includes('tickets')) name = originalName;
+    const venue = data.venue || event.venue || null;
+    const date = normalizeDateString(data.date) || event.date || null;
+    const { totalListings, prices, sectionNumbers } = data;
+
+    const summary = summarizePrices(prices);
+    if (!summary.floor) { console.log('  No pricing for '+name); return null; }
+
+    console.log('  '+name+' | '+date+' | '+venue);
+    console.log('  '+totalListings+' listings, floor $'+summary.floor+', atp $'+summary.avg+(isMajor?' [MAJOR]':''));
+
+    await postSnapshot({
+      eventId, eventName:name, eventDate:date, venue, platform:'StubHub',
+      totalListings, section:null, sectionListings:0,
+      eventFloor:summary.floor, eventAvg:summary.avg, eventCeiling:summary.ceiling,
+      source:'playwright'
+    });
+
+    const updates = {};
+    if (name !== originalName) updates.name = name;
+    if (venue && venue !== event.venue) updates.venue = venue;
+    if (date && date !== event.date) updates.date = date;
+    if (Object.keys(updates).length) await supabase.from('events').update(updates).eq('id', eventId);
+
+    // Section scraping for major events
+    if (isMajor && sectionNumbers.length > 0) {
+      console.log('  Scraping '+sectionNumbers.length+' sections...');
+      let postedSections = 0;
+      for (const secNum of sectionNumbers) {
+        try {
+          const secUrl = `https://www.stubhub.com/event/${eventId}/?sections=${secNum}&quantity=0`;
+          await navigateTo(page, secUrl, SECTION_DELAY_MS);
+          const secData = await extractSectionPrices(page, totalListings);
+
+          const secTotal = secData.totalListings;
+          if (!secTotal || secTotal === totalListings) continue;
+
+          const secSummary = summarizePrices(secData.prices);
+          if (!secSummary.floor) continue;
+
+          const ok = await postSnapshot({
+            eventId, eventName:name, eventDate:date, venue, platform:'StubHub',
+            totalListings:0, section:'Section '+secNum, sectionListings:secTotal,
+            sectionFloor:secSummary.floor, sectionAvg:secSummary.avg, sectionCeiling:secSummary.ceiling,
+            eventFloor:summary.floor, eventAvg:summary.avg, eventCeiling:summary.ceiling,
+            source:'playwright'
+          });
+
+          if (ok) {
+            postedSections++;
+            console.log('    Section '+secNum+': '+secTotal+' listings, floor $'+secSummary.floor);
+          }
+          await randomDelay(SECTION_DELAY_MS, SECTION_DELAY_MS + 1500);
+        } catch(e) { console.error('    Section '+secNum+' failed:', e.message); continue; }
+      }
+      console.log('  Sections posted: '+postedSections+'/'+sectionNumbers.length);
+    }
+
+    return { ok:true };
+
+  } catch(e) { console.error('  Failed '+eventId+':', e.message); return null; }
+}
+
+async function main() {
+  console.log('VKT Playwright scraper starting...');
+
+  const manualId = process.argv[2];
+  let events = manualId
+    ? [{ id:manualId, name:'Manual', date:null, venue:null, platform:'StubHub', is_major:true }]
+    : await getEvents();
+  console.log('Events to process: '+events.length);
+
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox','--disable-setuid-sandbox','--disable-blink-features=AutomationControlled','--disable-dev-shm-usage','--disable-accelerated-2d-canvas','--no-first-run','--no-zygote','--disable-gpu','--window-size=1280,900']
+  });
+
+  const context = await browser.newContext({
+    viewport: { width:1280, height:900 },
+    locale: 'en-US',
+    timezoneId: 'America/New_York',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    extraHTTPHeaders: {
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+    }
+  });
+
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    Object.defineProperty(navigator, 'plugins', { get: () => [1,2,3,4,5] });
+    Object.defineProperty(navigator, 'languages', { get: () => ['en-US','en'] });
+    window.chrome = { runtime: {} };
+  });
+
+  const page = await context.newPage();
+
+  try {
+    await page.goto('https://www.google.com', { waitUntil:'domcontentloaded', timeout:10000 });
+    await randomDelay(1500, 3000);
+  } catch(_) {}
+
+  let scraped=0, skipped=0, failed=0;
+
+  for (const event of events) {
+    if (!manualId) {
+      const recent = await scrapedRecently(event.id);
+      if (recent) { console.log('Skipping '+event.name+' (recent)'); skipped++; continue; }
+    }
+    console.log('\nScraping: '+event.name+' ('+event.id+')');
+    const result = await scrapeEvent(page, event);
+    if (result) scraped++; else failed++;
+    await randomDelay(SCRAPE_DELAY_MS, SCRAPE_DELAY_MS + 3000);
+  }
+
+  await browser.close();
+  console.log('\nDone — scraped:'+scraped+' skipped:'+skipped+' failed:'+failed);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });
