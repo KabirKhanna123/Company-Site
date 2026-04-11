@@ -53,6 +53,7 @@
     .col-name { width:30%; } .col-cat { width:8%; } .col-date { width:13%; } .col-venue { width:14%; } .col-num { width:9%; }
     .event-name { font-weight:600; font-size:12px; line-height:1.3; }
     .tag { display:inline-block; font-size:9px; padding:2px 7px; border-radius:999px; background:#f3efe4; color:#8a6a18; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
+    .tag-fifa { background:#1a3a6b; color:#fff; }
     .gold { color:#d4a843; font-weight:700; }
     .mono { font-family:monospace; }
     .td-right { text-align:right; }
@@ -152,6 +153,7 @@ function cleanName(n){
 
 function cat(name,venue){
   var t=((name||'')+(venue||'')).toLowerCase();
+  if(/fifa world cup|world cup 2026/.test(t))return 'FIFA';
   if(/yankees|dodgers|cubs|red.sox|baseball|mlb|mets|astros|braves|phillies/.test(t))return 'MLB';
   if(/lakers|warriors|celtics|knicks|basketball|nba|heat|bulls|nets|76ers|mavericks|bucks/.test(t))return 'NBA';
   if(/cowboys|chiefs|patriots|packers|football|nfl|49ers|eagles|giants|ravens/.test(t))return 'NFL';
@@ -160,7 +162,14 @@ function cat(name,venue){
   if(/concert|tour|live/.test(t))return 'Concert';
   if(/comedy/.test(t))return 'Comedy';
   if(/theater|theatre|broadway/.test(t))return 'Theater';
+  if(/formula.1|grand.prix|f1/.test(t))return 'F1';
+  if(/ufc|boxing|mma/.test(t))return 'Combat';
   return 'Other';
+}
+
+function tagClass(category){
+  if(category==='FIFA')return 'tag tag-fifa';
+  return 'tag';
 }
 
 function parseNames(name){
@@ -236,7 +245,7 @@ function renderDashboard(){
   document.getElementById('app').innerHTML=
     '<div class="toolbar">'+
       '<input type="text" id="q" placeholder="Search events, teams, artists..."/>'+
-      '<select id="catF"><option value="">All Categories</option><option>MLB</option><option>NBA</option><option>NFL</option><option>NHL</option><option>MLS</option><option>Concert</option><option>Comedy</option><option>Theater</option><option>Other</option></select>'+
+      '<select id="catF"><option value="">All Categories</option><option>FIFA</option><option>MLB</option><option>NBA</option><option>NFL</option><option>NHL</option><option>MLS</option><option>F1</option><option>Combat</option><option>Concert</option><option>Comedy</option><option>Theater</option><option>Other</option></select>'+
       '<select id="perfF"><option value="">All Performers</option></select>'+
       '<select id="venF"><option value="">All Venues</option></select>'+
       '<div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div>'+
@@ -287,8 +296,10 @@ function drawTable(){
     return true;
   });
 
-  // Events with data sorted by listings desc, then no-data events by date asc
+  // FIFA first, then events with data sorted by listings desc, then no-data events by date asc
   rows.sort(function(a,b){
+    if(a.category==='FIFA'&&b.category!=='FIFA')return -1;
+    if(a.category!=='FIFA'&&b.category==='FIFA')return 1;
     if(a.hasData&&!b.hasData)return -1;
     if(!a.hasData&&b.hasData)return 1;
     if(a.hasData&&b.hasData)return b.listings-a.listings;
@@ -308,7 +319,7 @@ function drawTable(){
     var dim=r.hasData?'':'opacity:0.45;';
     html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
       '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
-      '<td style="'+dim+'"><span class="tag">'+esc(r.category)+'</span></td>'+
+      '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
       '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
       '<td style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">—</span>')+'</td>'+
@@ -453,13 +464,11 @@ function init(){
 
   var today=new Date().toISOString().slice(0,10);
 
-  // Fetch ALL upcoming events directly — no snapshot dependency
   get('/rest/v1/events?date=gte.'+today+'&order=date.asc&limit=2000&select=id,name,date,venue')
   .then(function(events){
     allEvents=events||[];
     if(!allEvents.length){document.getElementById('tbl').innerHTML='<div class="msg">No upcoming events found.</div>';return null;}
 
-    // Batch snapshot fetches in chunks of 200
     var ids=allEvents.map(function(e){return e.id;});
     var chunks=[];
     for(var i=0;i<ids.length;i+=200)chunks.push(ids.slice(i,i+200));
