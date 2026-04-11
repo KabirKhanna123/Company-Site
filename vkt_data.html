@@ -97,15 +97,17 @@
 
     .date-group input { width:145px; }
 
+    /* Keep gray frame area, but let the dashboard card fill it */
     .table-shell {
-      padding:0;
+      padding:12px;
       width:100%;
+      background:#f7f6f3;
     }
 
     .table-card {
       background:#fff;
-      border:none;
-      border-radius:0;
+      border:1px solid #e4e2dc;
+      border-radius:10px;
       overflow:hidden;
       width:100%;
     }
@@ -181,11 +183,13 @@
     .chg-flat { color:#aaa; font-family:monospace; text-align:center; }
     .msg { padding:3rem; text-align:center; color:#aaa; }
 
+    /* Keep gray detail page background, no extra inner white gap */
     .analysis-shell {
-      padding:0;
+      padding:12px;
       max-width:none;
       width:100%;
       margin:0;
+      background:#f7f6f3;
     }
 
     .analysis-topbar {
@@ -195,7 +199,6 @@
       gap:12px;
       margin-bottom:1.5rem;
       flex-wrap:wrap;
-      padding:1.25rem 1.5rem 0 1.5rem;
     }
 
     .analysis-title { font-size:26px; font-weight:700; color:#111; line-height:1.2; text-align:left; }
@@ -208,13 +211,12 @@
       grid-template-columns:repeat(4,1fr);
       gap:12px;
       margin-bottom:1.5rem;
-      padding:0 1.5rem;
     }
 
     .stat-card {
       background:#fff;
       border:1px solid #e4e2dc;
-      border-radius:0;
+      border-radius:10px;
       padding:16px;
     }
 
@@ -230,13 +232,12 @@
       grid-template-columns:1fr 1fr;
       gap:14px;
       margin-bottom:14px;
-      padding:0 1.5rem;
     }
 
     .chart-card {
       background:#fff;
       border:1px solid #e4e2dc;
-      border-radius:0;
+      border-radius:10px;
       padding:16px;
     }
 
@@ -258,13 +259,12 @@
       grid-template-columns:1fr 1fr;
       gap:14px;
       margin-bottom:14px;
-      padding:0 1.5rem;
     }
 
     .detail-card {
       background:#fff;
       border:1px solid #e4e2dc;
-      border-radius:0;
+      border-radius:10px;
       padding:16px;
     }
 
@@ -293,10 +293,8 @@
     @media(max-width:700px){
       .analysis-title{font-size:20px}
       .toolbar{padding:0.75rem}
-      .table-shell{padding:0}
-      .analysis-shell{padding:0}
-      .analysis-topbar{padding:1rem 0.75rem 0 0.75rem}
-      .stats-grid,.charts-grid,.detail-grid{padding:0 0.75rem}
+      .table-shell{padding:8px}
+      .analysis-shell{padding:8px}
     }
   </style>
 </head>
@@ -435,172 +433,60 @@ function cat(name, venue){
   var t = normalizeText(raw);
 
   var MLB_TEAMS = [
-    ['arizona diamondbacks'],
-    ['atlanta braves'],
-    ['baltimore orioles'],
-    ['boston red sox'],
-    ['chicago cubs'],
-    ['chicago white sox', 'white sox'],
-    ['cincinnati reds'],
-    ['cleveland guardians'],
-    ['colorado rockies'],
-    ['detroit tigers'],
-    ['houston astros'],
-    ['kansas city royals'],
-    ['los angeles angels', 'la angels'],
-    ['los angeles dodgers', 'la dodgers'],
-    ['miami marlins'],
-    ['milwaukee brewers'],
-    ['minnesota twins'],
-    ['new york mets'],
-    ['new york yankees'],
-    ['oakland athletics'],
-    ['philadelphia phillies'],
-    ['pittsburgh pirates'],
-    ['san diego padres'],
-    ['san francisco giants'],
-    ['seattle mariners'],
-    ['st louis cardinals', 'st. louis cardinals'],
-    ['tampa bay rays'],
-    ['texas rangers'],
-    ['toronto blue jays'],
-    ['washington nationals']
+    ['arizona diamondbacks'], ['atlanta braves'], ['baltimore orioles'], ['boston red sox'],
+    ['chicago cubs'], ['chicago white sox', 'white sox'], ['cincinnati reds'], ['cleveland guardians'],
+    ['colorado rockies'], ['detroit tigers'], ['houston astros'], ['kansas city royals'],
+    ['los angeles angels', 'la angels'], ['los angeles dodgers', 'la dodgers'], ['miami marlins'],
+    ['milwaukee brewers'], ['minnesota twins'], ['new york mets'], ['new york yankees'],
+    ['oakland athletics'], ['philadelphia phillies'], ['pittsburgh pirates'], ['san diego padres'],
+    ['san francisco giants'], ['seattle mariners'], ['st louis cardinals', 'st. louis cardinals'],
+    ['tampa bay rays'], ['texas rangers'], ['toronto blue jays'], ['washington nationals']
   ];
 
   var NFL_TEAMS = [
-    ['arizona cardinals'],
-    ['atlanta falcons'],
-    ['baltimore ravens'],
-    ['buffalo bills'],
-    ['carolina panthers'],
-    ['chicago bears'],
-    ['cincinnati bengals'],
-    ['cleveland browns'],
-    ['dallas cowboys'],
-    ['denver broncos'],
-    ['detroit lions'],
-    ['green bay packers'],
-    ['houston texans'],
-    ['indianapolis colts'],
-    ['jacksonville jaguars'],
-    ['kansas city chiefs'],
-    ['las vegas raiders'],
-    ['los angeles chargers', 'la chargers'],
-    ['los angeles rams', 'la rams'],
-    ['miami dolphins'],
-    ['minnesota vikings'],
-    ['new england patriots'],
-    ['new orleans saints'],
-    ['new york giants'],
-    ['new york jets'],
-    ['philadelphia eagles'],
-    ['pittsburgh steelers'],
-    ['san francisco 49ers', 'sf 49ers'],
-    ['seattle seahawks'],
-    ['tampa bay buccaneers'],
-    ['tennessee titans'],
-    ['washington commanders']
+    ['arizona cardinals'], ['atlanta falcons'], ['baltimore ravens'], ['buffalo bills'],
+    ['carolina panthers'], ['chicago bears'], ['cincinnati bengals'], ['cleveland browns'],
+    ['dallas cowboys'], ['denver broncos'], ['detroit lions'], ['green bay packers'],
+    ['houston texans'], ['indianapolis colts'], ['jacksonville jaguars'], ['kansas city chiefs'],
+    ['las vegas raiders'], ['los angeles chargers', 'la chargers'], ['los angeles rams', 'la rams'],
+    ['miami dolphins'], ['minnesota vikings'], ['new england patriots'], ['new orleans saints'],
+    ['new york giants'], ['new york jets'], ['philadelphia eagles'], ['pittsburgh steelers'],
+    ['san francisco 49ers', 'sf 49ers'], ['seattle seahawks'], ['tampa bay buccaneers'],
+    ['tennessee titans'], ['washington commanders']
   ];
 
   var NHL_TEAMS = [
-    ['anaheim ducks'],
-    ['boston bruins'],
-    ['buffalo sabres'],
-    ['calgary flames'],
-    ['carolina hurricanes'],
-    ['chicago blackhawks'],
-    ['colorado avalanche'],
-    ['columbus blue jackets'],
-    ['dallas stars'],
-    ['detroit red wings'],
-    ['edmonton oilers'],
-    ['florida panthers'],
-    ['los angeles kings', 'la kings'],
-    ['minnesota wild'],
-    ['montreal canadiens'],
-    ['nashville predators'],
-    ['new jersey devils'],
-    ['new york islanders'],
-    ['new york rangers'],
-    ['ottawa senators'],
-    ['philadelphia flyers'],
-    ['pittsburgh penguins'],
-    ['san jose sharks'],
-    ['seattle kraken'],
-    ['st louis blues', 'st. louis blues'],
-    ['tampa bay lightning'],
-    ['toronto maple leafs'],
-    ['utah hockey club'],
-    ['vancouver canucks'],
-    ['vegas golden knights'],
-    ['washington capitals'],
-    ['winnipeg jets']
+    ['anaheim ducks'], ['boston bruins'], ['buffalo sabres'], ['calgary flames'],
+    ['carolina hurricanes'], ['chicago blackhawks'], ['colorado avalanche'], ['columbus blue jackets'],
+    ['dallas stars'], ['detroit red wings'], ['edmonton oilers'], ['florida panthers'],
+    ['los angeles kings', 'la kings'], ['minnesota wild'], ['montreal canadiens'],
+    ['nashville predators'], ['new jersey devils'], ['new york islanders'], ['new york rangers'],
+    ['ottawa senators'], ['philadelphia flyers'], ['pittsburgh penguins'], ['san jose sharks'],
+    ['seattle kraken'], ['st louis blues', 'st. louis blues'], ['tampa bay lightning'],
+    ['toronto maple leafs'], ['utah hockey club'], ['vancouver canucks'], ['vegas golden knights'],
+    ['washington capitals'], ['winnipeg jets']
   ];
 
   var MLS_TEAMS = [
-    ['atlanta united'],
-    ['austin fc'],
-    ['charlotte fc'],
-    ['chicago fire'],
-    ['fc cincinnati'],
-    ['colorado rapids'],
-    ['columbus crew'],
-    ['dc united', 'd c united'],
-    ['fc dallas'],
-    ['houston dynamo'],
-    ['inter miami'],
-    ['sporting kansas city'],
-    ['la galaxy', 'los angeles galaxy'],
-    ['lafc', 'los angeles fc'],
-    ['minnesota united'],
-    ['cf montreal'],
-    ['nashville sc'],
-    ['new england revolution'],
-    ['new york city fc', 'nycfc'],
-    ['new york red bulls'],
-    ['orlando city'],
-    ['philadelphia union'],
-    ['portland timbers'],
-    ['real salt lake'],
-    ['san diego fc'],
-    ['san jose earthquakes'],
-    ['seattle sounders'],
-    ['st louis city sc', 'st. louis city sc'],
-    ['toronto fc'],
-    ['vancouver whitecaps']
+    ['atlanta united'], ['austin fc'], ['charlotte fc'], ['chicago fire'], ['fc cincinnati'],
+    ['colorado rapids'], ['columbus crew'], ['dc united', 'd c united'], ['fc dallas'],
+    ['houston dynamo'], ['inter miami'], ['sporting kansas city'], ['la galaxy', 'los angeles galaxy'],
+    ['lafc', 'los angeles fc'], ['minnesota united'], ['cf montreal'], ['nashville sc'],
+    ['new england revolution'], ['new york city fc', 'nycfc'], ['new york red bulls'],
+    ['orlando city'], ['philadelphia union'], ['portland timbers'], ['real salt lake'],
+    ['san diego fc'], ['san jose earthquakes'], ['seattle sounders'], ['st louis city sc', 'st. louis city sc'],
+    ['toronto fc'], ['vancouver whitecaps']
   ];
 
   var NBA_TEAMS = [
-    ['atlanta hawks'],
-    ['boston celtics'],
-    ['brooklyn nets'],
-    ['charlotte hornets'],
-    ['chicago bulls'],
-    ['cleveland cavaliers'],
-    ['dallas mavericks'],
-    ['denver nuggets'],
-    ['detroit pistons'],
-    ['golden state warriors'],
-    ['houston rockets'],
-    ['indiana pacers'],
-    ['los angeles clippers', 'la clippers'],
-    ['los angeles lakers', 'la lakers'],
-    ['memphis grizzlies'],
-    ['miami heat'],
-    ['milwaukee bucks'],
-    ['minnesota timberwolves'],
-    ['new orleans pelicans'],
-    ['new york knicks'],
-    ['oklahoma city thunder'],
-    ['orlando magic'],
-    ['philadelphia 76ers', '76ers'],
-    ['phoenix suns'],
-    ['portland trail blazers'],
-    ['sacramento kings'],
-    ['san antonio spurs'],
-    ['toronto raptors'],
-    ['utah jazz'],
-    ['washington wizards']
+    ['atlanta hawks'], ['boston celtics'], ['brooklyn nets'], ['charlotte hornets'],
+    ['chicago bulls'], ['cleveland cavaliers'], ['dallas mavericks'], ['denver nuggets'],
+    ['detroit pistons'], ['golden state warriors'], ['houston rockets'], ['indiana pacers'],
+    ['los angeles clippers', 'la clippers'], ['los angeles lakers', 'la lakers'], ['memphis grizzlies'],
+    ['miami heat'], ['milwaukee bucks'], ['minnesota timberwolves'], ['new orleans pelicans'],
+    ['new york knicks'], ['oklahoma city thunder'], ['orlando magic'], ['philadelphia 76ers', '76ers'],
+    ['phoenix suns'], ['portland trail blazers'], ['sacramento kings'], ['san antonio spurs'],
+    ['toronto raptors'], ['utah jazz'], ['washington wizards']
   ];
 
   function matchLeague(leagueTeams){
@@ -610,7 +496,6 @@ function cat(name, venue){
   }
 
   if (/ fifa world cup | world cup 2026 /.test(t)) return 'FIFA';
-
   if (matchLeague(MLB_TEAMS)) return 'MLB';
   if (matchLeague(NFL_TEAMS)) return 'NFL';
   if (matchLeague(NHL_TEAMS)) return 'NHL';
@@ -714,11 +599,7 @@ function buildRows(events, snaps){
 }
 
 function buildTicker(rows){
-  var items=rows
-    .filter(function(r){return r.listingsPct!==null;})
-    .sort(function(a,b){return Math.abs(b.listingsPct)-Math.abs(a.listingsPct);})
-    .slice(0,15);
-
+  var items=rows.filter(function(r){return r.listingsPct!==null;}).sort(function(a,b){return Math.abs(b.listingsPct)-Math.abs(a.listingsPct);}).slice(0,15);
   if(!items.length){
     document.getElementById('ticker-track').innerHTML='<div class="ticker-item"><span style="color:#555">Not enough 24h data yet.</span></div>';
     return;
@@ -938,7 +819,7 @@ function loadAnalysis(eventId){
     html+='<a class="back-btn" href="'+esc(window.location.pathname)+'">&#8592; All Events</a></div>';
 
     if(!snaps.length){
-      html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;margin:0 1.5rem 14px 1.5rem;">No scrape data yet for this event. It will appear here after the next scrape run.</div>';
+      html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event. It will appear here after the next scrape run.</div>';
     } else {
       html+='<div class="stats-grid">';
       html+=sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true);
@@ -993,11 +874,11 @@ function loadAnalysis(eventId){
     html+='</div></div>';
 
     if(snaps.length){
-      html+='<div class="detail-grid" style="grid-template-columns:1fr; margin-top:0;"><div class="detail-card"><h3>Snapshot History</h3><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
+      html+='<div class="detail-card" style="margin-bottom:14px"><h3>Snapshot History</h3><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
       snaps.slice().reverse().slice(0,100).forEach(function(s){
         html+='<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'—')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';
       });
-      html+='</tbody></table></div></div></div>';
+      html+='</tbody></table></div></div>';
     }
 
     html+='</div>';
