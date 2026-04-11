@@ -97,7 +97,6 @@
 
     .date-group input { width:145px; }
 
-    /* Keep gray frame area, but let the dashboard card fill it */
     .table-shell {
       padding:12px;
       width:100%;
@@ -112,8 +111,19 @@
       width:100%;
     }
 
-    .table-wrap { overflow:auto; max-height:calc(100vh - 240px); }
-    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    .table-wrap {
+      overflow:auto;
+      max-height:calc(100vh - 240px);
+      width:100%;
+    }
+
+    table {
+      width:100%;
+      min-width:100%;
+      margin:0;
+      border-collapse:collapse;
+      table-layout:fixed;
+    }
 
     thead th {
       background:#f7f6f3;
@@ -143,6 +153,16 @@
       text-align:center;
     }
 
+    thead th:first-child,
+    tbody td:first-child {
+      padding-left:0;
+    }
+
+    thead th:last-child,
+    tbody td:last-child {
+      padding-right:0;
+    }
+
     tbody tr:last-child td { border-bottom:none; }
     tbody tr { cursor:pointer; }
     tbody tr:hover td { background:#fdf9f2; }
@@ -161,6 +181,7 @@
       display:block;
       white-space:normal;
       word-break:break-word;
+      padding-left:12px;
     }
 
     .tag { display:inline-block; font-size:9px; padding:2px 7px; border-radius:999px; background:#f3efe4; color:#8a6a18; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
@@ -183,7 +204,6 @@
     .chg-flat { color:#aaa; font-family:monospace; text-align:center; }
     .msg { padding:3rem; text-align:center; color:#aaa; }
 
-    /* Keep gray detail page background, no extra inner white gap */
     .analysis-shell {
       padding:12px;
       max-width:none;
