@@ -98,14 +98,14 @@
     .date-group input { width:145px; }
 
     .table-shell {
-      padding:12px 1rem;
+      padding:0;
       width:100%;
     }
 
     .table-card {
       background:#fff;
-      border:1px solid #e4e2dc;
-      border-radius:10px;
+      border:none;
+      border-radius:0;
       overflow:hidden;
       width:100%;
     }
@@ -182,20 +182,42 @@
     .msg { padding:3rem; text-align:center; color:#aaa; }
 
     .analysis-shell {
-      padding:1.25rem 1rem;
+      padding:0;
       max-width:none;
       width:100%;
       margin:0;
     }
 
-    .analysis-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .analysis-topbar {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:1.5rem;
+      flex-wrap:wrap;
+      padding:1.25rem 1.5rem 0 1.5rem;
+    }
+
     .analysis-title { font-size:26px; font-weight:700; color:#111; line-height:1.2; text-align:left; }
     .analysis-sub { font-size:13px; color:#888; margin-top:5px; }
     .back-btn { padding:8px 16px; border:1px solid #ddd; border-radius:6px; font-size:12px; color:#555; text-decoration:none; background:#fff; cursor:pointer; white-space:nowrap; }
     .back-btn:hover { border-color:#d4a843; color:#d4a843; }
 
-    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:1.5rem; }
-    .stat-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
+    .stats-grid {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      margin-bottom:1.5rem;
+      padding:0 1.5rem;
+    }
+
+    .stat-card {
+      background:#fff;
+      border:1px solid #e4e2dc;
+      border-radius:0;
+      padding:16px;
+    }
+
     .stat-label { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
     .stat-value { font-size:26px; font-weight:700; color:#111; }
     .stat-delta { font-size:12px; margin-top:6px; font-weight:700; }
@@ -203,18 +225,49 @@
     .delta-down { color:#ef4444; }
     .delta-flat { color:#aaa; }
 
-    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
-    .chart-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
+    .charts-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-bottom:14px;
+      padding:0 1.5rem;
+    }
+
+    .chart-card {
+      background:#fff;
+      border:1px solid #e4e2dc;
+      border-radius:0;
+      padding:16px;
+    }
+
     .chart-card.full { grid-column:1/-1; }
     .chart-card h3 { font-size:13px; font-weight:700; color:#111; margin-bottom:14px; }
     .chart-wrap { position:relative; height:260px; }
 
     .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
     .section-select { padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:12px; outline:none; background:#fff; color:#111; min-width:160px; }
-    .section-charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
-    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
-    .detail-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:16px; }
+    .section-charts {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .detail-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-bottom:14px;
+      padding:0 1.5rem;
+    }
+
+    .detail-card {
+      background:#fff;
+      border:1px solid #e4e2dc;
+      border-radius:0;
+      padding:16px;
+    }
+
     .detail-card h3 { font-size:13px; font-weight:700; color:#111; margin-bottom:12px; }
     .detail-list { display:grid; gap:8px; font-size:13px; }
     .detail-list div { display:flex; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #f0eeea; }
@@ -240,8 +293,10 @@
     @media(max-width:700px){
       .analysis-title{font-size:20px}
       .toolbar{padding:0.75rem}
-      .table-shell{padding:12px 0.75rem}
-      .analysis-shell{padding:1rem 0.75rem}
+      .table-shell{padding:0}
+      .analysis-shell{padding:0}
+      .analysis-topbar{padding:1rem 0.75rem 0 0.75rem}
+      .stats-grid,.charts-grid,.detail-grid{padding:0 0.75rem}
     }
   </style>
 </head>
@@ -314,8 +369,40 @@ function getAllEvents(today){
 function n(v){var x=Number(v);return isNaN(x)?0:x;}
 function cur(v){if(!v||isNaN(v))return '—';return '$'+Math.round(v).toLocaleString();}
 function fmt(v){if(v===null||v===undefined||isNaN(v))return '—';return Number(v).toLocaleString();}
-function fmtDate(d){if(!d)return '—';var dt=new Date(d+'T12:00:00');if(isNaN(dt))return d;return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}
-function fmtDT(d){if(!d)return '';var dt=new Date(d);if(isNaN(dt))return d;return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+
+function parseEventDate(value){
+  if(!value) return -Infinity;
+
+  if(typeof value === 'string' && value.indexOf('T') !== -1){
+    var dt1 = new Date(value);
+    var t1 = dt1.getTime();
+    return isNaN(t1) ? -Infinity : t1;
+  }
+
+  var dt2 = new Date(String(value) + 'T12:00:00');
+  var t2 = dt2.getTime();
+  return isNaN(t2) ? -Infinity : t2;
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  var ts = parseEventDate(d);
+  if(ts === -Infinity) return d;
+  return new Date(ts).toLocaleDateString('en-US',{
+    weekday:'short',
+    month:'short',
+    day:'numeric',
+    year:'numeric'
+  });
+}
+
+function fmtDT(d){
+  if(!d)return '';
+  var dt=new Date(d);
+  if(isNaN(dt))return d;
+  return dt.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
 function shortV(v){return v?(v.split(',')[0]):'—';}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function qp(n){return new URLSearchParams(window.location.search).get(n);}
@@ -706,13 +793,17 @@ function drawTable(){
 
     if(df || dt){
       if(!r.date) return false;
-      var d=new Date(r.date+'T12:00:00').getTime();
+
+      var d = parseEventDate(r.date);
+      if(d === -Infinity) return false;
+
       if(df){
-        var dfTime = new Date(df+'T12:00:00').getTime();
+        var dfTime = parseEventDate(df);
         if(d < dfTime) return false;
       }
+
       if(dt){
-        var dtTime = new Date(dt+'T12:00:00').getTime();
+        var dtTime = parseEventDate(dt);
         if(d > dtTime) return false;
       }
     }
@@ -721,8 +812,8 @@ function drawTable(){
   });
 
   rows.sort(function(a, b){
-    var ad = a.date ? new Date(a.date + 'T12:00:00').getTime() : -Infinity;
-    var bd = b.date ? new Date(b.date + 'T12:00:00').getTime() : -Infinity;
+    var ad = parseEventDate(a.date);
+    var bd = parseEventDate(b.date);
 
     if (bd !== ad) return bd - ad;
     if (a.hasData && !b.hasData) return -1;
@@ -847,7 +938,7 @@ function loadAnalysis(eventId){
     html+='<a class="back-btn" href="'+esc(window.location.pathname)+'">&#8592; All Events</a></div>';
 
     if(!snaps.length){
-      html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event. It will appear here after the next scrape run.</div>';
+      html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;margin:0 1.5rem 14px 1.5rem;">No scrape data yet for this event. It will appear here after the next scrape run.</div>';
     } else {
       html+='<div class="stats-grid">';
       html+=sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true);
@@ -902,11 +993,11 @@ function loadAnalysis(eventId){
     html+='</div></div>';
 
     if(snaps.length){
-      html+='<div class="detail-card" style="margin-bottom:14px"><h3>Snapshot History</h3><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
+      html+='<div class="detail-grid" style="grid-template-columns:1fr; margin-top:0;"><div class="detail-card"><h3>Snapshot History</h3><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
       snaps.slice().reverse().slice(0,100).forEach(function(s){
         html+='<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'—')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';
       });
-      html+='</tbody></table></div></div>';
+      html+='</tbody></table></div></div></div>';
     }
 
     html+='</div>';
