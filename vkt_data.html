@@ -112,6 +112,7 @@
 
     .table-wrap { overflow:auto; max-height:calc(100vh - 240px); }
     table { width:100%; border-collapse:collapse; table-layout:fixed; }
+
     thead th {
       background:#f7f6f3;
       border-bottom:1px solid #e4e2dc;
@@ -120,7 +121,7 @@
       letter-spacing:.8px;
       text-transform:uppercase;
       color:#888;
-      text-align:left;
+      text-align:center;
       position:sticky;
       top:0;
       z-index:2;
@@ -129,8 +130,17 @@
       white-space:nowrap;
     }
     thead th:hover { color:#d4a843; }
-    thead th.th-right { text-align:right; }
-    tbody td { padding:10px 12px; border-bottom:1px solid #f0eeea; font-size:12px; color:#111; vertical-align:middle; }
+    thead th.th-right { text-align:center; }
+
+    tbody td {
+      padding:10px 12px;
+      border-bottom:1px solid #f0eeea;
+      font-size:12px;
+      color:#111;
+      vertical-align:middle;
+      text-align:center;
+    }
+
     tbody tr:last-child td { border-bottom:none; }
     tbody tr { cursor:pointer; }
     tbody tr:hover td { background:#fdf9f2; }
@@ -163,12 +173,12 @@
 
     .gold { color:#d4a843; font-weight:700; }
     .mono { font-family:monospace; }
-    .td-right { text-align:right; }
+    .td-right { text-align:center; }
     .muted { color:#aaa; }
     .no-data { color:#ddd; }
-    .chg-up { color:#22c55e; font-weight:700; font-family:monospace; text-align:right; }
-    .chg-down { color:#ef4444; font-weight:700; font-family:monospace; text-align:right; }
-    .chg-flat { color:#aaa; font-family:monospace; text-align:right; }
+    .chg-up { color:#22c55e; font-weight:700; font-family:monospace; text-align:center; }
+    .chg-down { color:#ef4444; font-weight:700; font-family:monospace; text-align:center; }
+    .chg-flat { color:#aaa; font-family:monospace; text-align:center; }
     .msg { padding:3rem; text-align:center; color:#aaa; }
 
     .analysis-shell {
@@ -432,7 +442,7 @@ function cat(name, venue){
     ['seattle kraken'],
     ['st louis blues', 'st. louis blues'],
     ['tampa bay lightning'],
-    ['toronto maple leafs', 'toronto maple leafs'],
+    ['toronto maple leafs'],
     ['utah hockey club'],
     ['vancouver canucks'],
     ['vegas golden knights'],
@@ -696,22 +706,28 @@ function drawTable(){
 
     if(df || dt){
       if(!r.date) return false;
-      var d=new Date(r.date+'T12:00:00');
-      if(df && d<new Date(df+'T12:00:00')) return false;
-      if(dt && d>new Date(dt+'T12:00:00')) return false;
+      var d=new Date(r.date+'T12:00:00').getTime();
+      if(df){
+        var dfTime = new Date(df+'T12:00:00').getTime();
+        if(d < dfTime) return false;
+      }
+      if(dt){
+        var dtTime = new Date(dt+'T12:00:00').getTime();
+        if(d > dtTime) return false;
+      }
     }
 
     return true;
   });
 
-  rows.sort(function(a,b){
-    var ad = a.date ? new Date(a.date+'T12:00:00').getTime() : 0;
-    var bd = b.date ? new Date(b.date+'T12:00:00').getTime() : 0;
+  rows.sort(function(a, b){
+    var ad = a.date ? new Date(a.date + 'T12:00:00').getTime() : -Infinity;
+    var bd = b.date ? new Date(b.date + 'T12:00:00').getTime() : -Infinity;
 
     if (bd !== ad) return bd - ad;
     if (a.hasData && !b.hasData) return -1;
     if (!a.hasData && b.hasData) return 1;
-    if (b.listings !== a.listings) return b.listings - a.listings;
+    if ((b.listings || 0) !== (a.listings || 0)) return (b.listings || 0) - (a.listings || 0);
     return String(a.name || '').localeCompare(String(b.name || ''));
   });
 
