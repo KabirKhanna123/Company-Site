@@ -315,29 +315,233 @@ function cleanName(n){
   return n.replace(/Tickets\s*[–\-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i,' at ').replace(/Tickets\s*[–\-]\s*/i,'').trim();
 }
 
+function normalizeText(str){
+  return ' ' + String(str || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim() + ' ';
+}
+
+function hasPhrase(text, phrase){
+  return text.indexOf(' ' + normalizeText(phrase).trim() + ' ') !== -1;
+}
+
+function hasAnyPhrase(text, phrases){
+  return phrases.some(function(p){ return hasPhrase(text, p); });
+}
+
 function cat(name, venue){
-  var t=((name||'')+(venue||'')).toLowerCase();
-  if(/fifa world cup|world cup 2026/.test(t))return 'FIFA';
-  if(/yankees|dodgers|cubs|red.sox|baseball|mlb|mets|astros|braves|phillies|mariners|angels|padres|giants|cardinals|brewers|rockies|reds|pirates|royals|guardians|twins|white.sox|tigers|rays|orioles|blue.jays|nationals|marlins|athletics/.test(t))return 'MLB';
-  if(/lakers|warriors|celtics|knicks|nba|heat|bulls|nets|76ers|mavericks|bucks|nuggets|suns|clippers|raptors|spurs|thunder|jazz|blazers|rockets|pelicans|grizzlies|hawks|hornets|pacers|pistons|wizards|magic|cavaliers|timberwolves|kings/.test(t))return 'NBA';
-  if(/cowboys|chiefs|patriots|packers|nfl|49ers|eagles|giants|ravens|steelers|broncos|bears|lions|falcons|saints|buccaneers|panthers|cardinals|seahawks|rams|chargers|raiders|dolphins|bills|jets|browns|bengals|colts|titans|jaguars|texans|vikings|commanders/.test(t))return 'NFL';
-  if(/bruins|blackhawks|penguins|capitals|lightning|avalanche|golden.knights|oilers|flames|canucks|canadiens|senators|sabres|red.wings|blues|predators|sharks|ducks|stars|wild|hurricanes|blue.jackets|devils|islanders|nhl|maple.leaf/.test(t))return 'NHL';
-  if(/formula.1|grand.prix|\bf1\b/.test(t))return 'F1';
-  if(/ufc|boxing|mma|heavyweight|title.fight|canelo/.test(t))return 'Combat';
-  if(/coachella|edc|ultra|lollapalooza|festival/.test(t))return 'Festival';
-  if(/taylor.swift|beyonce|drake|bad.bunny|kendrick|coldplay|weeknd|concert|tour/.test(t))return 'Concert';
-  if(/soccer|mls|galaxy|lafc|inter.miami/.test(t))return 'MLS';
-  if(/comedy/.test(t))return 'Comedy';
-  if(/theater|theatre|broadway|hamilton|lion.king|wicked/.test(t))return 'Theater';
-  if(/college.football|cfp|rose.bowl|sugar.bowl|orange.bowl|cotton.bowl|alabama|ohio.state|michigan|georgia|notre.dame/.test(t))return 'CFB';
+  var raw = ((name || '') + ' ' + (venue || ''));
+  var t = normalizeText(raw);
+
+  var MLB_TEAMS = [
+    ['arizona diamondbacks'],
+    ['atlanta braves'],
+    ['baltimore orioles'],
+    ['boston red sox'],
+    ['chicago cubs'],
+    ['chicago white sox', 'white sox'],
+    ['cincinnati reds'],
+    ['cleveland guardians'],
+    ['colorado rockies'],
+    ['detroit tigers'],
+    ['houston astros'],
+    ['kansas city royals'],
+    ['los angeles angels', 'la angels'],
+    ['los angeles dodgers', 'la dodgers'],
+    ['miami marlins'],
+    ['milwaukee brewers'],
+    ['minnesota twins'],
+    ['new york mets'],
+    ['new york yankees'],
+    ['oakland athletics'],
+    ['philadelphia phillies'],
+    ['pittsburgh pirates'],
+    ['san diego padres'],
+    ['san francisco giants'],
+    ['seattle mariners'],
+    ['st louis cardinals', 'st. louis cardinals'],
+    ['tampa bay rays'],
+    ['texas rangers'],
+    ['toronto blue jays'],
+    ['washington nationals']
+  ];
+
+  var NFL_TEAMS = [
+    ['arizona cardinals'],
+    ['atlanta falcons'],
+    ['baltimore ravens'],
+    ['buffalo bills'],
+    ['carolina panthers'],
+    ['chicago bears'],
+    ['cincinnati bengals'],
+    ['cleveland browns'],
+    ['dallas cowboys'],
+    ['denver broncos'],
+    ['detroit lions'],
+    ['green bay packers'],
+    ['houston texans'],
+    ['indianapolis colts'],
+    ['jacksonville jaguars'],
+    ['kansas city chiefs'],
+    ['las vegas raiders'],
+    ['los angeles chargers', 'la chargers'],
+    ['los angeles rams', 'la rams'],
+    ['miami dolphins'],
+    ['minnesota vikings'],
+    ['new england patriots'],
+    ['new orleans saints'],
+    ['new york giants'],
+    ['new york jets'],
+    ['philadelphia eagles'],
+    ['pittsburgh steelers'],
+    ['san francisco 49ers', 'sf 49ers'],
+    ['seattle seahawks'],
+    ['tampa bay buccaneers'],
+    ['tennessee titans'],
+    ['washington commanders']
+  ];
+
+  var NHL_TEAMS = [
+    ['anaheim ducks'],
+    ['boston bruins'],
+    ['buffalo sabres'],
+    ['calgary flames'],
+    ['carolina hurricanes'],
+    ['chicago blackhawks'],
+    ['colorado avalanche'],
+    ['columbus blue jackets'],
+    ['dallas stars'],
+    ['detroit red wings'],
+    ['edmonton oilers'],
+    ['florida panthers'],
+    ['los angeles kings', 'la kings'],
+    ['minnesota wild'],
+    ['montreal canadiens'],
+    ['nashville predators'],
+    ['new jersey devils'],
+    ['new york islanders'],
+    ['new york rangers'],
+    ['ottawa senators'],
+    ['philadelphia flyers'],
+    ['pittsburgh penguins'],
+    ['san jose sharks'],
+    ['seattle kraken'],
+    ['st louis blues', 'st. louis blues'],
+    ['tampa bay lightning'],
+    ['toronto maple leafs', 'toronto maple leafs'],
+    ['utah hockey club'],
+    ['vancouver canucks'],
+    ['vegas golden knights'],
+    ['washington capitals'],
+    ['winnipeg jets']
+  ];
+
+  var MLS_TEAMS = [
+    ['atlanta united'],
+    ['austin fc'],
+    ['charlotte fc'],
+    ['chicago fire'],
+    ['fc cincinnati'],
+    ['colorado rapids'],
+    ['columbus crew'],
+    ['dc united', 'd c united'],
+    ['fc dallas'],
+    ['houston dynamo'],
+    ['inter miami'],
+    ['sporting kansas city'],
+    ['la galaxy', 'los angeles galaxy'],
+    ['lafc', 'los angeles fc'],
+    ['minnesota united'],
+    ['cf montreal'],
+    ['nashville sc'],
+    ['new england revolution'],
+    ['new york city fc', 'nycfc'],
+    ['new york red bulls'],
+    ['orlando city'],
+    ['philadelphia union'],
+    ['portland timbers'],
+    ['real salt lake'],
+    ['san diego fc'],
+    ['san jose earthquakes'],
+    ['seattle sounders'],
+    ['st louis city sc', 'st. louis city sc'],
+    ['toronto fc'],
+    ['vancouver whitecaps']
+  ];
+
+  var NBA_TEAMS = [
+    ['atlanta hawks'],
+    ['boston celtics'],
+    ['brooklyn nets'],
+    ['charlotte hornets'],
+    ['chicago bulls'],
+    ['cleveland cavaliers'],
+    ['dallas mavericks'],
+    ['denver nuggets'],
+    ['detroit pistons'],
+    ['golden state warriors'],
+    ['houston rockets'],
+    ['indiana pacers'],
+    ['los angeles clippers', 'la clippers'],
+    ['los angeles lakers', 'la lakers'],
+    ['memphis grizzlies'],
+    ['miami heat'],
+    ['milwaukee bucks'],
+    ['minnesota timberwolves'],
+    ['new orleans pelicans'],
+    ['new york knicks'],
+    ['oklahoma city thunder'],
+    ['orlando magic'],
+    ['philadelphia 76ers', '76ers'],
+    ['phoenix suns'],
+    ['portland trail blazers'],
+    ['sacramento kings'],
+    ['san antonio spurs'],
+    ['toronto raptors'],
+    ['utah jazz'],
+    ['washington wizards']
+  ];
+
+  function matchLeague(leagueTeams){
+    return leagueTeams.some(function(teamAliases){
+      return hasAnyPhrase(t, teamAliases);
+    });
+  }
+
+  if (/ fifa world cup | world cup 2026 /.test(t)) return 'FIFA';
+
+  if (matchLeague(MLB_TEAMS)) return 'MLB';
+  if (matchLeague(NFL_TEAMS)) return 'NFL';
+  if (matchLeague(NHL_TEAMS)) return 'NHL';
+  if (matchLeague(MLS_TEAMS)) return 'MLS';
+  if (matchLeague(NBA_TEAMS)) return 'NBA';
+
+  if (/ formula 1 | grand prix | f1 /.test(t)) return 'F1';
+  if (/ ufc | boxing | mma | heavyweight | title fight | canelo /.test(t)) return 'Combat';
+  if (/ coachella | edc | ultra | lollapalooza | festival /.test(t)) return 'Festival';
+  if (/ taylor swift | beyonce | drake | bad bunny | kendrick | coldplay | weeknd | concert | tour /.test(t)) return 'Concert';
+  if (/ soccer /.test(t)) return 'MLS';
+  if (/ comedy /.test(t)) return 'Comedy';
+  if (/ theater | theatre | broadway | hamilton | lion king | wicked /.test(t)) return 'Theater';
+  if (/ college football | cfp | rose bowl | sugar bowl | orange bowl | cotton bowl | alabama | ohio state | michigan | georgia | notre dame /.test(t)) return 'CFB';
+
   return 'Other';
 }
 
 function tagClass(c){
   var map = {
-    'FIFA':'tag tag-fifa','NFL':'tag tag-nfl','NBA':'tag tag-nba',
-    'MLB':'tag tag-mlb','NHL':'tag tag-nhl','F1':'tag tag-f1',
-    'Combat':'tag tag-combat','Concert':'tag tag-concert'
+    'FIFA':'tag tag-fifa',
+    'NFL':'tag tag-nfl',
+    'NBA':'tag tag-nba',
+    'MLB':'tag tag-mlb',
+    'NHL':'tag tag-nhl',
+    'F1':'tag tag-f1',
+    'Combat':'tag tag-combat',
+    'Concert':'tag tag-concert'
   };
   return map[c]||'tag';
 }
