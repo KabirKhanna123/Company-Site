@@ -13,9 +13,10 @@
     .logo span { color:#d4a843; }
     nav a { color:#888; font-size:11px; text-decoration:none; letter-spacing:1px; }
     nav a:hover { color:#d4a843; }
-    .header { padding:1.25rem 1.5rem; background:#fff; border-bottom:1px solid #e4e2dc; }
+    .header { padding:1.25rem 1.5rem; background:#fff; border-bottom:1px solid #e4e2dc; display:flex; align-items:center; justify-content:space-between; }
     .header h1 { font-size:22px; font-weight:300; color:#111; }
     .header h1 strong { color:#d4a843; }
+    .header-count { font-size:12px; color:#aaa; }
     .ticker-shell { background:#111; border-bottom:1px solid #222; height:40px; display:flex; align-items:center; overflow:hidden; position:relative; }
     .ticker-shell::before, .ticker-shell::after { content:""; position:absolute; top:0; width:60px; height:100%; z-index:2; pointer-events:none; }
     .ticker-shell::before { left:0; background:linear-gradient(to right,#111,transparent); }
@@ -41,7 +42,7 @@
     .date-group input { width:130px; }
     .table-shell { padding:12px 1.5rem; }
     .table-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; overflow:hidden; }
-    .table-wrap { overflow:auto; max-height:calc(100vh - 280px); }
+    .table-wrap { overflow:auto; max-height:calc(100vh - 300px); }
     table { width:100%; border-collapse:collapse; table-layout:fixed; }
     thead th { background:#f7f6f3; border-bottom:1px solid #e4e2dc; padding:9px 12px; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; text-align:left; position:sticky; top:0; z-index:2; font-weight:700; cursor:pointer; white-space:nowrap; }
     thead th:hover { color:#d4a843; }
@@ -54,6 +55,13 @@
     .event-name { font-weight:600; font-size:12px; line-height:1.3; }
     .tag { display:inline-block; font-size:9px; padding:2px 7px; border-radius:999px; background:#f3efe4; color:#8a6a18; font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
     .tag-fifa { background:#1a3a6b; color:#fff; }
+    .tag-nfl { background:#013369; color:#fff; }
+    .tag-nba { background:#c9082a; color:#fff; }
+    .tag-mlb { background:#002d72; color:#fff; }
+    .tag-nhl { background:#000; color:#fff; }
+    .tag-f1 { background:#e10600; color:#fff; }
+    .tag-combat { background:#7c3aed; color:#fff; }
+    .tag-concert { background:#059669; color:#fff; }
     .gold { color:#d4a843; font-weight:700; }
     .mono { font-family:monospace; }
     .td-right { text-align:right; }
@@ -96,6 +104,8 @@
     .mini-table th { background:#f7f6f3; padding:8px 10px; text-align:left; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; border-bottom:1px solid #e4e2dc; white-space:nowrap; }
     .mini-table td { padding:8px 10px; border-bottom:1px solid #f5f3ef; color:#111; white-space:nowrap; }
     .mini-table tr:last-child td { border:none; }
+    .loading-bar { height:3px; background:linear-gradient(90deg,#d4a843,#f0c866,#d4a843); background-size:200% 100%; animation:loading 1.5s linear infinite; }
+    @keyframes loading { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
     @media(max-width:700px){.toolbar{flex-direction:column;align-items:stretch}.toolbar input{width:100%}.analysis-title{font-size:20px}}
   </style>
@@ -109,6 +119,7 @@
 
 <div class="header">
   <h1><strong>VKT</strong> Market Data</h1>
+  <div class="header-count" id="eventCount">Loading...</div>
 </div>
 
 <div id="ticker-bar">
@@ -120,6 +131,7 @@
   </div>
 </div>
 
+<div id="loadingBar" class="loading-bar"></div>
 <div id="app"></div>
 
 <script>
@@ -130,11 +142,39 @@ var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
 var allRows=[], allSnaps=[], allEvents=[];
 var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
 
-function get(url){
-  return fetch(SB+url,{headers:H}).then(function(r){
+function get(url, extraHeaders){
+  var headers = Object.assign({}, H, extraHeaders||{});
+  return fetch(SB+url, {headers:headers}).then(function(r){
     if(!r.ok) throw new Error('HTTP '+r.status);
     return r.json();
   });
+}
+
+// Fetch ALL events using pagination
+function getAllEvents(today){
+  var pageSize = 1000;
+  var allData = [];
+
+  function fetchPage(offset){
+    var rangeEnd = offset + pageSize - 1;
+    return fetch(SB+'/rest/v1/events?date=gte.'+today+'&order=date.asc&select=id,name,date,venue', {
+      headers: Object.assign({}, H, {
+        'Range': offset+'-'+rangeEnd,
+        'Range-Unit': 'items',
+        'Prefer': 'count=none'
+      })
+    }).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(data){
+      if(!data || !data.length) return allData;
+      allData = allData.concat(data);
+      if(data.length < pageSize) return allData;
+      return fetchPage(offset + pageSize);
+    });
+  }
+
+  return fetchPage(0);
 }
 
 function n(v){var x=Number(v);return isNaN(x)?0:x;}
@@ -151,25 +191,31 @@ function cleanName(n){
   return n.replace(/Tickets\s*[–\-]\s*\w+\s+\d+\s+\d{4}\s+at\s+/i,' at ').replace(/Tickets\s*[–\-]\s*/i,'').trim();
 }
 
-function cat(name,venue){
+function cat(name, venue){
   var t=((name||'')+(venue||'')).toLowerCase();
   if(/fifa world cup|world cup 2026/.test(t))return 'FIFA';
-  if(/yankees|dodgers|cubs|red.sox|baseball|mlb|mets|astros|braves|phillies/.test(t))return 'MLB';
-  if(/lakers|warriors|celtics|knicks|basketball|nba|heat|bulls|nets|76ers|mavericks|bucks/.test(t))return 'NBA';
-  if(/cowboys|chiefs|patriots|packers|football|nfl|49ers|eagles|giants|ravens/.test(t))return 'NFL';
-  if(/rangers|bruins|blackhawks|hockey|nhl|maple.leaf/.test(t))return 'NHL';
+  if(/yankees|dodgers|cubs|red.sox|baseball|mlb|mets|astros|braves|phillies|mariners|angels|padres|giants|cardinals|brewers|rockies|reds|pirates|royals|guardians|twins|white.sox|tigers|rays|orioles|blue.jays|nationals|marlins|athletics/.test(t))return 'MLB';
+  if(/lakers|warriors|celtics|knicks|nba|heat|bulls|nets|76ers|mavericks|bucks|nuggets|suns|clippers|raptors|spurs|thunder|jazz|blazers|rockets|pelicans|grizzlies|hawks|hornets|pacers|pistons|wizards|magic|cavaliers|timberwolves|kings/.test(t))return 'NBA';
+  if(/cowboys|chiefs|patriots|packers|nfl|49ers|eagles|giants|ravens|steelers|broncos|bears|lions|falcons|saints|buccaneers|panthers|cardinals|seahawks|rams|chargers|raiders|dolphins|bills|jets|browns|bengals|colts|titans|jaguars|texans|vikings|commanders/.test(t))return 'NFL';
+  if(/bruins|blackhawks|penguins|capitals|lightning|avalanche|golden.knights|oilers|flames|canucks|canadiens|senators|sabres|red.wings|blues|predators|sharks|ducks|stars|wild|hurricanes|blue.jackets|devils|islanders|nhl|maple.leaf/.test(t))return 'NHL';
+  if(/formula.1|grand.prix|\bf1\b/.test(t))return 'F1';
+  if(/ufc|boxing|mma|heavyweight|title.fight|canelo/.test(t))return 'Combat';
+  if(/coachella|edc|ultra|lollapalooza|festival/.test(t))return 'Festival';
+  if(/taylor.swift|beyonce|drake|bad.bunny|kendrick|coldplay|weeknd|concert|tour/.test(t))return 'Concert';
   if(/soccer|mls|galaxy|lafc|inter.miami/.test(t))return 'MLS';
-  if(/concert|tour|live/.test(t))return 'Concert';
   if(/comedy/.test(t))return 'Comedy';
-  if(/theater|theatre|broadway/.test(t))return 'Theater';
-  if(/formula.1|grand.prix|f1/.test(t))return 'F1';
-  if(/ufc|boxing|mma/.test(t))return 'Combat';
+  if(/theater|theatre|broadway|hamilton|lion.king|wicked/.test(t))return 'Theater';
+  if(/college.football|cfp|rose.bowl|sugar.bowl|orange.bowl|cotton.bowl|alabama|ohio.state|michigan|georgia|notre.dame/.test(t))return 'CFB';
   return 'Other';
 }
 
-function tagClass(category){
-  if(category==='FIFA')return 'tag tag-fifa';
-  return 'tag';
+function tagClass(c){
+  var map = {
+    'FIFA':'tag tag-fifa','NFL':'tag tag-nfl','NBA':'tag tag-nba',
+    'MLB':'tag tag-mlb','NHL':'tag tag-nhl','F1':'tag tag-f1',
+    'Combat':'tag tag-combat','Concert':'tag tag-concert'
+  };
+  return map[c]||'tag';
 }
 
 function parseNames(name){
@@ -186,8 +232,16 @@ function pct(a,b){
   return Math.round(((a-b)/b)*100);
 }
 
-function buildRows(events,snaps){
-  var junk=/hotel|voucher|credential|postgame|nfl football|nba basketball|nhl hockey|mlb baseball/i;
+// Category sort order — FIFA first
+var CAT_ORDER = ['FIFA','NFL','NBA','MLB','NHL','F1','Combat','Concert','Festival','MLS','CFB','Theater','Comedy','Other'];
+
+function catOrder(c){
+  var i = CAT_ORDER.indexOf(c);
+  return i === -1 ? 99 : i;
+}
+
+function buildRows(events, snaps){
+  var junk=/hotel|voucher|credential|postgame|nfl football 2026 event|nba basketball 2026 event|nhl hockey 2026 event|mlb baseball 2026 event/i;
   var snapIndex={};
   snaps.forEach(function(s){
     if(!snapIndex[s.event_id])snapIndex[s.event_id]=[];
@@ -218,12 +272,13 @@ function buildRows(events,snaps){
     var atp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
 
     var p=parseNames(ev.name);
+    var category=cat(ev.name,ev.venue);
     return {
       id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',
       venue:shortV(ev.venue),fullVenue:ev.venue||'',
       floor:latest?n(latest.event_floor):0,atp:atp,
       listings:curListings,prevListings:prevListings,listingsPct:listingsPct,
-      category:cat(ev.name,ev.venue),performer:p.performer,opponent:p.opponent,
+      category:category,performer:p.performer,opponent:p.opponent,
       hasData:!!latest
     };
   });
@@ -245,7 +300,9 @@ function renderDashboard(){
   document.getElementById('app').innerHTML=
     '<div class="toolbar">'+
       '<input type="text" id="q" placeholder="Search events, teams, artists..."/>'+
-      '<select id="catF"><option value="">All Categories</option><option>FIFA</option><option>MLB</option><option>NBA</option><option>NFL</option><option>NHL</option><option>MLS</option><option>F1</option><option>Combat</option><option>Concert</option><option>Comedy</option><option>Theater</option><option>Other</option></select>'+
+      '<select id="catF"><option value="">All Categories</option>'+
+      CAT_ORDER.map(function(c){return '<option>'+c+'</option>';}).join('')+
+      '</select>'+
       '<select id="perfF"><option value="">All Performers</option></select>'+
       '<select id="venF"><option value="">All Venues</option></select>'+
       '<div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div>'+
@@ -296,10 +353,10 @@ function drawTable(){
     return true;
   });
 
-  // FIFA first, then events with data sorted by listings desc, then no-data events by date asc
+  // Sort: by category priority, then has data, then listings desc / date asc
   rows.sort(function(a,b){
-    if(a.category==='FIFA'&&b.category!=='FIFA')return -1;
-    if(a.category!=='FIFA'&&b.category==='FIFA')return 1;
+    var co = catOrder(a.category) - catOrder(b.category);
+    if(co!==0)return co;
     if(a.hasData&&!b.hasData)return -1;
     if(!a.hasData&&b.hasData)return 1;
     if(a.hasData&&b.hasData)return b.listings-a.listings;
@@ -458,17 +515,24 @@ function loadAnalysis(eventId){
 
 function init(){
   var eventId=qp('event_id');
-  if(eventId){loadAnalysis(eventId);return;}
+  if(eventId){
+    document.getElementById('loadingBar').style.display='none';
+    loadAnalysis(eventId);
+    return;
+  }
 
   renderDashboard();
 
   var today=new Date().toISOString().slice(0,10);
 
-  get('/rest/v1/events?date=gte.'+today+'&order=date.asc&limit=2000&select=id,name,date,venue')
+  // Fetch ALL events using pagination (bypasses 1000 row limit)
+  getAllEvents(today)
   .then(function(events){
     allEvents=events||[];
+    document.getElementById('eventCount').textContent=allEvents.length.toLocaleString()+' events';
     if(!allEvents.length){document.getElementById('tbl').innerHTML='<div class="msg">No upcoming events found.</div>';return null;}
 
+    // Batch snapshot fetches in chunks of 200
     var ids=allEvents.map(function(e){return e.id;});
     var chunks=[];
     for(var i=0;i<ids.length;i+=200)chunks.push(ids.slice(i,i+200));
@@ -480,6 +544,7 @@ function init(){
   })
   .then(function(snapChunks){
     if(!snapChunks)return;
+    document.getElementById('loadingBar').style.display='none';
     allSnaps=[].concat.apply([],snapChunks);
     allRows=buildRows(allEvents,allSnaps);
     fillSel('perfF',unique(allRows,'performer'),'All Performers');
@@ -488,6 +553,7 @@ function init(){
     drawTable();
   })
   .catch(function(err){
+    document.getElementById('loadingBar').style.display='none';
     document.getElementById('tbl').innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>';
   });
 }
