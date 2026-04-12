@@ -385,14 +385,18 @@ function drawTable(){
     return true;
   });
 
-  // FIFA first, then by date desc, then has data, then listings
+  // Filter out junk far-future events (beyond 2027) and no-data events
+  rows = rows.filter(function(r){
+    if(!r.date) return false;
+    var yr = parseInt((r.date+'').slice(0,4), 10);
+    if(!isNaN(yr) && yr > 2027) return false;
+    return r.hasData;
+  });
+
+  // Soonest date first, then most listings
   rows.sort(function(a,b){
-    if(a.category==='FIFA'&&b.category!=='FIFA')return -1;
-    if(a.category!=='FIFA'&&b.category==='FIFA')return 1;
     var ad=parseEventDate(a.date), bd=parseEventDate(b.date);
-    if(bd!==ad)return bd-ad;
-    if(a.hasData&&!b.hasData)return -1;
-    if(!a.hasData&&b.hasData)return 1;
+    if(ad!==bd)return ad-bd;
     return (b.listings||0)-(a.listings||0);
   });
 
@@ -406,16 +410,16 @@ function drawTable(){
     var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
     var pctStr='—',pctCls='chg-flat';
     if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}
-    var dim=r.hasData?'':'opacity:0.45;';
+    var dim='';
     html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
-      '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
-      '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
-      '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
-      '<td style="'+dim+'">'+esc(r.venue)+'</td>'+
-      '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">—</span>')+'</td>'+
-      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">—</span>')+'</td>'+
-      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">—</span>')+'</td>'+
-      '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">—</span>')+'</td>'+
+      '<td><div class="event-name">'+esc(r.name)+'</div></td>'+
+      '<td><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
+      '<td>'+esc(fmtDate(r.date))+'</td>'+
+      '<td>'+esc(r.venue)+'</td>'+
+      '<td class="td-right gold mono">'+esc(cur(r.floor))+'</td>'+
+      '<td class="td-right mono">'+esc(cur(r.atp))+'</td>'+
+      '<td class="td-right mono">'+esc(fmt(r.listings))+'</td>'+
+      '<td class="td-right '+pctCls+'">'+esc(pctStr)+'</td>'+
       '</tr>';
   });
 
