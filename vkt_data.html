@@ -75,6 +75,14 @@
     .chg-down { color:#ef4444; font-weight:700; font-family:monospace; text-align:center; }
     .chg-flat { color:#aaa; font-family:monospace; text-align:center; }
     .msg { padding:3rem; text-align:center; color:#aaa; }
+    .platform-bar { background:#fff; border-bottom:1px solid #e4e2dc; padding:10px 1.5rem; display:flex; align-items:center; gap:8px; }
+    .platform-bar span { font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-right:4px; }
+    .plt-btn { padding:6px 14px; border-radius:999px; border:1px solid #ddd; background:#fff; font-size:11px; font-weight:700; cursor:pointer; color:#888; letter-spacing:0.5px; transition:all 0.15s; }
+    .plt-btn:hover { border-color:#d4a843; color:#d4a843; }
+    .plt-btn.active { background:#111; border-color:#111; color:#fff; }
+    .plt-btn.active.sh { background:#1a3a6b; border-color:#1a3a6b; }
+    .plt-btn.active.sg { background:#da2828; border-color:#da2828; }
+    .plt-btn.active.vs { background:#6b1a6b; border-color:#6b1a6b; }
     .analysis-shell { padding:12px; max-width:none; width:100%; margin:0; background:#f7f6f3; }
     .analysis-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; }
     .analysis-title { font-size:26px; font-weight:700; color:#111; line-height:1.2; text-align:left; }
@@ -135,6 +143,13 @@
   </div>
 </div>
 
+<div class="platform-bar">
+  <span>Platform</span>
+  <button class="plt-btn active sh" id="plt-sh" onclick="setPlatform('StubHub')">StubHub</button>
+  <button class="plt-btn sg" id="plt-sg" onclick="setPlatform('SeatGeek')">SeatGeek</button>
+  <button class="plt-btn vs" id="plt-vs" onclick="setPlatform('VividSeats')">VividSeats</button>
+</div>
+
 <div id="loadingBar" class="loading-bar"></div>
 <div id="app"></div>
 
@@ -145,6 +160,7 @@ var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
 
 var allRows=[], allSnaps=[], allEvents=[];
 var sortVolDir = null; // null=default, "desc"=highest first, "asc"=lowest first
+var activePlatform = 'StubHub';
 var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
 
 function getRanged(url, pageSize) {
@@ -185,7 +201,7 @@ function getAllEvents(today){
 
 // Fetch snapshots for a chunk of IDs using pagination to bypass 1000 row limit
 function getSnapshotsForChunk(idList) {
-  var url = '/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&select=event_id,total_listings,event_floor,section_avg,section,scraped_at';
+  var url = '/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&select=event_id,total_listings,event_floor,section_avg,section,scraped_at,platform';
   return getRanged(url, 1000);
 }
 
@@ -288,10 +304,10 @@ function buildRows(events, snaps){
   return events.filter(function(e){
     return e.name&&e.name.length>3&&!junk.test(e.name);
   }).map(function(ev){
-    var es=(snapIndex[ev.id]||[]).filter(function(s){return !s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var es=(snapIndex[ev.id]||[]).filter(function(s){return (!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform);}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var latest=es.length?es[es.length-1]:null;
 
-    var allEvSnaps=(snapIndex[ev.id]||[]).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){return !s.platform||s.platform===activePlatform;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var runMap={};
     allEvSnaps.forEach(function(s){
       var hr=s.scraped_at.slice(0,13);
@@ -580,6 +596,18 @@ function loadAnalysis(eventId){
   }).catch(function(err){
     document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';
   });
+}
+
+function setPlatform(platform) {
+  activePlatform = platform;
+  // Update buttons
+  document.getElementById('plt-sh').className = 'plt-btn' + (platform === 'StubHub' ? ' active sh' : '');
+  document.getElementById('plt-sg').className = 'plt-btn' + (platform === 'SeatGeek' ? ' active sg' : '');
+  document.getElementById('plt-vs').className = 'plt-btn' + (platform === 'VividSeats' ? ' active vs' : '');
+  // Rebuild rows with new platform filter
+  allRows = buildRows(allEvents, allSnaps);
+  buildTicker(allRows);
+  drawTable();
 }
 
 function toggleVolSort(){
