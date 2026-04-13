@@ -161,6 +161,7 @@ var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
 var allRows=[], allSnaps=[], allEvents=[];
 var sortVolDir = null; // null=default, "desc"=highest first, "asc"=lowest first
 var sortFloorDir = null;
+var sortDateDir = null;
 var activePlatform = 'StubHub';
 var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
 
@@ -417,6 +418,11 @@ function drawTable(){
       var bp = b.listingsPct !== null ? b.listingsPct : -9999;
       return sortVolDir === 'desc' ? bp - ap : ap - bp;
     });
+  } else if(sortDateDir) {
+    rows.sort(function(a,b){
+      var ad=parseEventDate(a.date), bd=parseEventDate(b.date);
+      return sortDateDir === 'desc' ? bd - ad : ad - bd;
+    });
   } else if(sortFloorDir) {
     rows.sort(function(a,b){
       var af = a.floor || 0;
@@ -438,7 +444,7 @@ function drawTable(){
   if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
 
   var html='<table><colgroup><col class="col-name"><col class="col-cat"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-num"></colgroup>'+
-    '<thead><tr><th>Event</th><th>Cat</th><th>Date</th><th>Venue</th><th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;" title="Sort by floor price">Floor <span id="floorSortIcon">⇅</span></th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;" title="Sort by 24h volume">24h Vol <span id="volSortIcon">⇅</span></th></tr></thead><tbody>';
+    '<thead><tr><th>Event</th><th>Cat</th><th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;" title="Sort by date">Date <span id="dateSortIcon">⇅</span></th><th>Venue</th><th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;" title="Sort by floor price">Floor <span id="floorSortIcon">⇅</span></th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;" title="Sort by 24h volume">24h Vol <span id="volSortIcon">⇅</span></th></tr></thead><tbody>';
 
   rows.forEach(function(r){
     var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
@@ -616,12 +622,34 @@ function setPlatform(platform) {
   drawTable();
 }
 
+function toggleDateSort(){
+  if(sortDateDir === null) sortDateDir = 'asc';
+  else if(sortDateDir === 'asc') sortDateDir = 'desc';
+  else sortDateDir = null;
+  // Reset other sorts
+  sortVolDir = null; sortFloorDir = null;
+  var volIcon = document.getElementById('volSortIcon'); if(volIcon) volIcon.textContent = '⇅';
+  var volHdr = document.getElementById('volHeader'); if(volHdr) volHdr.style.color = '';
+  var floorIcon = document.getElementById('floorSortIcon'); if(floorIcon) floorIcon.textContent = '⇅';
+  var floorHdr = document.getElementById('floorHeader'); if(floorHdr) floorHdr.style.color = '';
+  var icon = document.getElementById('dateSortIcon');
+  if(icon) icon.textContent = sortDateDir === 'asc' ? '↑' : sortDateDir === 'desc' ? '↓' : '⇅';
+  var hdr = document.getElementById('dateHeader');
+  if(hdr) hdr.style.color = sortDateDir ? '#d4a843' : '';
+  drawTable();
+}
+
 function toggleFloorSort(){
   if(sortFloorDir === null) sortFloorDir = 'desc';
   else if(sortFloorDir === 'desc') sortFloorDir = 'asc';
   else sortFloorDir = null;
-  // Reset vol sort
+  // Reset other sorts
   sortVolDir = null;
+  sortDateDir = null;
+  var dateIcon = document.getElementById('dateSortIcon');
+  if(dateIcon) dateIcon.textContent = '⇅';
+  var dateHdr = document.getElementById('dateHeader');
+  if(dateHdr) dateHdr.style.color = '';
   var volIcon = document.getElementById('volSortIcon');
   if(volIcon) volIcon.textContent = '⇅';
   var volHdr = document.getElementById('volHeader');
@@ -638,8 +666,13 @@ function toggleVolSort(){
   if(sortVolDir === null) sortVolDir = 'desc';
   else if(sortVolDir === 'desc') sortVolDir = 'asc';
   else sortVolDir = null;
-  // Reset floor sort
+  // Reset other sorts
   sortFloorDir = null;
+  sortDateDir = null;
+  var dateIcon = document.getElementById('dateSortIcon');
+  if(dateIcon) dateIcon.textContent = '⇅';
+  var dateHdr = document.getElementById('dateHeader');
+  if(dateHdr) dateHdr.style.color = '';
   var floorIcon = document.getElementById('floorSortIcon');
   if(floorIcon) floorIcon.textContent = '⇅';
   var floorHdr = document.getElementById('floorHeader');
