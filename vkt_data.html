@@ -386,9 +386,10 @@ function drawTable(){
     return true;
   });
 
-  // Filter out junk far-future events (beyond 2027)
+  // Filter out junk far-future events (beyond 2027) and no-data events
   rows = rows.filter(function(r){
-    if(!r.date) return true;
+    if(!r.hasData) return false;
+    if(!r.date) return false;
     var yr = parseInt((r.date+'').slice(0,4), 10);
     return isNaN(yr) || yr <= 2027;
   });
