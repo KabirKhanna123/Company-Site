@@ -23,7 +23,7 @@
     .ticker-shell::after { right:0; background:linear-gradient(to left,#111,transparent); }
     .ticker-label { position:absolute; left:12px; z-index:3; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#d4a843; background:#111; padding-right:16px; white-space:nowrap; }
     .ticker-wrap { overflow:hidden; width:100%; padding-left:120px; }
-    .ticker-track { display:inline-flex; align-items:center; gap:36px; white-space:nowrap; animation:ticker 40s linear infinite; }
+    .ticker-track { display:inline-flex; align-items:center; gap:36px; white-space:nowrap; animation:ticker 90s linear infinite; }
     .ticker-shell:hover .ticker-track { animation-play-state:paused; }
     @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
     .ticker-item { display:inline-flex; align-items:center; gap:8px; font-size:11px; color:#ccc; }
@@ -144,6 +144,7 @@ var KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6
 var H   = { apikey:KEY, Authorization:'Bearer '+KEY };
 
 var allRows=[], allSnaps=[], allEvents=[];
+var sortVolDir = null; // null=default, "desc"=highest first, "asc"=lowest first
 var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
 
 function getRanged(url, pageSize) {
@@ -385,41 +386,51 @@ function drawTable(){
     return true;
   });
 
-  // Filter out junk far-future events (beyond 2027) and no-data events
+  // Filter out junk far-future events (beyond 2027)
   rows = rows.filter(function(r){
-    if(!r.date) return false;
+    if(!r.date) return true;
     var yr = parseInt((r.date+'').slice(0,4), 10);
-    if(!isNaN(yr) && yr > 2027) return false;
-    return r.hasData;
+    return isNaN(yr) || yr <= 2027;
   });
 
-  // Soonest date first, then most listings
-  rows.sort(function(a,b){
-    var ad=parseEventDate(a.date), bd=parseEventDate(b.date);
-    if(ad!==bd)return ad-bd;
-    return (b.listings||0)-(a.listings||0);
-  });
+  if(sortVolDir) {
+    // Sort by 24h vol
+    rows.sort(function(a,b){
+      var ap = a.listingsPct !== null ? a.listingsPct : -9999;
+      var bp = b.listingsPct !== null ? b.listingsPct : -9999;
+      return sortVolDir === 'desc' ? bp - ap : ap - bp;
+    });
+  } else {
+    // Default: soonest date first, then most listings
+    rows.sort(function(a,b){
+      var ad=parseEventDate(a.date), bd=parseEventDate(b.date);
+      if(ad!==bd)return ad-bd;
+      if(a.hasData&&!b.hasData)return -1;
+      if(!a.hasData&&b.hasData)return 1;
+      return (b.listings||0)-(a.listings||0);
+    });
+  }
 
   var tbl=document.getElementById('tbl');
   if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
 
   var html='<table><colgroup><col class="col-name"><col class="col-cat"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-num"></colgroup>'+
-    '<thead><tr><th>Event</th><th>Cat</th><th>Date</th><th>Venue</th><th class="th-right">Floor</th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right">24h Vol</th></tr></thead><tbody>';
+    '<thead><tr><th>Event</th><th>Cat</th><th>Date</th><th>Venue</th><th class="th-right">Floor</th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;" title="Sort by 24h volume">24h Vol <span id="volSortIcon">⇅</span></th></tr></thead><tbody>';
 
   rows.forEach(function(r){
     var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
     var pctStr='—',pctCls='chg-flat';
     if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}
-    var dim='';
+    var dim=r.hasData?'':'opacity:0.35;';
     html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
-      '<td><div class="event-name">'+esc(r.name)+'</div></td>'+
-      '<td><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
-      '<td>'+esc(fmtDate(r.date))+'</td>'+
-      '<td>'+esc(r.venue)+'</td>'+
-      '<td class="td-right gold mono">'+esc(cur(r.floor))+'</td>'+
-      '<td class="td-right mono">'+esc(cur(r.atp))+'</td>'+
-      '<td class="td-right mono">'+esc(fmt(r.listings))+'</td>'+
-      '<td class="td-right '+pctCls+'">'+esc(pctStr)+'</td>'+
+      '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
+      '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
+      '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
+      '<td style="'+dim+'">'+esc(r.venue)+'</td>'+
+      '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">—</span>')+'</td>'+
+      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">—</span>')+'</td>'+
+      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">—</span>')+'</td>'+
+      '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">—</span>')+'</td>'+
       '</tr>';
   });
 
@@ -531,9 +542,13 @@ function loadAnalysis(eventId){
     html+='</div></div>';
 
     if(snaps.length){
-      html+='<div class="detail-card" style="margin-bottom:14px"><h3>Snapshot History</h3><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody>';
-      snaps.slice().reverse().slice(0,100).forEach(function(s){html+='<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'—')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';});
-      html+='</tbody></table></div></div>';
+      var snapSections = ['All'].concat(Array.from(new Set(snaps.map(function(s){return s.section||'';}))).filter(Boolean).sort());
+      html+='<div class="detail-card" style="margin-bottom:14px">';
+      html+='<div class="section-header"><h3>Snapshot History</h3>';
+      html+='<select class="section-select" id="snapSecSel">'+snapSections.map(function(s){return'<option value="'+esc(s)+'">'+esc(s==='All'?'All Sections':s)+'</option>';}).join('')+'</select>';
+      html+='</div>';
+      html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody id="snapHistBody"></tbody></table></div>';
+      html+='</div>';
     }
 
     html+='</div>';
@@ -545,9 +560,36 @@ function loadAnalysis(eventId){
     var sf=document.getElementById('secSel');
     if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
 
+    // Snapshot history section filter
+    function renderSnapHistory(filterSection) {
+      var body = document.getElementById('snapHistBody');
+      if(!body) return;
+      var filtered = snaps.slice().reverse().filter(function(s){
+        if(filterSection === 'All') return true;
+        if(filterSection === '') return !s.section;
+        return (s.section||'') === filterSection;
+      }).slice(0, 200);
+      body.innerHTML = filtered.map(function(s){
+        return '<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'—')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';
+      }).join('');
+    }
+    var snapSel = document.getElementById('snapSecSel');
+    if(snapSel){ renderSnapHistory('All'); snapSel.addEventListener('change', function(){ renderSnapHistory(this.value); }); }
+
   }).catch(function(err){
     document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';
   });
+}
+
+function toggleVolSort(){
+  if(sortVolDir === null) sortVolDir = 'desc';
+  else if(sortVolDir === 'desc') sortVolDir = 'asc';
+  else sortVolDir = null;
+  var icon = document.getElementById('volSortIcon');
+  if(icon) icon.textContent = sortVolDir === 'desc' ? '↓' : sortVolDir === 'asc' ? '↑' : '⇅';
+  var hdr = document.getElementById('volHeader');
+  if(hdr) hdr.style.color = sortVolDir ? '#d4a843' : '';
+  drawTable();
 }
 
 function init(){
