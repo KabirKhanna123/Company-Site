@@ -986,7 +986,7 @@ function init(){
 // ── VKT AUTH ──
 const VKT_AUTH_API = 'https://vkt-volume-api.vercel.app';
 const GOOGLE_CLIENT_ID = '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
-const VKT_BYPASS_EMAILS = ['kabirkhanna2023@gmail.com', 'victorkaytickets@gmail.com', 'kaysingh@victorykaytickets.com']; // add your Google account email here
+const VKT_BYPASS_EMAILS = ['kabirkhanna06@gmail.com', 'victorkaytickets@gmail.com']; // add your Google account email here
 const VKT_DEV_PARAM = 'vkt_dev_bypass'; // ?vkt_dev_bypass=true in URL // replace with your Google OAuth client ID
 var vktToken = null;
 var vktUser = null;
@@ -1108,6 +1108,22 @@ window.addEventListener('load', async function() {
   // Check for stored token first
   var stored = getStoredToken();
   if (stored) {
+    // First check if bypass email from stored token
+    try {
+      var payload = JSON.parse(atob(stored.split('.')[1]));
+      var email = payload.email || '';
+      // Check token not expired
+      var exp = payload.exp ? payload.exp * 1000 : 0;
+      if (exp && Date.now() > exp) { clearStoredToken(); }
+      else if (VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
+        vktToken = stored;
+        document.body.classList.remove('auth-pending');
+        document.getElementById('vkt-auth-gate').style.display = 'none';
+        init();
+        return;
+      }
+    } catch(e) {}
+
     var authData = await checkAccess(stored);
     if (authData && authData.access) {
       vktToken = stored;
@@ -1119,7 +1135,7 @@ window.addEventListener('load', async function() {
       showPaywall();
       return;
     }
-    // Token expired — remove pending so blur shows behind gate
+    // Token expired or server down — remove pending so blur shows behind gate
     document.body.classList.remove('auth-pending');
     // Token invalid — fall through to Google sign-in
     clearStoredToken();
