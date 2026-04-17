@@ -1088,13 +1088,12 @@ if (urlParams.get('subscribed') === 'true') {
 }
 
 // Wire up buttons
-document.getElementById('btn-upgrade').addEventListener('click', function() {
-  if (vktToken) createCheckout(vktToken);
-});
-document.getElementById('btn-subscribe').addEventListener('click', function() {
-  if (vktToken) createCheckout(vktToken);
-});
-document.getElementById('btn-paywall-signout').addEventListener('click', signOut);
+var btnUpgrade = document.getElementById('btn-upgrade');
+if(btnUpgrade) btnUpgrade.addEventListener('click', function() { if (vktToken) createCheckout(vktToken); });
+var btnSubscribe = document.getElementById('btn-subscribe');
+if(btnSubscribe) btnSubscribe.addEventListener('click', function() { if (vktToken) createCheckout(vktToken); });
+var btnSignout = document.getElementById('btn-paywall-signout');
+if(btnSignout) btnSignout.addEventListener('click', signOut);
 
 // Init Google Sign-In
 window.addEventListener('load', async function() {
