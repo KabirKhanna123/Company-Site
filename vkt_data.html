@@ -618,18 +618,49 @@ function drawTable(){
     var pctStr='—',pctCls='chg-flat';
     if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}
     var dim=r.hasData?'':'opacity:0.35;';
-    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
+
+    // Days badge
+    var daysBadge='—';
+    if(r.daysToEvent!==null){
+      var dc=r.daysToEvent<=7?'days-hot':r.daysToEvent<=30?'days-soon':'days-normal';
+      daysBadge='<span class="days-badge '+dc+'">'+r.daysToEvent+'d</span>';
+    }
+
+    // Demand score
+    var demandHtml='—';
+    if(r.demandScore!==null){
+      var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';
+      demandHtml='<span class="demand-score '+dc2+'">'+r.demandScore+'</span>';
+    }
+
+    // Sell-through
+    var sellHtml='—';
+    if(r.sellThru!==null){
+      var sc=r.sellThru>0?'sellthru-up':'sellthru-down';
+      var ss=r.sellThru>0?'-'+r.sellThru:'+'+Math.abs(r.sellThru);
+      sellHtml='<span class="'+sc+'">'+ss+'</span>';
+    }
+
+    // Alert button
+    var alertActive=vktAlerts[r.id]?' active':'';
+    var safeName=esc(r.name).replace(/'/g,"&apos;");
+    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(''+r.id+'',''+safeName+'','+r.floor+')" title="Set price alert">&#128276;</button>';
+
+    html+='<tr onclick="go(''+href.replace(/'/g,"\'")+'')">'+
       '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
       '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
+      '<td class="td-right" style="'+dim+'">'+daysBadge+'</td>'+
       '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
       '<td style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">—</span>')+'</td>'+
       '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">—</span>')+'</td>'+
       '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">—</span>')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'—')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+(r.hasData?sellHtml:'—')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">—</span>')+'</td>'+
+      '<td class="td-right">'+alertHtml+'</td>'+
       '</tr>';
   });
-
   tbl.innerHTML=html+'</tbody></table>';
 }
 
