@@ -1135,63 +1135,45 @@ if(btnSubscribe) btnSubscribe.addEventListener('click', function() { if (vktToke
 var btnSignout = document.getElementById('btn-paywall-signout');
 if(btnSignout) btnSignout.addEventListener('click', signOut);
 
-// Init Google Sign-In
-window.addEventListener('load', async function() {
-  // Dev bypass — URL param or owner email
-  if(new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
+// Init — check stored token on load
+window.addEventListener('load', function() {
+  // Dev bypass via URL param
+  if (new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
     document.body.classList.remove('auth-pending');
-    document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
+    document.getElementById('vkt-auth-gate').classList.add('hidden');
+    document.getElementById('vkt-auth-gate').style.display = 'none';
     init();
     return;
   }
-  // Check for stored token first
+
+  // Check stored token
   var stored = getStoredToken();
   if (stored) {
-    // First check if bypass email from stored token
     try {
-      var b64 = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-      while(b64.length % 4) b64 += '=';
+      var b64 = stored.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
       var payload = JSON.parse(atob(b64));
       var email = payload.email || '';
-      // Check token not expired
       var exp = payload.exp ? payload.exp * 1000 : 0;
-      if (exp && Date.now() > exp) { clearStoredToken(); }
-      else if (VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
-        vktToken = stored;
-        document.body.classList.remove('auth-pending');
-        document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
-        init();
-        return;
-      }
-    } catch(e) {}
 
-    // API not yet deployed — grant trial access for stored token users
-    try {
-      var b64b = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-      while(b64b.length % 4) b64b += '=';
-      var payloadB = JSON.parse(decodeURIComponent(escape(atob(b64b))));
-      var emailB = payloadB.email || '';
-      var expB = payloadB.exp ? payloadB.exp * 1000 : 0;
-      if(expB && Date.now() > expB) { clearStoredToken(); }
-      else if(emailB) {
+      if (exp && Date.now() > exp) {
+        clearStoredToken(); // expired
+      } else if (email) {
+        // Valid stored token — go straight to dashboard
         vktToken = stored;
         document.body.classList.remove('auth-pending');
-        document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
+        document.getElementById('vkt-auth-gate').classList.add('hidden');
+        document.getElementById('vkt-auth-gate').style.display = 'none';
         init();
         return;
       }
-    } catch(e) { clearStoredToken(); }
-    document.body.classList.remove('auth-pending');
+    } catch (e) {
+      clearStoredToken();
+    }
   }
 
-  // Show Google sign-in
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleCredentialResponse,
-    auto_select: false
-  });
-
-  // Google renders its own button via g_id_signin div
+  // No valid stored token — show auth gate (Google button already rendered via HTML)
+  document.body.classList.remove('auth-pending');
 });
 
 </script>
