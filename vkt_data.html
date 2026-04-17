@@ -1002,12 +1002,8 @@ function clearStoredToken() {
 }
 
 async function checkAccess(token) {
-  try {
-    const res = await fetch(VKT_AUTH_API + '/api/auth/check', {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    return await res.json();
-  } catch(e) { return null; }
+  // Server API not yet deployed — disabled to prevent CORS errors
+  return null;
 }
 
 async function createCheckout(token) {
