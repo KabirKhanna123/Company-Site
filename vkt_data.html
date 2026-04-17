@@ -10,6 +10,8 @@
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { height:100%; font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; }
+    body.auth-pending > *:not(#vkt-auth-gate):not(#coming-soon-toast):not(script) { filter:blur(8px) brightness(0.4); pointer-events:none; user-select:none; }
+    #vkt-auth-gate { pointer-events:all !important; filter:none !important; }
     nav { background:#fff; border-bottom:1px solid #e4e2dc; padding:0 1.5rem; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
     .logo { font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:#111; }
     .logo span { color:#d4a843; }
@@ -130,7 +132,7 @@
     .toast-badge { background:#d4a843; color:#111; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.5px; text-transform:uppercase; }
 
     /* ── AUTH GATE ── */
-    #vkt-auth-gate { position:fixed;inset:0;background:#0d0d0d;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column; }
+    #vkt-auth-gate { position:fixed;inset:0;background:rgba(13,13,13,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px); }
     .auth-card { background:#111;border:1px solid #222;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;text-align:center; }
     .auth-logo { font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#d4a843;margin-bottom:4px; }
     .auth-logo span { color:#fff; }
@@ -210,7 +212,7 @@
 
   </style>
 </head>
-<body>
+<body class="auth-pending">
 
 <nav>
   <div class="logo">Victory Kay <span>Tickets</span></div>
@@ -1020,6 +1022,7 @@ async function createCheckout(token) {
 }
 
 function showDashboard(authData) {
+  document.body.classList.remove('auth-pending');
   document.getElementById('vkt-auth-gate').style.display = 'none';
   document.getElementById('vkt-paywall').classList.remove('visible');
 
@@ -1041,6 +1044,7 @@ function showDashboard(authData) {
 }
 
 function showPaywall() {
+  document.body.classList.remove('auth-pending');
   document.getElementById('vkt-auth-gate').style.display = 'none';
   document.getElementById('vkt-paywall').classList.add('visible');
 }
@@ -1063,6 +1067,7 @@ async function handleCredentialResponse(response) {
 
   // Owner bypass
   if(VKT_BYPASS_EMAILS.indexOf(googleUser.email) >= 0) {
+    document.body.classList.remove('auth-pending');
     document.getElementById('vkt-auth-gate').style.display = 'none';
     init();
     return;
@@ -1095,6 +1100,7 @@ document.getElementById('btn-paywall-signout').addEventListener('click', signOut
 window.addEventListener('load', async function() {
   // Dev bypass — URL param or owner email
   if(new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
+    document.body.classList.remove('auth-pending');
     document.getElementById('vkt-auth-gate').style.display = 'none';
     init();
     return;
@@ -1113,6 +1119,8 @@ window.addEventListener('load', async function() {
       showPaywall();
       return;
     }
+    // Token expired — remove pending so blur shows behind gate
+    document.body.classList.remove('auth-pending');
     // Token invalid — fall through to Google sign-in
     clearStoredToken();
   }
@@ -1124,9 +1132,7 @@ window.addEventListener('load', async function() {
     auto_select: false
   });
 
-  document.getElementById('btn-google-signin').addEventListener('click', function() {
-    google.accounts.id.prompt();
-  });
+  // Google renders its own button via g_id_signin div
 });
 
 </script>
@@ -1173,10 +1179,20 @@ window.addEventListener('load', async function() {
       <div class="auth-feature"><span class="auth-feature-icon">⚡</span>StubHub, SeatGeek & VividSeats in one dashboard</div>
       <div class="auth-feature"><span class="auth-feature-icon">🎯</span>Section-level data for FIFA World Cup 2026</div>
     </div>
-    <button class="btn-google" id="btn-google-signin">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
-      Continue with Google
-    </button>
+    <div id="g_id_onload"
+      data-client_id="224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com"
+      data-callback="handleCredentialResponse"
+      data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="continue_with"
+      data-shape="rectangular"
+      data-logo_alignment="left"
+      data-width="340">
+    </div>
     <div class="auth-terms">7-day free trial · No credit card required · $49.99/month after trial<br/>By signing in you agree to our <a href="/terms">Terms of Service</a></div>
   </div>
 </div>
