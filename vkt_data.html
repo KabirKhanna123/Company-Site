@@ -133,6 +133,7 @@
 
     /* ── AUTH GATE ── */
     #vkt-auth-gate { position:fixed;inset:0;background:rgba(13,13,13,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px); }
+    #vkt-auth-gate.hidden { display:none !important; }
     .auth-card { background:#111;border:1px solid #222;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;text-align:center; }
     .auth-logo { font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#d4a843;margin-bottom:4px; }
     .auth-logo span { color:#fff; }
@@ -1050,7 +1051,7 @@ async function createCheckout(token) {
 
 function showDashboard(authData) {
   document.body.classList.remove('auth-pending');
-  document.getElementById('vkt-auth-gate').style.display = 'none';
+  document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
   document.getElementById('vkt-paywall').classList.remove('visible');
 
   if (authData.isTrialing && authData.trialDaysLeft !== null) {
@@ -1072,7 +1073,7 @@ function showDashboard(authData) {
 
 function showPaywall() {
   document.body.classList.remove('auth-pending');
-  document.getElementById('vkt-auth-gate').style.display = 'none';
+  document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
   document.getElementById('vkt-paywall').classList.add('visible');
 }
 
@@ -1102,7 +1103,7 @@ async function handleCredentialResponse(response) {
     if(VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
       console.log('[VKT] Bypass granted');
       document.body.classList.remove('auth-pending');
-      document.getElementById('vkt-auth-gate').style.display = 'none';
+      document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
       init();
       return;
     }
@@ -1114,7 +1115,7 @@ async function handleCredentialResponse(response) {
     console.error('[VKT] Auth error:', e);
     // Fallback — let them in
     document.body.classList.remove('auth-pending');
-    document.getElementById('vkt-auth-gate').style.display = 'none';
+    document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
     init();
   }
 }
@@ -1139,7 +1140,7 @@ window.addEventListener('load', async function() {
   // Dev bypass — URL param or owner email
   if(new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
     document.body.classList.remove('auth-pending');
-    document.getElementById('vkt-auth-gate').style.display = 'none';
+    document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
     init();
     return;
   }
@@ -1158,7 +1159,7 @@ window.addEventListener('load', async function() {
       else if (VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
         vktToken = stored;
         document.body.classList.remove('auth-pending');
-        document.getElementById('vkt-auth-gate').style.display = 'none';
+        document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
         init();
         return;
       }
@@ -1175,7 +1176,7 @@ window.addEventListener('load', async function() {
       else if(emailB) {
         vktToken = stored;
         document.body.classList.remove('auth-pending');
-        document.getElementById('vkt-auth-gate').style.display = 'none';
+        document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
         init();
         return;
       }
