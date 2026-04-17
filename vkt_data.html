@@ -1156,7 +1156,8 @@ async function handleCredentialResponse(response) {
 window.handleCredentialResponse = handleCredentialResponse;
 
 // Close info modal on background click
-document.getElementById('info-modal').addEventListener('click', function(e) {
+var infoModal = document.getElementById('info-modal');
+if(infoModal) infoModal.addEventListener('click', function(e) {
   if(e.target === this) this.classList.remove('open');
 });
 
