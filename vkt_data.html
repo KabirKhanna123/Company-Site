@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VKT Market Data</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { height:100%; font-family:Arial,sans-serif; background:#f7f6f3; color:#1a1a1a; }
@@ -120,6 +122,86 @@
     @keyframes loading { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
     @media(max-width:700px){.analysis-title{font-size:20px}.toolbar{padding:0.75rem}.table-shell{padding:8px}.analysis-shell{padding:8px}}
+  
+    /* ── AUTH GATE ── */
+    #vkt-auth-gate { position:fixed;inset:0;background:#0d0d0d;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column; }
+    .auth-card { background:#111;border:1px solid #222;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;text-align:center; }
+    .auth-logo { font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#d4a843;margin-bottom:4px; }
+    .auth-logo span { color:#fff; }
+    .auth-title { font-size:22px;font-weight:700;color:#fff;margin:20px 0 8px; }
+    .auth-sub { font-size:13px;color:#666;line-height:1.6;margin-bottom:28px; }
+    .auth-features { display:grid;gap:8px;margin-bottom:28px;text-align:left; }
+    .auth-feature { display:flex;align-items:center;gap:10px;font-size:12px;color:#aaa; }
+    .auth-feature-icon { color:#d4a843;font-size:14px;flex-shrink:0; }
+    .btn-google { display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#fff;color:#111;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s; }
+    .btn-google:hover { background:#f5f5f5;transform:translateY(-1px); }
+    .btn-google img { width:20px;height:20px; }
+    .auth-terms { font-size:10px;color:#444;margin-top:16px;line-height:1.5; }
+    .auth-terms a { color:#d4a843;text-decoration:none; }
+
+    /* ── TRIAL BANNER ── */
+    #trial-banner { background:linear-gradient(90deg,#1a1500,#2a2000,#1a1500);border-bottom:1px solid #d4a843;padding:10px 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:12px; }
+    .trial-text { font-size:12px;color:#d4a843;font-weight:700; }
+    .trial-sub { font-size:11px;color:#888;margin-top:2px; }
+    .btn-upgrade { padding:8px 20px;background:#d4a843;color:#111;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap; }
+    .btn-upgrade:hover { background:#e0b84a; }
+
+    /* ── PAYWALL ── */
+    #vkt-paywall { position:fixed;inset:0;background:rgba(13,13,13,0.97);z-index:9998;display:none;align-items:center;justify-content:center; }
+    #vkt-paywall.visible { display:flex; }
+    .paywall-card { background:#111;border:1px solid #333;border-radius:16px;padding:40px 36px;max-width:460px;width:90%;text-align:center; }
+    .paywall-title { font-size:24px;font-weight:700;color:#fff;margin-bottom:8px; }
+    .paywall-sub { font-size:13px;color:#666;margin-bottom:24px;line-height:1.6; }
+    .paywall-price { font-size:42px;font-weight:700;color:#d4a843;margin-bottom:4px; }
+    .paywall-period { font-size:13px;color:#888;margin-bottom:28px; }
+    .paywall-features { display:grid;gap:10px;margin-bottom:28px;text-align:left; }
+    .paywall-feature { display:flex;align-items:center;gap:10px;font-size:13px;color:#aaa; }
+    .paywall-feature-check { color:#4caf50;font-size:15px;flex-shrink:0; }
+    .btn-subscribe { width:100%;padding:14px;background:#d4a843;color:#111;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px; }
+    .btn-subscribe:hover { background:#e0b84a; }
+    .paywall-signout { font-size:11px;color:#555;margin-top:14px;cursor:pointer;text-decoration:underline; }
+    .paywall-signout:hover { color:#888; }
+
+  
+    .days-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; font-family:monospace; }
+    .days-hot { background:#1a0d0d; color:#ef4444; }
+    .days-soon { background:#1a1500; color:#d4a843; }
+    .days-normal { background:#f0eeea; color:#888; }
+    .demand-bar { display:inline-flex; align-items:center; gap:5px; }
+    .demand-score { font-size:12px; font-weight:700; font-family:monospace; }
+    .demand-high { color:#22c55e; }
+    .demand-med { color:#d4a843; }
+    .demand-low { color:#ef4444; }
+    .sellthru-up { color:#22c55e; font-weight:700; font-family:monospace; }
+    .sellthru-down { color:#ef4444; font-weight:700; font-family:monospace; }
+    .alert-btn { background:none; border:1px solid #ddd; border-radius:5px; padding:3px 8px; font-size:10px; cursor:pointer; color:#888; }
+    .alert-btn:hover { border-color:#d4a843; color:#d4a843; }
+    .alert-btn.active { border-color:#d4a843; color:#d4a843; background:#fdf9f2; }
+    .col-days { width:7%; }
+    .col-demand { width:8%; }
+    .col-sellthru { width:8%; }
+    /* Alert modal */
+    #alert-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9990; align-items:center; justify-content:center; }
+    #alert-modal.open { display:flex; }
+    .alert-modal-card { background:#fff; border-radius:12px; padding:28px; max-width:380px; width:90%; }
+    .alert-modal-title { font-size:16px; font-weight:700; margin-bottom:6px; }
+    .alert-modal-sub { font-size:12px; color:#888; margin-bottom:16px; }
+    .alert-modal-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .alert-modal-label { font-size:12px; color:#555; width:100px; }
+    .alert-modal-input { flex:1; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; outline:none; }
+    .alert-modal-input:focus { border-color:#d4a843; }
+    .alert-modal-btns { display:flex; gap:8px; margin-top:16px; }
+    .alert-modal-save { flex:1; padding:9px; background:#d4a843; color:#111; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:13px; }
+    .alert-modal-cancel { padding:9px 16px; background:#f0eeea; color:#555; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
+    /* Event detail platform comparison */
+    .platform-compare { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
+    .platform-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:14px; text-align:center; }
+    .platform-card-name { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+    .platform-card-floor { font-size:22px; font-weight:700; color:#d4a843; font-family:monospace; }
+    .platform-card-sub { font-size:11px; color:#aaa; margin-top:4px; }
+    .platform-card.best { border-color:#22c55e; background:#f0fff4; }
+    .platform-card.best .platform-card-name { color:#22c55e; }
+
   </style>
 </head>
 <body>
@@ -162,6 +244,9 @@ var allRows=[], allSnaps=[], allEvents=[];
 var sortVolDir = null; // null=default, "desc"=highest first, "asc"=lowest first
 var sortFloorDir = null;
 var sortDateDir = null;
+var sortDaysDir = null;
+var sortDemandDir = null;
+var sortSellThruDir = null;
 var activePlatform = 'StubHub';
 var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
 
@@ -329,12 +414,68 @@ function buildRows(events, snaps){
     var p=parseNames(ev.name);
     var category=cat(ev.name,ev.venue);
 
+    // Days to event
+    var daysToEvent = null;
+    if(ev.date){
+      var evDate = new Date(String(ev.date) + 'T12:00:00');
+      if(!isNaN(evDate)) daysToEvent = Math.max(0, Math.ceil((evDate - new Date()) / 86400000));
+    }
+
+    // Sell-through rate — listings dropped between oldest and newest run
+    var sellThru = null;
+    if(runs.length >= 2){
+      var oldest = n(runs[0].total_listings);
+      var newest = n(runs[runs.length-1].total_listings);
+      if(oldest > 0) sellThru = oldest - newest; // positive = tickets sold
+    }
+
+    // Floor velocity — floor change over all snapshots
+    var floorVelocity = null;
+    var floorSnaps = es.filter(function(s){ return n(s.event_floor) > 0; });
+    if(floorSnaps.length >= 2){
+      floorVelocity = n(floorSnaps[floorSnaps.length-1].event_floor) - n(floorSnaps[0].event_floor);
+    }
+
+    // Demand score (0-100)
+    // Based on: days to event urgency + sell-through + floor trend + listing volume
+    var demandScore = null;
+    if(daysToEvent !== null && curListings > 0){
+      var d = 0;
+      // Urgency: closer = higher demand signal
+      if(daysToEvent <= 3) d += 40;
+      else if(daysToEvent <= 7) d += 30;
+      else if(daysToEvent <= 14) d += 20;
+      else if(daysToEvent <= 30) d += 10;
+      else d += 5;
+      // Sell-through: listings dropping = selling fast
+      if(sellThru !== null){
+        if(sellThru > 20) d += 30;
+        else if(sellThru > 10) d += 20;
+        else if(sellThru > 0) d += 10;
+        else if(sellThru < 0) d -= 10; // listings growing = lower demand
+      }
+      // Floor trending up = demand rising
+      if(floorVelocity !== null){
+        if(floorVelocity > 50) d += 20;
+        else if(floorVelocity > 20) d += 12;
+        else if(floorVelocity > 0) d += 6;
+        else if(floorVelocity < -20) d -= 10;
+      }
+      // Volume trend
+      if(listingsPct !== null){
+        if(listingsPct < -10) d += 10; // listings dropping fast
+        else if(listingsPct > 20) d -= 5; // supply growing
+      }
+      demandScore = Math.min(99, Math.max(1, d));
+    }
+
     return {
       id:ev.id, name:cleanName(ev.name), raw:ev.name, date:ev.date||'',
       venue:shortV(ev.venue), fullVenue:ev.venue||'',
       floor:latest?n(latest.event_floor):0, atp:atp,
       listings:curListings, prevListings:prevListings, listingsPct:listingsPct,
-      category:category, performer:p.performer, opponent:p.opponent, hasData:!!latest
+      category:category, performer:p.performer, opponent:p.opponent, hasData:!!latest,
+      daysToEvent:daysToEvent, sellThru:sellThru, demandScore:demandScore, floorVelocity:floorVelocity
     };
   });
 }
@@ -412,7 +553,25 @@ function drawTable(){
     return isNaN(yr) || yr <= 2027;
   });
 
-  if(sortVolDir) {
+  if(sortDaysDir) {
+    rows.sort(function(a,b){
+      var ad = a.daysToEvent !== null ? a.daysToEvent : 9999;
+      var bd = b.daysToEvent !== null ? b.daysToEvent : 9999;
+      return sortDaysDir === 'asc' ? ad - bd : bd - ad;
+    });
+  } else if(sortDemandDir) {
+    rows.sort(function(a,b){
+      var ad = a.demandScore !== null ? a.demandScore : -1;
+      var bd = b.demandScore !== null ? b.demandScore : -1;
+      return sortDemandDir === 'desc' ? bd - ad : ad - bd;
+    });
+  } else if(sortSellThruDir) {
+    rows.sort(function(a,b){
+      var at = a.sellThru !== null ? a.sellThru : -9999;
+      var bt = b.sellThru !== null ? b.sellThru : -9999;
+      return sortSellThruDir === 'desc' ? bt - at : at - bt;
+    });
+  } else if(sortVolDir) {
     rows.sort(function(a,b){
       var ap = a.listingsPct !== null ? a.listingsPct : -9999;
       var bp = b.listingsPct !== null ? b.listingsPct : -9999;
@@ -443,8 +602,8 @@ function drawTable(){
   var tbl=document.getElementById('tbl');
   if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
 
-  var html='<table><colgroup><col class="col-name"><col class="col-cat"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-num"></colgroup>'+
-    '<thead><tr><th>Event</th><th>Cat</th><th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;" title="Sort by date">Date <span id="dateSortIcon">⇅</span></th><th>Venue</th><th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;" title="Sort by floor price">Floor <span id="floorSortIcon">⇅</span></th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;" title="Sort by 24h volume">24h Vol <span id="volSortIcon">⇅</span></th></tr></thead><tbody>';
+  var html='<table><colgroup><col class="col-name"><col class="col-cat"><col class="col-days"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-demand"><col class="col-sellthru"><col class="col-num"><col class="col-num"></colgroup>'+
+    '<thead><tr><th>Event</th><th>Cat</th><th class="th-right" id="daysHeader" onclick="toggleDaysSort()" style="cursor:pointer;user-select:none;" title="Sort by days to event">Days <span id="daysSortIcon">⇅</span></th><th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;" title="Sort by date">Date <span id="dateSortIcon">⇅</span></th><th>Venue</th><th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;" title="Sort by floor price">Floor <span id="floorSortIcon">⇅</span></th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;" title="Sort by demand score">Demand <span id="demandSortIcon">⇅</span></th><th class="th-right" id="sellthruHeader" onclick="toggleSellThruSort()" style="cursor:pointer;user-select:none;" title="Tickets sold (listing drop)">Sold ▼ <span id="sellthruSortIcon">⇅</span></th><th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;" title="Sort by 24h volume">24h Vol <span id="volSortIcon">⇅</span></th><th class="th-right">Alert</th></tr></thead><tbody>';
 
   rows.forEach(function(r){
     var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
@@ -499,7 +658,7 @@ function loadAnalysis(eventId){
 
   Promise.all([
     get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),
-    getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at')
+    getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_avg,section,scraped_at,platform')
   ]).then(function(res){
     var ev=(res[0]||[])[0];
     var snaps=res[1]||[];
@@ -536,7 +695,28 @@ function loadAnalysis(eventId){
     if(!snaps.length){
       html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event.</div>';
     } else {
-      html+='<div class="stats-grid">';
+      // Platform comparison — fetch from Supabase
+    var platformSnaps = {};
+    ['StubHub','SeatGeek','VividSeats'].forEach(function(plt){
+      var ps = snaps.filter(function(s){ return (s.platform||'StubHub')===plt && (!s.section||s.section===''); });
+      if(ps.length){ var latest = ps[ps.length-1]; platformSnaps[plt] = { floor: n(latest.event_floor), listings: n(latest.total_listings) }; }
+    });
+    var hasPlatformData = Object.keys(platformSnaps).length > 1;
+    if(hasPlatformData){
+      var floors = Object.values(platformSnaps).map(function(p){ return p.floor; }).filter(function(f){ return f>0; });
+      var bestFloor = floors.length ? Math.max.apply(null, floors) : 0;
+      html += '<div class="platform-compare">';
+      ['StubHub','SeatGeek','VividSeats'].forEach(function(plt){
+        var pd = platformSnaps[plt];
+        var isBest = pd && pd.floor === bestFloor && bestFloor > 0;
+        html += '<div class="platform-card'+(isBest?' best':'')+'"><div class="platform-card-name">'+(isBest?'✓ ':'')+plt+'</div>';
+        html += '<div class="platform-card-floor">'+(pd?cur(pd.floor):'—')+'</div>';
+        html += '<div class="platform-card-sub">'+(pd&&pd.listings?fmt(pd.listings)+' listings':'No data')+'</div></div>';
+      });
+      html += '</div>';
+    }
+
+    html+='<div class="stats-grid">';
       html+=sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true);
       html+=sc('Current Listings',fmt(last?n(last.total_listings):0),listDelta,false);
       html+=sc('Avg ATP',cur(avgAtp),null,false);
@@ -619,6 +799,74 @@ function setPlatform(platform) {
   // Rebuild rows with new platform filter
   allRows = buildRows(allEvents, allSnaps);
   buildTicker(allRows);
+  drawTable();
+}
+
+function resetAllSorts(){
+  sortVolDir=null; sortFloorDir=null; sortDateDir=null; sortDaysDir=null; sortDemandDir=null; sortSellThruDir=null;
+  ['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='⇅';});
+  ['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});
+}
+
+function toggleDaysSort(){
+  resetAllSorts();
+  if(sortDaysDir===null)sortDaysDir='asc'; else if(sortDaysDir==='asc')sortDaysDir='desc'; else sortDaysDir=null;
+  var icon=document.getElementById('daysSortIcon'); if(icon)icon.textContent=sortDaysDir===null?'⇅':sortDaysDir==='asc'?'↑':'↓';
+  var hdr=document.getElementById('daysHeader'); if(hdr)hdr.style.color=sortDaysDir?'#d4a843':'';
+  drawTable();
+}
+
+function toggleDemandSort(){
+  resetAllSorts();
+  if(sortDemandDir===null)sortDemandDir='desc'; else if(sortDemandDir==='desc')sortDemandDir='asc'; else sortDemandDir=null;
+  var icon=document.getElementById('demandSortIcon'); if(icon)icon.textContent=sortDemandDir===null?'⇅':sortDemandDir==='desc'?'↓':'↑';
+  var hdr=document.getElementById('demandHeader'); if(hdr)hdr.style.color=sortDemandDir?'#d4a843':'';
+  drawTable();
+}
+
+function toggleSellThruSort(){
+  resetAllSorts();
+  if(sortSellThruDir===null)sortSellThruDir='desc'; else if(sortSellThruDir==='desc')sortSellThruDir='asc'; else sortSellThruDir=null;
+  var icon=document.getElementById('sellthruSortIcon'); if(icon)icon.textContent=sortSellThruDir===null?'⇅':sortSellThruDir==='desc'?'↓':'↑';
+  var hdr=document.getElementById('sellthruHeader'); if(hdr)hdr.style.color=sortSellThruDir?'#d4a843':'';
+  drawTable();
+}
+
+// ── PRICE ALERTS ──
+var vktAlerts = {};
+try { vktAlerts = JSON.parse(localStorage.getItem('vkt_alerts')||'{}'); } catch(e){}
+
+function saveAlerts(){ try { localStorage.setItem('vkt_alerts', JSON.stringify(vktAlerts)); } catch(e){} }
+
+function openAlert(eventId, eventName, currentFloor){
+  var existing = vktAlerts[eventId] || {};
+  document.getElementById('alert-event-name').textContent = eventName;
+  document.getElementById('alert-floor-input').value = existing.floor || Math.round(currentFloor * 0.9) || '';
+  document.getElementById('alert-email-input').value = existing.email || (vktUser ? vktUser.email : '');
+  document.getElementById('alert-event-id').value = eventId;
+  document.getElementById('alert-modal').classList.add('open');
+}
+
+function closeAlert(){
+  document.getElementById('alert-modal').classList.remove('open');
+}
+
+function saveAlert(){
+  var eventId = document.getElementById('alert-event-id').value;
+  var floor = parseFloat(document.getElementById('alert-floor-input').value);
+  var email = document.getElementById('alert-email-input').value.trim();
+  if(!floor || !email){ alert('Please fill in both fields.'); return; }
+  vktAlerts[eventId] = { floor: floor, email: email, set: Date.now() };
+  saveAlerts();
+  closeAlert();
+  drawTable(); // refresh to show active state
+}
+
+function deleteAlert(){
+  var eventId = document.getElementById('alert-event-id').value;
+  delete vktAlerts[eventId];
+  saveAlerts();
+  closeAlert();
   drawTable();
 }
 
@@ -719,6 +967,214 @@ function init(){
 }
 
 init();
+
+
+// ── VKT AUTH ──
+const VKT_AUTH_API = 'https://vkt-volume-api.vercel.app';
+const GOOGLE_CLIENT_ID = '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com'; // replace with your Google OAuth client ID
+var vktToken = null;
+var vktUser = null;
+
+function getStoredToken() {
+  try { return localStorage.getItem('vkt_google_token'); } catch(e) { return null; }
+}
+function setStoredToken(t) {
+  try { localStorage.setItem('vkt_google_token', t); } catch(e) {}
+}
+function clearStoredToken() {
+  try { localStorage.removeItem('vkt_google_token'); } catch(e) {}
+}
+
+async function checkAccess(token) {
+  try {
+    const res = await fetch(VKT_AUTH_API + '/api/auth/check', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+async function createCheckout(token) {
+  try {
+    const res = await fetch(VKT_AUTH_API + '/api/auth/checkout', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  } catch(e) { alert('Error creating checkout. Please try again.'); }
+}
+
+function showDashboard(authData) {
+  document.getElementById('vkt-auth-gate').style.display = 'none';
+  document.getElementById('vkt-paywall').classList.remove('visible');
+
+  if (authData.isTrialing && authData.trialDaysLeft !== null) {
+    var banner = document.getElementById('trial-banner');
+    var text = document.getElementById('trial-text');
+    banner.style.display = 'flex';
+    var d = authData.trialDaysLeft;
+    text.textContent = d <= 1 ? '⚠️ Last day of your free trial!' : '⏱ ' + d + ' day' + (d===1?'':'s') + ' left in your free trial';
+    if (d <= 2) banner.style.background = 'linear-gradient(90deg,#1a0a00,#2a1000,#1a0a00)';
+  }
+
+  // Move trial banner into page flow (before ticker)
+  var banner = document.getElementById('trial-banner');
+  var ticker = document.getElementById('ticker-bar');
+  if (banner && ticker && banner.style.display !== 'none') {
+    ticker.parentNode.insertBefore(banner, ticker);
+  }
+}
+
+function showPaywall() {
+  document.getElementById('vkt-auth-gate').style.display = 'none';
+  document.getElementById('vkt-paywall').classList.add('visible');
+}
+
+function signOut() {
+  clearStoredToken();
+  vktToken = null;
+  vktUser = null;
+  google.accounts.id.disableAutoSelect();
+  window.location.reload();
+}
+
+async function handleCredentialResponse(response) {
+  var token = response.credential;
+  vktToken = token;
+  setStoredToken(token);
+
+  var authData = await checkAccess(token);
+  if (!authData) { alert('Authentication failed. Please try again.'); return; }
+
+  if (authData.access) {
+    showDashboard(authData);
+    init(); // load dashboard data
+  } else {
+    showPaywall();
+  }
+}
+
+// Check URL params for post-checkout redirect
+var urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('subscribed') === 'true') {
+  // Clear param from URL
+  window.history.replaceState({}, '', window.location.pathname + (urlParams.get('event_id') ? '?event_id=' + urlParams.get('event_id') : ''));
+}
+
+// Wire up buttons
+document.getElementById('btn-upgrade').addEventListener('click', function() {
+  if (vktToken) createCheckout(vktToken);
+});
+document.getElementById('btn-subscribe').addEventListener('click', function() {
+  if (vktToken) createCheckout(vktToken);
+});
+document.getElementById('btn-paywall-signout').addEventListener('click', signOut);
+
+// Init Google Sign-In
+window.addEventListener('load', async function() {
+  // Check for stored token first
+  var stored = getStoredToken();
+  if (stored) {
+    var authData = await checkAccess(stored);
+    if (authData && authData.access) {
+      vktToken = stored;
+      showDashboard(authData);
+      init();
+      return;
+    } else if (authData && !authData.access) {
+      vktToken = stored;
+      showPaywall();
+      return;
+    }
+    // Token invalid — fall through to Google sign-in
+    clearStoredToken();
+  }
+
+  // Show Google sign-in
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    auto_select: false
+  });
+
+  document.getElementById('btn-google-signin').addEventListener('click', function() {
+    google.accounts.id.prompt();
+  });
+});
+
 </script>
+
+
+<!-- ALERT MODAL -->
+<div id="alert-modal">
+  <div class="alert-modal-card">
+    <div class="alert-modal-title">🔔 Price Alert</div>
+    <div class="alert-modal-sub" id="alert-event-name"></div>
+    <input type="hidden" id="alert-event-id"/>
+    <div class="alert-modal-row">
+      <div class="alert-modal-label">Alert when floor ≤</div>
+      <input class="alert-modal-input" id="alert-floor-input" type="number" placeholder="e.g. 150"/>
+    </div>
+    <div class="alert-modal-row">
+      <div class="alert-modal-label">Email</div>
+      <input class="alert-modal-input" id="alert-email-input" type="email" placeholder="you@email.com"/>
+    </div>
+    <div class="alert-modal-btns">
+      <button class="alert-modal-save" onclick="saveAlert()">Save Alert</button>
+      <button class="alert-modal-cancel" onclick="deleteAlert()">Remove</button>
+      <button class="alert-modal-cancel" onclick="closeAlert()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH GATE -->
+<div id="vkt-auth-gate">
+  <div class="auth-card">
+    <div class="auth-logo">Victory Kay <span>Tickets</span></div>
+    <div class="auth-title">VKT Market Data</div>
+    <div class="auth-sub">Real-time ticket pricing intelligence across StubHub, SeatGeek, and VividSeats. Sign in to start your 7-day free trial.</div>
+    <div class="auth-features">
+      <div class="auth-feature"><span class="auth-feature-icon">📊</span>Live floor prices, ATP, and listing volume for 3,000+ events</div>
+      <div class="auth-feature"><span class="auth-feature-icon">📈</span>24h volume trends and price history charts</div>
+      <div class="auth-feature"><span class="auth-feature-icon">⚡</span>StubHub, SeatGeek & VividSeats in one dashboard</div>
+      <div class="auth-feature"><span class="auth-feature-icon">🎯</span>Section-level data for FIFA World Cup 2026</div>
+    </div>
+    <button class="btn-google" id="btn-google-signin">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
+      Continue with Google
+    </button>
+    <div class="auth-terms">7-day free trial · No credit card required · $49.99/month after trial<br/>By signing in you agree to our <a href="/terms">Terms of Service</a></div>
+  </div>
+</div>
+
+<!-- TRIAL BANNER (hidden by default) -->
+<div id="trial-banner" style="display:none;">
+  <div>
+    <div class="trial-text" id="trial-text">⏱ 7 days left in your free trial</div>
+    <div class="trial-sub">Subscribe to keep access to VKT Market Data</div>
+  </div>
+  <button class="btn-upgrade" id="btn-upgrade">Upgrade — $49.99/mo</button>
+</div>
+
+<!-- PAYWALL -->
+<div id="vkt-paywall">
+  <div class="paywall-card">
+    <div class="paywall-title">Your Trial Has Ended</div>
+    <div class="paywall-sub">Subscribe to continue accessing VKT Market Data — the most comprehensive ticket pricing intelligence for resellers.</div>
+    <div class="paywall-price">$49.99</div>
+    <div class="paywall-period">per month · cancel anytime</div>
+    <div class="paywall-features">
+      <div class="paywall-feature"><span class="paywall-feature-check">✓</span>Live pricing across StubHub, SeatGeek & VividSeats</div>
+      <div class="paywall-feature"><span class="paywall-feature-check">✓</span>3,000+ events updated 2x daily</div>
+      <div class="paywall-feature"><span class="paywall-feature-check">✓</span>Floor, ATP, ceiling & 24h volume trends</div>
+      <div class="paywall-feature"><span class="paywall-feature-check">✓</span>FIFA World Cup section-level data</div>
+      <div class="paywall-feature"><span class="paywall-feature-check">✓</span>Price history charts & snapshot history</div>
+    </div>
+    <button class="btn-subscribe" id="btn-subscribe">Subscribe Now</button>
+    <div class="paywall-signout" id="btn-paywall-signout">Sign out</div>
+  </div>
+</div>
+
 </body>
 </html>
