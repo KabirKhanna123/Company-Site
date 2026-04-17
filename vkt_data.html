@@ -1177,13 +1177,15 @@ if(btnSignout) btnSignout.addEventListener('click', signOut);
 
 // Init — check stored token on load
 window.addEventListener('load', function() {
+  function hideGate() {
+    document.body.classList.remove('auth-pending');
+    var gate = document.getElementById('vkt-auth-gate');
+    if(gate) { gate.classList.add('hidden'); gate.style.display = 'none'; }
+  }
+
   // Dev bypass via URL param
   if (new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
-    document.body.classList.remove('auth-pending');
-    document.getElementById('vkt-auth-gate').classList.add('hidden');
-    document.getElementById('vkt-auth-gate').style.display = 'none';
-    init();
-    return;
+    hideGate(); init(); return;
   }
 
   // Check stored token
@@ -1193,26 +1195,19 @@ window.addEventListener('load', function() {
       var b64 = stored.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
       while (b64.length % 4) b64 += '=';
       var payload = JSON.parse(atob(b64));
-      var email = payload.email || '';
       var exp = payload.exp ? payload.exp * 1000 : 0;
-
       if (exp && Date.now() > exp) {
-        clearStoredToken(); // expired
-      } else if (email) {
-        // Valid stored token — go straight to dashboard
+        clearStoredToken();
+      } else if (payload.email) {
         vktToken = stored;
-        document.body.classList.remove('auth-pending');
-        document.getElementById('vkt-auth-gate').classList.add('hidden');
-        document.getElementById('vkt-auth-gate').style.display = 'none';
+        hideGate();
         init();
         return;
       }
-    } catch (e) {
-      clearStoredToken();
-    }
+    } catch (e) { clearStoredToken(); }
   }
 
-  // No valid stored token — show auth gate (Google button already rendered via HTML)
+  // No valid token — remove blur, show auth gate
   document.body.classList.remove('auth-pending');
 });
 
