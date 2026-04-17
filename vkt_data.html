@@ -123,6 +123,12 @@
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
     @media(max-width:700px){.analysis-title{font-size:20px}.toolbar{padding:0.75rem}.table-shell{padding:8px}.analysis-shell{padding:8px}}
   
+    /* ── COMING SOON TOAST ── */
+    #coming-soon-toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:12px 24px; border-radius:8px; font-size:13px; font-weight:600; z-index:9999; border:1px solid #333; display:none; align-items:center; gap:10px; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+    #coming-soon-toast.show { display:flex; }
+    .toast-icon { font-size:16px; }
+    .toast-badge { background:#d4a843; color:#111; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.5px; text-transform:uppercase; }
+
     /* ── AUTH GATE ── */
     #vkt-auth-gate { position:fixed;inset:0;background:#0d0d0d;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column; }
     .auth-card { background:#111;border:1px solid #222;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;text-align:center; }
@@ -228,8 +234,8 @@
 <div class="platform-bar">
   <span>Platform</span>
   <button class="plt-btn active sh" id="plt-sh" onclick="setPlatform('StubHub')">StubHub</button>
-  <button class="plt-btn sg" id="plt-sg" onclick="setPlatform('SeatGeek')">SeatGeek</button>
-  <button class="plt-btn vs" id="plt-vs" onclick="setPlatform('VividSeats')">VividSeats</button>
+  <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')">SeatGeek <span style="font-size:9px;opacity:0.7;">Soon</span></button>
+  <button class="plt-btn vs" id="plt-vs" onclick="showComingSoon('VividSeats')">VividSeats <span style="font-size:9px;opacity:0.7;">Soon</span></button>
 </div>
 
 <div id="loadingBar" class="loading-bar"></div>
@@ -870,6 +876,13 @@ function deleteAlert(){
   drawTable();
 }
 
+function showComingSoon(platform){
+  var toast = document.getElementById('coming-soon-toast');
+  document.getElementById('toast-platform-name').textContent = platform;
+  toast.classList.add('show');
+  setTimeout(function(){ toast.classList.remove('show'); }, 3000);
+}
+
 function toggleDateSort(){
   if(sortDateDir === null) sortDateDir = 'asc';
   else if(sortDateDir === 'asc') sortDateDir = 'desc';
@@ -966,12 +979,13 @@ function init(){
   });
 }
 
-init();
-
+// init() called by auth
 
 // ── VKT AUTH ──
 const VKT_AUTH_API = 'https://vkt-volume-api.vercel.app';
-const GOOGLE_CLIENT_ID = '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com'; // replace with your Google OAuth client ID
+const GOOGLE_CLIENT_ID = '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
+const VKT_BYPASS_EMAILS = ['kabirkhanna06@gmail.com']; // add your Google account email here
+const VKT_DEV_PARAM = 'vkt_dev_bypass'; // ?vkt_dev_bypass=true in URL // replace with your Google OAuth client ID
 var vktToken = null;
 var vktUser = null;
 
@@ -1047,6 +1061,12 @@ async function handleCredentialResponse(response) {
   var authData = await checkAccess(token);
   if (!authData) { alert('Authentication failed. Please try again.'); return; }
 
+  // Owner bypass
+  if(VKT_BYPASS_EMAILS.indexOf(googleUser.email) >= 0) {
+    document.getElementById('vkt-auth-gate').style.display = 'none';
+    init();
+    return;
+  }
   if (authData.access) {
     showDashboard(authData);
     init(); // load dashboard data
@@ -1073,6 +1093,12 @@ document.getElementById('btn-paywall-signout').addEventListener('click', signOut
 
 // Init Google Sign-In
 window.addEventListener('load', async function() {
+  // Dev bypass — URL param or owner email
+  if(new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
+    document.getElementById('vkt-auth-gate').style.display = 'none';
+    init();
+    return;
+  }
   // Check for stored token first
   var stored = getStoredToken();
   if (stored) {
@@ -1105,6 +1131,13 @@ window.addEventListener('load', async function() {
 
 </script>
 
+
+<!-- COMING SOON TOAST -->
+<div id="coming-soon-toast">
+  <span class="toast-icon">🚀</span>
+  <span id="toast-platform-name">SeatGeek</span> data is coming soon
+  <span class="toast-badge">Coming Soon</span>
+</div>
 
 <!-- ALERT MODAL -->
 <div id="alert-modal">
