@@ -1110,7 +1110,9 @@ window.addEventListener('load', async function() {
   if (stored) {
     // First check if bypass email from stored token
     try {
-      var payload = JSON.parse(atob(stored.split('.')[1]));
+      var b64 = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      while(b64.length % 4) b64 += '=';
+      var payload = JSON.parse(atob(b64));
       var email = payload.email || '';
       // Check token not expired
       var exp = payload.exp ? payload.exp * 1000 : 0;
