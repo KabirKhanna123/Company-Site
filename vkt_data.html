@@ -645,9 +645,9 @@ function drawTable(){
     // Alert button
     var alertActive=vktAlerts[r.id]?' active':'';
     var safeName=esc(r.name).replace(/'/g,"&apos;");
-    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(''+r.id+'',''+safeName+'','+r.floor+')" title="Set price alert">&#128276;</button>';
+    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+'\','+r.floor+')" title="Set price alert">&#128276;</button>';
 
-    html+='<tr onclick="go(''+href.replace(/'/g,"\'")+'')">'+
+    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+ 
       '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
       '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
       '<td class="td-right" style="'+dim+'">'+daysBadge+'</td>'+
