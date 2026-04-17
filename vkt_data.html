@@ -1086,12 +1086,12 @@ function signOut() {
 }
 
 async function handleCredentialResponse(response) {
+  console.log('[VKT] Google callback fired', response);
   var token = response.credential;
   vktToken = token;
   setStoredToken(token);
 
   try {
-    // Decode email from JWT client-side
     var parts = token.split('.');
     var b64 = parts[1].replace(/-/g,'+').replace(/_/g,'/');
     while(b64.length % 4) b64 += '=';
@@ -1099,26 +1099,26 @@ async function handleCredentialResponse(response) {
     var email = payload.email || '';
     console.log('[VKT] Signed in as:', email);
 
-    // Bypass check first — no server needed
     if(VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
       console.log('[VKT] Bypass granted');
       document.body.classList.remove('auth-pending');
-      document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
+      document.getElementById('vkt-auth-gate').classList.add('hidden');
+      document.getElementById('vkt-auth-gate').style.display = 'none';
       init();
       return;
     }
 
-    // Non-owner — grant trial (server not deployed yet)
     showDashboard({ isTrialing: true, trialDaysLeft: 7, email: email });
     init();
   } catch(e) {
     console.error('[VKT] Auth error:', e);
-    // Fallback — let them in
     document.body.classList.remove('auth-pending');
-    document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
+    document.getElementById('vkt-auth-gate').classList.add('hidden');
+    document.getElementById('vkt-auth-gate').style.display = 'none';
     init();
   }
 }
+window.handleCredentialResponse = handleCredentialResponse;
 
 // Check URL params for post-checkout redirect
 var urlParams = new URLSearchParams(window.location.search);
