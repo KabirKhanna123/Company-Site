@@ -232,6 +232,23 @@
   </style>
 </head>
 <body class="auth-pending">
+<script>
+// Immediately hide auth gate if valid token exists — prevents flash on event page nav
+(function(){
+  try {
+    var stored = localStorage.getItem('vkt_google_token');
+    if(stored) {
+      var b64 = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      while(b64.length % 4) b64 += '=';
+      var p = JSON.parse(atob(b64));
+      var exp = p.exp ? p.exp * 1000 : 0;
+      if(!exp || Date.now() < exp) {
+        document.write('<style>#vkt-auth-gate{display:none!important}</style>');
+      }
+    }
+  } catch(e){}
+})();
+</script>
 
 <nav>
   <div class="logo">Victory Kay <span>Tickets</span></div>
