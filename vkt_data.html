@@ -211,6 +211,24 @@
     .platform-card.best { border-color:#22c55e; background:#f0fff4; }
     .platform-card.best .platform-card-name { color:#22c55e; }
 
+  
+    /* ── INFO MODAL ── */
+    #info-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9990; align-items:center; justify-content:center; }
+    #info-modal.open { display:flex; }
+    .info-modal-card { background:#fff; border-radius:14px; padding:28px 28px 20px; max-width:500px; width:92%; max-height:85vh; overflow-y:auto; }
+    .info-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+    .info-modal-title { font-size:16px; font-weight:700; color:#111; }
+    .info-modal-close { background:none; border:none; font-size:20px; cursor:pointer; color:#aaa; line-height:1; padding:0 4px; }
+    .info-modal-close:hover { color:#111; }
+    .info-row { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #f0eeea; align-items:flex-start; }
+    .info-row:last-child { border:none; padding-bottom:0; }
+    .info-col-name { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#d4a843; min-width:80px; padding-top:2px; }
+    .info-col-desc { font-size:12px; color:#555; line-height:1.5; }
+    .info-col-desc strong { color:#111; }
+    /* Info button */
+    .info-btn { background:none; border:1px solid #ddd; border-radius:999px; padding:3px 10px; font-size:11px; color:#888; cursor:pointer; display:inline-flex; align-items:center; gap:5px; margin-left:8px; }
+    .info-btn:hover { border-color:#d4a843; color:#d4a843; }
+
   </style>
 </head>
 <body class="auth-pending">
@@ -221,7 +239,7 @@
 </nav>
 
 <div class="header">
-  <h1><strong>VKT</strong> Market Data</h1>
+  <h1><strong>VKT</strong> Market Data <button class="info-btn" onclick="document.getElementById('info-modal').classList.add('open')">ℹ️ Column Guide</button></h1>
   <div class="header-count" id="eventCount">Loading...</div>
 </div>
 
@@ -1120,6 +1138,11 @@ async function handleCredentialResponse(response) {
 }
 window.handleCredentialResponse = handleCredentialResponse;
 
+// Close info modal on background click
+document.getElementById('info-modal').addEventListener('click', function(e) {
+  if(e.target === this) this.classList.remove('open');
+});
+
 // Check URL params for post-checkout redirect
 var urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('subscribed') === 'true') {
@@ -1178,6 +1201,78 @@ window.addEventListener('load', function() {
 
 </script>
 
+
+
+<!-- INFO MODAL -->
+<div id="info-modal">
+  <div class="info-modal-card">
+    <div class="info-modal-header">
+      <div class="info-modal-title">📊 Column Guide</div>
+      <button class="info-modal-close" onclick="document.getElementById('info-modal').classList.remove('open')">×</button>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Event</div>
+      <div class="info-col-desc">The name of the event. Click any row to open the full event analysis page with price history charts and section data.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Cat</div>
+      <div class="info-col-desc">Event category — <strong>FIFA</strong>, NBA, MLB, NFL, NHL, F1, Concert, etc. Use the category filter to narrow your view.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Days</div>
+      <div class="info-col-desc">Days until the event. <strong style="color:#ef4444;">Red</strong> = 7 days or less (urgent), <strong style="color:#d4a843;">Gold</strong> = within 30 days, Grey = further out. Sortable.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Date</div>
+      <div class="info-col-desc">The event date. Default sort is soonest first. Click the column header to toggle ascending/descending.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Venue</div>
+      <div class="info-col-desc">The venue name. Use the venue search bar to filter by location.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Floor</div>
+      <div class="info-col-desc"><strong>Cheapest listing</strong> currently on StubHub for this event. This is the most important pricing reference — your listing needs to beat this to sell first. Sortable.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">ATP</div>
+      <div class="info-col-desc"><strong>Average Ticket Price</strong> — the mean price across all active listings. Useful for gauging the midpoint of the market and pricing for margin.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Listings</div>
+      <div class="info-col-desc">Total number of active listings on the platform right now. High listings = more competition. Low listings = less supply, often means prices are rising.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Demand</div>
+      <div class="info-col-desc">VKT's proprietary <strong>Demand Score</strong> (1–99). Calculated from days to event, sell-through rate, floor price trend, and listing volume momentum. <strong style="color:#22c55e;">60+</strong> = high demand, <strong style="color:#d4a843;">35–59</strong> = moderate, <strong style="color:#ef4444;">below 35</strong> = low. Sortable.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Sold ▼</div>
+      <div class="info-col-desc"><strong>Sell-through signal</strong> — the net change in listings since first tracked. A <strong style="color:#22c55e;">negative number</strong> (e.g. -24) means 24 listings were sold. A positive number means supply is growing. Sortable.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">24h Vol</div>
+      <div class="info-col-desc"><strong>24-hour volume change</strong> — % change in listing count over the last 24 hours. <strong style="color:#22c55e;">Green</strong> = listings dropping (selling fast), <strong style="color:#ef4444;">Red</strong> = listings growing (more supply). Sortable.</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-col-name">Alert 🔔</div>
+      <div class="info-col-desc">Set a <strong>floor price alert</strong>. Enter a target floor price and your email — you'll be notified when the floor drops to or below your target. Alerts are saved in your browser.</div>
+    </div>
+
+  </div>
+</div>
 
 <!-- COMING SOON TOAST -->
 <div id="coming-soon-toast">
