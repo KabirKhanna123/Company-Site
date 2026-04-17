@@ -1125,21 +1125,23 @@ window.addEventListener('load', async function() {
       }
     } catch(e) {}
 
-    var authData = await checkAccess(stored);
-    if (authData && authData.access) {
-      vktToken = stored;
-      showDashboard(authData);
-      init();
-      return;
-    } else if (authData && !authData.access) {
-      vktToken = stored;
-      showPaywall();
-      return;
-    }
-    // Token expired or server down — remove pending so blur shows behind gate
+    // API not yet deployed — grant trial access for stored token users
+    try {
+      var b64b = stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      while(b64b.length % 4) b64b += '=';
+      var payloadB = JSON.parse(decodeURIComponent(escape(atob(b64b))));
+      var emailB = payloadB.email || '';
+      var expB = payloadB.exp ? payloadB.exp * 1000 : 0;
+      if(expB && Date.now() > expB) { clearStoredToken(); }
+      else if(emailB) {
+        vktToken = stored;
+        document.body.classList.remove('auth-pending');
+        document.getElementById('vkt-auth-gate').style.display = 'none';
+        init();
+        return;
+      }
+    } catch(e) { clearStoredToken(); }
     document.body.classList.remove('auth-pending');
-    // Token invalid — fall through to Google sign-in
-    clearStoredToken();
   }
 
   // Show Google sign-in
