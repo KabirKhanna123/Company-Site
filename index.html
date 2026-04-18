@@ -221,195 +221,224 @@
         .service-step h3 { margin-top: 0; font-size: 1.1rem; }
         .service-step p { margin-bottom: 0; }
 
-        /* ===== PROFESSIONALS PAGE ===== */
-        .professionals-intro { margin-bottom: 48px; }
-        .professionals-intro p { font-size: 1.05rem; line-height: 1.85; color: var(--text); max-width: 680px; }
+        /* ===== PROFESSIONALS TAB SYSTEM ===== */
+        #page-professionals { background: var(--black); }
 
-        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 8px; }
-
-        .product-card {
-            border: 1px solid var(--border);
-            border-top: 3px solid var(--gold);
-            background: #ffffff;
-            padding: 30px 28px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-            display: block;
+        .pro-tab-bar {
+            background: var(--black);
+            border-bottom: 1px solid #1e1e1e;
+            position: sticky;
+            top: 72px;
+            z-index: 100;
         }
-        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-
-        .product-card-type {
-            font-size: 0.62rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--gold);
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        .product-card-title {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--black);
-            line-height: 1.15;
-            margin-bottom: 16px;
-        }
-        .product-card-bullets {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 22px 0;
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-        }
-        .product-card-bullets li {
-            font-size: 0.88rem;
-            color: var(--text);
-            line-height: 1.65;
-            padding: 5px 0;
+        .pro-tab-bar-inner {
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 0 48px;
         }
-        .product-card-bullets li::before {
-            content: "—";
-            color: var(--gold);
-            font-weight: 700;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-        .product-card-cta {
-            font-size: 0.68rem;
+        .pro-tab-bar-inner::-webkit-scrollbar { display: none; }
+
+        .pro-tab {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #555;
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: var(--gold);
-            font-weight: 700;
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
-            display: block;
+            padding: 20px 24px 18px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+            flex-shrink: 0;
         }
+        .pro-tab:hover { color: #999; }
+        .pro-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-        /* ===== PRODUCT DETAIL MODAL ===== */
-        .product-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 10000;
-            overflow-y: auto;
-        }
-        .product-modal-overlay.active { display: block; }
+        .pro-tab-content { display: none; }
+        .pro-tab-content.active { display: block; }
 
-        .product-modal {
-            background: #0c0c0c;
-            max-width: 700px;
-            margin: 5% auto;
-            border: 1px solid #1e1e1e;
-            border-top: 3px solid var(--gold);
-            position: relative;
+        /* Tool page hero */
+        .tool-hero {
+            background: var(--black);
+            border-bottom: 1px solid #1e1e1e;
+            padding: 64px 8% 56px;
         }
-
-        .product-modal-header {
-            padding: 48px 52px 36px;
-            border-bottom: 1px solid #1a1a1a;
-        }
-        .product-modal-tag {
+        .tool-hero-type {
             font-size: 0.62rem;
             letter-spacing: 4px;
             text-transform: uppercase;
             color: var(--gold);
             font-weight: 700;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
-        .product-modal-tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--gold); }
-        .product-modal-title {
+        .tool-hero-type::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--gold); }
+        .tool-hero h2 {
             font-family: Georgia, 'Times New Roman', serif;
-            font-size: 2.4rem;
+            font-size: 3.2rem;
             font-weight: bold;
             color: #ffffff;
-            line-height: 1.1;
-            margin-bottom: 14px;
+            line-height: 1.05;
+            margin-bottom: 20px;
+            max-width: 700px;
         }
-        .product-modal-title em { color: var(--gold); font-style: italic; }
-        .product-modal-desc {
-            font-size: 0.95rem;
+        .tool-hero h2 em { color: var(--gold); font-style: italic; }
+        .tool-hero-desc {
+            font-size: 1rem;
             color: #666;
-            line-height: 1.78;
-            max-width: 500px;
+            line-height: 1.82;
+            max-width: 580px;
+            margin-bottom: 32px;
         }
-        .product-modal-close {
-            position: absolute;
-            top: 20px;
-            right: 24px;
-            background: none;
-            border: none;
+        .tool-hero-platforms { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tool-platform-badge {
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             color: #333;
-            font-size: 1.5rem;
-            cursor: pointer;
-            line-height: 1;
-            transition: color 0.2s;
-            padding: 4px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border: 1px solid #222;
+            background: #111;
         }
-        .product-modal-close:hover { color: var(--gold); }
+        .tool-platform-badge.silent {
+            color: var(--gold);
+            border-color: #2a2200;
+            background: #1a1400;
+        }
 
-        .product-modal-body { padding: 40px 52px 52px; }
-
-        .product-modal-section { margin-bottom: 32px; }
-        .product-modal-section-label {
+        /* Tool body */
+        .tool-body {
+            background: var(--warm);
+        }
+        .tool-body-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 64px 48px 80px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+        }
+        .tool-section { }
+        .tool-section-full {
+            grid-column: 1 / -1;
+        }
+        .tool-section-label {
             font-size: 0.62rem;
             letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--gold);
             font-weight: 700;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
         }
-
-        .product-modal-feature {
+        .tool-feature {
             display: flex;
             align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 18px;
+            gap: 14px;
+            margin-bottom: 22px;
         }
-        .product-modal-dot {
-            width: 5px;
-            height: 5px;
-            background: var(--gold);
-            border-radius: 50%;
-            margin-top: 7px;
-            flex-shrink: 0;
+        .tool-feature-num {
+            font-family: Georgia, serif;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--gold);
+            line-height: 1;
+            min-width: 28px;
+            opacity: 0.35;
         }
-        .product-modal-feature-text { font-size: 0.88rem; color: #666; line-height: 1.65; }
-        .product-modal-feature-text strong { display: block; color: #ccc; font-weight: 600; margin-bottom: 3px; font-size: 0.82rem; letter-spacing: 0.3px; }
+        .tool-feature-body { flex: 1; }
+        .tool-feature-body strong {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--black);
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+        .tool-feature-body p {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.7;
+            margin: 0;
+        }
 
-        .product-modal-platforms {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 6px;
+        /* Goal cards (for Pricer + Strategy) */
+        .tool-goal-cards { display: flex; flex-direction: column; gap: 12px; }
+        .tool-goal-card {
+            background: var(--black);
+            border-left: 3px solid var(--gold);
+            padding: 18px 20px;
         }
-        .product-modal-platform {
+        .tool-goal-card.recommended { border-left-color: var(--gold); position: relative; }
+        .tool-goal-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--black);
+            background: var(--gold);
+            font-weight: 700;
+            padding: 3px 8px;
+            margin-bottom: 8px;
+        }
+        .tool-goal-card-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .tool-goal-card-desc {
+            font-size: 0.82rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Signals grid */
+        .tool-signals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .tool-signal {
+            background: var(--black);
+            padding: 16px 18px;
+            border: 1px solid #1e1e1e;
+        }
+        .tool-signal-label {
             font-size: 0.62rem;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             text-transform: uppercase;
             color: #444;
             font-weight: 700;
-            padding: 5px 12px;
-            border: 1px solid #1e1e1e;
-            background: #111;
+            margin-bottom: 4px;
+        }
+        .tool-signal-val {
+            font-family: Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--gold);
         }
 
-        .product-modal-cta-row {
+        /* Tool CTA bar */
+        .tool-cta-bar {
+            background: var(--black);
+            border-top: 1px solid #1e1e1e;
+            padding: 32px 8%;
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-top: 32px;
-            padding-top: 28px;
-            border-top: 1px solid #1a1a1a;
+            gap: 24px;
         }
-        .product-modal-btn {
+        .tool-cta-btn {
             padding: 14px 36px;
             background: var(--gold);
             color: var(--black);
@@ -419,22 +448,25 @@
             font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
+            font-family: inherit;
             transition: opacity 0.2s;
-            font-family: inherit;
         }
-        .product-modal-btn:hover { opacity: 0.85; }
-        .product-modal-dismiss {
-            background: none;
-            border: none;
-            color: #333;
-            font-size: 0.68rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-family: inherit;
-            transition: color 0.2s;
+        .tool-cta-btn:hover { opacity: 0.85; }
+        .tool-cta-note {
+            font-size: 0.78rem;
+            color: #444;
+            line-height: 1.6;
         }
-        .product-modal-dismiss:hover { color: #666; }
+
+        @media (max-width: 768px) {
+            .pro-tab-bar-inner { padding: 0 20px; }
+            .pro-tab { padding: 16px 14px 14px; font-size: 0.65rem; letter-spacing: 1.5px; }
+            .tool-hero { padding: 40px 6% 36px; }
+            .tool-hero h2 { font-size: 2.2rem; }
+            .tool-body-inner { grid-template-columns: 1fr; padding: 40px 6% 60px; gap: 32px; }
+            .tool-section-full { grid-column: 1; }
+            .tool-cta-bar { flex-direction: column; align-items: flex-start; padding: 28px 6%; }
+        }
 
         /* ===== FOOTER ===== */
         footer { background: #080808; padding: 24px 8%; border-top: 3px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
@@ -820,271 +852,454 @@
 
         <!-- PROFESSIONALS PAGE -->
         <div id="page-professionals" class="page-content" style="display:none;">
-            <div class="page-inner">
-                <div class="page-tag">Tools for Resellers</div>
-                <h1>Built for <em>Professionals.</em></h1>
-                <div class="professionals-intro">
-                    <p>Victory Kay Tickets builds software and data products designed for serious ticket resellers — the tools that let you move faster, price smarter, and outperform the market every single time.</p>
-                </div>
 
-                <div class="products-grid">
-
-                    <!-- Product 1: VKT AI Pricer -->
-                    <div class="product-card" onclick="openProductModal('pricer')">
-                        <div class="product-card-type">Chrome Extension</div>
-                        <div class="product-card-title">VKT AI Pricer</div>
-                        <ul class="product-card-bullets">
-                            <li>Pulls live section data — floor, average, and ceiling — directly from the listing page</li>
-                            <li>Price to Sell mode undercuts the section floor by 1% for the fastest move</li>
-                            <li>Price for Margin mode prices against closest comp rows to maximize your return</li>
-                            <li>AI-generated rationale explains the suggested price and optimal timing to list</li>
-                            <li>Works on StubHub, SeatGeek, Vivid Seats, and Ticketmaster</li>
-                        </ul>
-                        <span class="product-card-cta">View Full Details →</span>
-                    </div>
-
-                    <!-- Product 2: STH Marketplace -->
-                    <div class="product-card" onclick="openProductModal('marketplace')">
-                        <div class="product-card-type">Platform</div>
-                        <div class="product-card-title">STH Marketplace</div>
-                        <ul class="product-card-bullets">
-                            <li>Verified peer-to-peer marketplace exclusively for season ticket holders</li>
-                            <li>Every transaction reviewed, verified, and handled end-to-end by VKT</li>
-                            <li>Secure transfers coordinated through official team and venue systems</li>
-                            <li>Covers all major leagues — NFL, MLB, NBA, NHL, MLS, and live events</li>
-                            <li>Zero hidden fees, fully transparent pricing on every listing</li>
-                        </ul>
-                        <span class="product-card-cta">View Full Details →</span>
-                    </div>
-
-                    <!-- Product 3: Market Intelligence -->
-                    <div class="product-card" onclick="openProductModal('intelligence')">
-                        <div class="product-card-type">Data Product</div>
-                        <div class="product-card-title">Secondary Market Intelligence</div>
-                        <ul class="product-card-bullets">
-                            <li>Game-level resale pricing data aggregated across all major platforms</li>
-                            <li>Historical price curves by team, opponent type, day-of-week, and time-to-event</li>
-                            <li>Premium game identification — know which matchups to hold and which to sell early</li>
-                            <li>Demand signals and sell-through rate tracking updated in real time</li>
-                            <li>Available as structured data reports or direct API access</li>
-                        </ul>
-                        <span class="product-card-cta">View Full Details →</span>
-                    </div>
-
-                    <!-- Product 4: Managed Resale (Full Service) -->
-                    <div class="product-card" onclick="openProductModal('managed')">
-                        <div class="product-card-type">Managed Service</div>
-                        <div class="product-card-title">Full-Service Resale Management</div>
-                        <ul class="product-card-bullets">
-                            <li>Complete end-to-end resale handling — no effort required from you</li>
-                            <li>Dynamic repricing throughout the event cycle to maximize final sale price</li>
-                            <li>Simultaneous multi-platform listing on every major secondary marketplace</li>
-                            <li>Dedicated account management for high-volume and corporate holders</li>
-                            <li>80/20 payout split with full sale summary after every transaction</li>
-                        </ul>
-                        <span class="product-card-cta">View Full Details →</span>
-                    </div>
-
+            <!-- Tab bar -->
+            <div class="pro-tab-bar">
+                <div class="pro-tab-bar-inner">
+                    <button class="pro-tab active" onclick="switchProTab('pricer', this)">VKT Pricer</button>
+                    <button class="pro-tab" onclick="switchProTab('volume', this)">Volume Tracker</button>
+                    <button class="pro-tab" onclick="switchProTab('price', this)">Price Tracker</button>
+                    <button class="pro-tab" onclick="switchProTab('strategy', this)">VKT Strategy</button>
+                    <button class="pro-tab" onclick="switchProTab('infra', this)">Infrastructure</button>
                 </div>
             </div>
-        </div>
+
+            <!-- ===== VKT PRICER ===== -->
+            <div id="pro-pricer" class="pro-tab-content active">
+                <div class="tool-hero">
+                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; AI-Powered</div>
+                    <h2>VKT Pricer.<br><em>Know your number before you list.</em></h2>
+                    <p class="tool-hero-desc">The original VKT pricing tool. Enter your section, row, and quantity — the extension scrapes every live listing on the page, strips out filter noise, and sends clean market data to Claude AI. You get back a specific dollar recommendation for each of three goals, with the reasoning behind it.</p>
+                    <div class="tool-hero-platforms">
+                        <div class="tool-platform-badge">StubHub</div>
+                        <div class="tool-platform-badge">SeatGeek</div>
+                        <div class="tool-platform-badge">Vivid Seats</div>
+                        <div class="tool-platform-badge">Ticketmaster</div>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-body-inner">
+                        <div class="tool-section">
+                            <div class="tool-section-label">How It Works</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">01</div>
+                                <div class="tool-feature-body">
+                                    <strong>Enter Your Seat Details</strong>
+                                    <p>Input your section, row, and quantity into the extension panel. The tool knows what section you're pricing and targets the right comparable listings automatically.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">02</div>
+                                <div class="tool-feature-body">
+                                    <strong>Click Your Section on the Map</strong>
+                                    <p>On StubHub, click your section directly on the seating map. The extension captures all live listings for that section in real time — no API keys, no manual input.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">03</div>
+                                <div class="tool-feature-body">
+                                    <strong>AI Scrapes and Cleans the Data</strong>
+                                    <p>VKT Pricer pulls every active listing, filters out outliers and noise, and packages the clean market picture — floor, median, and ceiling — for Claude AI to analyze.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">04</div>
+                                <div class="tool-feature-body">
+                                    <strong>Get Your Price with Reasoning</strong>
+                                    <p>Claude returns a specific price recommendation for each of your three goals, along with a written explanation of why that number makes sense given the current market.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">Three Pricing Goals</div>
+                            <div class="tool-goal-cards">
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Price to Sell</div>
+                                    <p class="tool-goal-card-desc">Positions your listing to move first. Undercuts the section floor so you're the most competitive ticket on the market — built for sellers who need it gone.</p>
+                                </div>
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Price for Margin</div>
+                                    <p class="tool-goal-card-desc">Prices against the nearest comparable rows rather than the floor — capturing real value without racing to the bottom. Best for sellers who can hold a few days.</p>
+                                </div>
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Hold High</div>
+                                    <p class="tool-goal-card-desc">A ceiling-anchored price for sellers who believe demand will increase as the event approaches. High risk, high reward — backed by AI reasoning on current trajectory.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tool-cta-bar">
+                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <p class="tool-cta-note">Currently in beta. Contact us to join the early access list.</p>
+                </div>
+            </div>
+
+            <!-- ===== VOLUME TRACKER ===== -->
+            <div id="pro-volume" class="pro-tab-content">
+                <div class="tool-hero">
+                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; <span style="color:var(--gold);">Runs Silently</span></div>
+                    <h2>VKT Volume Tracker.<br><em>Watch supply move without lifting a finger.</em></h2>
+                    <p class="tool-hero-desc">Automatically logs how many tickets are on the market every time you visit an event page — no action required. Over time, you see exactly whether supply is rising, falling, or collapsing before you decide when to list.</p>
+                    <div class="tool-hero-platforms">
+                        <div class="tool-platform-badge silent">Runs Silently on All 6 Platforms</div>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-body-inner">
+                        <div class="tool-section">
+                            <div class="tool-section-label">What the Sidebar Shows</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Total Event Listings</strong>
+                                    <p>The current number of tickets on the market for the entire event, pulled live from the page every time you visit.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Change Over Your Time Window</strong>
+                                    <p>Select 3d, 7d, 14d, or 30d to see how total supply has moved relative to your logged baseline. Up or down — and by how much.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Bar Chart of the Trend</strong>
+                                    <p>A visual history of listing counts across your selected window — so you can spot acceleration, stagnation, or sudden drops at a glance.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Supply Indicator</strong>
+                                    <p>A plain-language signal — Low Supply, High Supply, or Selling Fast (when StubHub confirms active demand) — so you don't have to interpret the chart yourself.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Section-Level Tracking</strong>
+                                    <p>Filter down to your specific section to see how inventory in your tier is moving — not just the whole event.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">Why It Matters</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">01</div>
+                                <div class="tool-feature-body">
+                                    <strong>It runs without any action</strong>
+                                    <p>Every time you browse an event page, Volume Tracker silently captures and stores the supply snapshot. You don't click anything — the data builds automatically.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">02</div>
+                                <div class="tool-feature-body">
+                                    <strong>Supply tells you when to list</strong>
+                                    <p>When supply drops fast, prices are about to rise. When supply stays flat for days, demand is soft. Volume Tracker gives you the signal before the price chart catches up.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">03</div>
+                                <div class="tool-feature-body">
+                                    <strong>Shared across all VKT users</strong>
+                                    <p>Every VKT user browsing the same event contributes to the same volume history. You get richer data with more frequent snapshots — even for events you've only visited once.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tool-cta-bar">
+                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <p class="tool-cta-note">Works on StubHub, SeatGeek, Vivid Seats, Ticketmaster, AXS, and GameTime.</p>
+                </div>
+            </div>
+
+            <!-- ===== PRICE TRACKER ===== -->
+            <div id="pro-price" class="pro-tab-content">
+                <div class="tool-hero">
+                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; <span style="color:var(--gold);">Runs Silently</span></div>
+                    <h2>VKT Price Tracker.<br><em>See if prices are rising or falling before you decide.</em></h2>
+                    <p class="tool-hero-desc">Tracks floor price and average ticket price (ATP) over time for any event and section. Every page visit silently logs the current prices. Open the sidebar and you see the full history — so you know whether to list now or wait.</p>
+                    <div class="tool-hero-platforms">
+                        <div class="tool-platform-badge silent">Auto-Logs on Every Page Visit</div>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-body-inner">
+                        <div class="tool-section">
+                            <div class="tool-section-label">What Gets Tracked</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Floor Price History</strong>
+                                    <p>The cheapest ticket available for the event, charted over time. Watch it climb as supply tightens, or drop as sellers undercut each other.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Average Ticket Price (ATP)</strong>
+                                    <p>The mean price across all listings — a cleaner signal than the floor because it isn't distorted by a single deeply discounted outlier.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Section-Level Floor and ATP</strong>
+                                    <p>Select your specific section to see floor and ATP just for that tier — the numbers that actually matter for your inventory.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Days to Event Badge</strong>
+                                    <p>Always visible at the top of the sidebar so you can interpret price trends in context. A price drop at 14 days out means something very different at 2 days out.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Time Window Selector</strong>
+                                    <p>Toggle between 3d, 7d, 14d, and 30d to zoom in or out on the price trend. See both the short-term momentum and the longer-term trajectory.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">How to Use It</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">01</div>
+                                <div class="tool-feature-body">
+                                    <strong>Install and forget it</strong>
+                                    <p>Price Tracker works invisibly in the background. Browse any event page and it captures the current floor and ATP. No clicks, no setup per event.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">02</div>
+                                <div class="tool-feature-body">
+                                    <strong>Open the sidebar when you're ready to decide</strong>
+                                    <p>When you're thinking about listing, click the VKT icon. The charts show you exactly where prices have been and how fast they're moving.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">03</div>
+                                <div class="tool-feature-body">
+                                    <strong>Pair with Volume Tracker for the full picture</strong>
+                                    <p>Price trend plus supply trend together tell you whether a price rise is sustainable or a temporary spike. Both tools feed into VKT Strategy automatically.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tool-cta-bar">
+                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <p class="tool-cta-note">Data is stored per-event and shared across VKT users, giving you more history faster.</p>
+                </div>
+            </div>
+
+            <!-- ===== VKT STRATEGY ===== -->
+            <div id="pro-strategy" class="pro-tab-content">
+                <div class="tool-hero">
+                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; All-in-One</div>
+                    <h2>VKT Strategy.<br><em>Live prices, historical data, and AI — in one decision.</em></h2>
+                    <p class="tool-hero-desc">The flagship VKT tool. Enter your section, row, quantity, and optional cost basis. The extension scrapes live prices, pulls your volume and price trend history from the database, factors in days to event, and returns three fully built strategy cards — one of which is auto-tagged Recommended.</p>
+                    <div class="tool-hero-platforms">
+                        <div class="tool-platform-badge">StubHub</div>
+                        <div class="tool-platform-badge">SeatGeek</div>
+                        <div class="tool-platform-badge">Vivid Seats</div>
+                        <div class="tool-platform-badge">Ticketmaster</div>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-body-inner">
+                        <div class="tool-section">
+                            <div class="tool-section-label">Strategy Cards</div>
+                            <div class="tool-goal-cards">
+                                <div class="tool-goal-card recommended">
+                                    <div class="tool-goal-badge">Auto-Tagged Based on Data</div>
+                                    <div class="tool-goal-card-title">Price to Sell</div>
+                                    <p class="tool-goal-card-desc">Specific price, insight on why this is the fastest-exit option given current supply and days remaining. If cost basis entered — exact profit and ROI shown.</p>
+                                </div>
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Price for Margin</div>
+                                    <p class="tool-goal-card-desc">Anchored to comparable rows rather than the floor. Shows the premium you're capturing over a sell-now exit. Full profit breakdown if cost basis provided.</p>
+                                </div>
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Hold High</div>
+                                    <p class="tool-goal-card-desc">A ceiling-anchored position for sellers who believe the market will move up. Backed by AI reasoning on current price and volume trajectory.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">What Feeds the Decision</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Live Price Scrape</strong>
+                                    <p>Current listings scraped and cleaned in real time — every active ticket in your section at this exact moment.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Volume History from Database</strong>
+                                    <p>How many tickets have been on this event over time — pulled from the VKT shared database, not just your own visits.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Price Trend History</strong>
+                                    <p>Floor and ATP trajectory over the past 3–30 days — is the market rising or falling heading into the event?</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Days to Event</strong>
+                                    <p>Weighted into every recommendation — a holding strategy that makes sense at 14 days is very different at 3 days.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section-full">
+                            <div class="tool-section-label">Additional Panels</div>
+                            <div class="tool-signals-grid">
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">Market Snapshot</div>
+                                    <div class="tool-signal-val">Live grid of key prices</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">Market Signals</div>
+                                    <div class="tool-signal-val">Volume + floor trends with window selector</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">Cost Basis ROI</div>
+                                    <div class="tool-signal-val">Profit breakdown per strategy if cost entered</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">AI Market Analysis</div>
+                                    <div class="tool-signal-val">3–4 sentence strategic read synthesizing everything</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tool-cta-bar">
+                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <p class="tool-cta-note">VKT Strategy is the most comprehensive tool in the suite — requires VKT Volume Tracker and Price Tracker data to be fully powered.</p>
+                </div>
+            </div>
+
+            <!-- ===== INFRASTRUCTURE ===== -->
+            <div id="pro-infra" class="pro-tab-content">
+                <div class="tool-hero">
+                    <div class="tool-hero-type">Backend Infrastructure &nbsp;&middot;&nbsp; Vercel + Supabase</div>
+                    <h2>Shared Infrastructure.<br><em>The data engine behind all four tools.</em></h2>
+                    <p class="tool-hero-desc">Every VKT extension runs on a shared backend — a Vercel API connected to a Supabase database. It seeds events, scrapes markets on a schedule, and stores the historical data that makes VKT Strategy's AI analysis possible. Data built by one user on one event benefits every VKT user tracking the same event.</p>
+                    <div class="tool-hero-platforms">
+                        <div class="tool-platform-badge">Vercel API</div>
+                        <div class="tool-platform-badge">Supabase</div>
+                        <div class="tool-platform-badge">Shared Across All Extensions</div>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="tool-body-inner">
+                        <div class="tool-section">
+                            <div class="tool-section-label">Automated Data Pipeline</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">01</div>
+                                <div class="tool-feature-body">
+                                    <strong>Daily Event Seeding — 6am</strong>
+                                    <p>Every morning the system pulls upcoming events from StubHub and seeds them into the database. New events are automatically available to all extensions without any manual setup.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">02</div>
+                                <div class="tool-feature-body">
+                                    <strong>Four Scrapes Per Day</strong>
+                                    <p>At midnight, 6am, noon, and 6pm — the system scrapes listing counts for every tracked event and stores the snapshot. This is the data that powers Volume Tracker's bar charts and trend signals.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">03</div>
+                                <div class="tool-feature-body">
+                                    <strong>Continuous Price Logging</strong>
+                                    <p>Every time any VKT user visits an event page, the extension silently pushes floor price and ATP to Supabase. Price Tracker charts are built from this rolling dataset — updated by the community of users in real time.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">04</div>
+                                <div class="tool-feature-body">
+                                    <strong>Section-Level Storage</strong>
+                                    <p>Data is stored at the section level, not just event level. So when you filter to Section 114 in Price Tracker or Strategy, you get section-specific floor and ATP history — not just the full event average.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">What Gets Stored</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Volume Snapshots</strong>
+                                    <p>Total listing count per event, four times per day, every day until the event occurs.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Floor Price &amp; ATP</strong>
+                                    <p>Per-event and per-section floor and average ticket price, logged on every user page visit.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Event Metadata</strong>
+                                    <p>Event name, date, venue, days to event — all queryable so any extension can contextualize the data it pulls.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Shared Across All Users</strong>
+                                    <p>Data contributed by any VKT user on any event flows into the shared pool. The more users, the richer and more frequent the history for every event.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section-full">
+                            <div class="tool-section-label">Summary: Which Tool Uses What</div>
+                            <div class="tool-signals-grid">
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">VKT Pricer</div>
+                                    <div class="tool-signal-val">Live scrape only — no history needed</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">Volume Tracker</div>
+                                    <div class="tool-signal-val">Volume snapshot history from Supabase</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">Price Tracker</div>
+                                    <div class="tool-signal-val">Floor + ATP history from Supabase</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">VKT Strategy</div>
+                                    <div class="tool-signal-val">Live scrape + all history + Claude AI synthesis</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tool-cta-bar">
+                    <button class="tool-cta-btn" onclick="openBookingModal()">Contact Us &rarr;</button>
+                    <p class="tool-cta-note">Questions about the infrastructure or API access? Reach out directly.</p>
+                </div>
+            </div>
+
+        </div><!-- end page-professionals -->
 
     </div><!-- end page-container -->
-
-    <!-- ===== PRODUCT DETAIL MODALS ===== -->
-
-    <!-- VKT AI Pricer Modal -->
-    <div class="product-modal-overlay" id="modal-pricer">
-        <div class="product-modal">
-            <button class="product-modal-close" onclick="closeProductModal('pricer')">&#x2715;</button>
-            <div class="product-modal-header">
-                <div class="product-modal-tag">Chrome Extension</div>
-                <div class="product-modal-title">VKT AI Pricer.<br><em>Know your number.</em></div>
-                <p class="product-modal-desc">A Chrome extension built for sellers — pulling real-time section data and AI analysis to suggest the exact price that fits your goal. Install it once, use it on every listing page.</p>
-            </div>
-            <div class="product-modal-body">
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">Pricing Modes</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Price to Sell</strong>Instantly undercuts the cheapest listing in your section by 1% so your tickets move first. Built for sellers who prioritize speed over margin.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Price for Margin</strong>Prices your seats against the closest comparable rows, not the floor, to maximize what you walk away with. For sellers who can afford to hold.</div>
-                    </div>
-                </div>
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">How It Works</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Live Section Data</strong>Reads the listing page in real time — no manual input. Pulls floor, average, and ceiling prices from the active market as you browse.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>AI-Powered Insight</strong>Explains why the suggested price makes sense — factoring in current demand, competitor density, and the optimal window to list for maximum exposure.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Instant Recommendations</strong>Enter your section, row, and quantity. Select your goal. Get your suggested price in seconds — no spreadsheets, no guesswork.</div>
-                    </div>
-                </div>
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">Supported Platforms</div>
-                    <div class="product-modal-platforms">
-                        <div class="product-modal-platform">StubHub</div>
-                        <div class="product-modal-platform">SeatGeek</div>
-                        <div class="product-modal-platform">Vivid Seats</div>
-                        <div class="product-modal-platform">Ticketmaster</div>
-                    </div>
-                </div>
-                <div class="product-modal-cta-row">
-                    <button class="product-modal-btn" onclick="closeProductModal('pricer'); openBookingModal();">Get Early Access &rarr;</button>
-                    <button class="product-modal-dismiss" onclick="closeProductModal('pricer')">Dismiss</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- STH Marketplace Modal -->
-    <div class="product-modal-overlay" id="modal-marketplace">
-        <div class="product-modal">
-            <button class="product-modal-close" onclick="closeProductModal('marketplace')">&#x2715;</button>
-            <div class="product-modal-header">
-                <div class="product-modal-tag">Platform</div>
-                <div class="product-modal-title">STH Marketplace.<br><em>Buy and sell between real fans.</em></div>
-                <p class="product-modal-desc">A trusted marketplace built exclusively for season ticket holders. Every listing is verified by Victory Kay Tickets — so buyers get guaranteed seats and sellers get guaranteed payment.</p>
-            </div>
-            <div class="product-modal-body">
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">For Sellers</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Submit and Walk Away</strong>List your tickets in minutes. VKT handles every buyer inquiry, confirms the transaction, and coordinates the transfer — you just wait for the payment summary.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Transparent 80/20 Split</strong>You keep 80% of every sale. No hidden platform fees, no surprise deductions. You receive a complete breakdown the moment your tickets sell.</div>
-                    </div>
-                </div>
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">For Buyers</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>100% Verified Listings</strong>Every seat on the marketplace is sourced from a verified season ticket holder and reviewed by our team before it goes live. No fraud, no reprints, no risk.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>VKT-Managed Transfers</strong>All ticket transfers are handled through official team systems by our team. You receive your tickets securely — no direct exchange with the seller required.</div>
-                    </div>
-                </div>
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">Leagues Covered</div>
-                    <div class="product-modal-platforms">
-                        <div class="product-modal-platform">NFL</div>
-                        <div class="product-modal-platform">MLB</div>
-                        <div class="product-modal-platform">NBA</div>
-                        <div class="product-modal-platform">NHL</div>
-                        <div class="product-modal-platform">MLS</div>
-                        <div class="product-modal-platform">Live Events</div>
-                    </div>
-                </div>
-                <div class="product-modal-cta-row">
-                    <button class="product-modal-btn" onclick="closeProductModal('marketplace'); openMarketplacePage();">Browse Listings &rarr;</button>
-                    <button class="product-modal-dismiss" onclick="closeProductModal('marketplace')">Dismiss</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Market Intelligence Modal -->
-    <div class="product-modal-overlay" id="modal-intelligence">
-        <div class="product-modal">
-            <button class="product-modal-close" onclick="closeProductModal('intelligence')">&#x2715;</button>
-            <div class="product-modal-header">
-                <div class="product-modal-tag">Data Product</div>
-                <div class="product-modal-title">Secondary Market<br><em>Intelligence.</em></div>
-                <p class="product-modal-desc">Game-level resale data, historical price curves, and demand signals across every major secondary marketplace — structured for resellers who want an informational edge.</p>
-            </div>
-            <div class="product-modal-body">
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">What's Included</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Game-Level Pricing Data</strong>Floor, average, and ceiling resale prices for every home game — broken down by section tier and updated throughout the event cycle.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Historical Price Curves</strong>See how prices move from initial listing to day-of-event across different opponent types, day-of-week, and months in the season — for any team in any league.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Premium Game Identification</strong>Automatically flags which upcoming games in your team's schedule are tracking above average demand — so you know when to hold and when to sell early.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Sell-Through Rate Tracking</strong>Monitor how quickly comparable listings are clearing in your section — a real-time signal of whether you're priced to move or sitting too high.</div>
-                    </div>
-                </div>
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">Delivery Options</div>
-                    <div class="product-modal-platforms">
-                        <div class="product-modal-platform">Structured Reports</div>
-                        <div class="product-modal-platform">API Access</div>
-                        <div class="product-modal-platform">Custom Cadence</div>
-                    </div>
-                </div>
-                <div class="product-modal-cta-row">
-                    <button class="product-modal-btn" onclick="closeProductModal('intelligence'); document.getElementById('contact').scrollIntoView({behavior:'smooth'});">Request Access &rarr;</button>
-                    <button class="product-modal-dismiss" onclick="closeProductModal('intelligence')">Dismiss</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Managed Resale Modal -->
-    <div class="product-modal-overlay" id="modal-managed">
-        <div class="product-modal">
-            <button class="product-modal-close" onclick="closeProductModal('managed')">&#x2715;</button>
-            <div class="product-modal-header">
-                <div class="product-modal-tag">Managed Service</div>
-                <div class="product-modal-title">Full-Service Resale.<br><em>We handle everything.</em></div>
-                <p class="product-modal-desc">The complete hands-off resale solution. Forward us your tickets, and we price, list, sell, transfer, and pay — all the way through, on every major platform, for every game.</p>
-            </div>
-            <div class="product-modal-body">
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">What We Handle</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Dynamic Pricing Throughout the Cycle</strong>We don't set-it-and-forget-it. Prices are actively managed from the moment you forward tickets to the moment the event starts — adjusting in response to real market movement.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Simultaneous Multi-Platform Listing</strong>Your tickets go live on StubHub, SeatGeek, Vivid Seats, and Ticketmaster Resale at the same time — maximum exposure, maximum chance of sale at the best price.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>All Buyer Communication</strong>We handle every inbound question, offer, and transfer request from buyers — you never interact with a buyer directly unless you want to.</div>
-                    </div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>Secure Transfer & Payment</strong>Transfers are coordinated through official team systems. Once cleared, you receive a full sale summary and your 80% proceeds — no delays, no surprises.</div>
-                    </div>
-                </div>
-                <div class="product-modal-section">
-                    <div class="product-modal-section-label">Pricing</div>
-                    <div class="product-modal-feature">
-                        <div class="product-modal-dot"></div>
-                        <div class="product-modal-feature-text"><strong>No Upfront Cost — Ever</strong>We earn a 20% commission only when your tickets sell. If they don't sell, you pay absolutely nothing. Zero risk to you.</div>
-                    </div>
-                </div>
-                <div class="product-modal-cta-row">
-                    <button class="product-modal-btn" onclick="closeProductModal('managed'); openBookingModal();">Submit Tickets &rarr;</button>
-                    <button class="product-modal-dismiss" onclick="closeProductModal('managed')">Dismiss</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- ABOUT MODAL -->
     <div id="aboutModal" class="modal">
@@ -1325,15 +1540,20 @@
         function openSubscribeModal() { document.getElementById('subscribeModal').classList.add('active'); document.getElementById('subscribeForm').style.display = 'block'; document.getElementById('subscribeConfirm').style.display = 'none'; document.body.style.overflow = 'hidden'; }
         function closeSubscribeModal() { document.getElementById('subscribeModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
 
-        /* ===== PRODUCT MODALS ===== */
-        function openProductModal(id) {
-            var overlay = document.getElementById('modal-' + id);
-            if (overlay) { overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
+        /* ===== PROFESSIONALS TAB SWITCHING ===== */
+        function switchProTab(id, btn) {
+            document.querySelectorAll('.pro-tab-content').forEach(function(el) { el.classList.remove('active'); el.style.display = 'none'; });
+            document.querySelectorAll('.pro-tab').forEach(function(b) { b.classList.remove('active'); });
+            var tab = document.getElementById('pro-' + id);
+            if (tab) { tab.classList.add('active'); tab.style.display = 'block'; }
+            if (btn) btn.classList.add('active');
+            window.scrollTo({ top: 72, behavior: 'smooth' });
         }
-        function closeProductModal(id) {
-            var overlay = document.getElementById('modal-' + id);
-            if (overlay) { overlay.classList.remove('active'); document.body.style.overflow = 'auto'; }
-        }
+        // Init first tab visible
+        document.addEventListener('DOMContentLoaded', function() {
+            var first = document.getElementById('pro-pricer');
+            if (first) first.style.display = 'block';
+        });
 
         /* ===== MARKETPLACE ===== */
         var marketplaceData = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+VGlja2V0IE1hcmtldHBsYWNlICZtZGFzaDsgVmljdG9yeSBLYXkgVGlja2V0czwvdGl0bGU+";
@@ -1359,6 +1579,15 @@
             document.body.classList.add('page-active');
             var page = document.getElementById('page-' + name);
             if (page) page.style.display = 'block';
+            // If opening professionals, reset to first tab
+            if (name === 'professionals') {
+                document.querySelectorAll('.pro-tab-content').forEach(function(el) { el.classList.remove('active'); el.style.display = 'none'; });
+                document.querySelectorAll('.pro-tab').forEach(function(b) { b.classList.remove('active'); });
+                var firstTab = document.getElementById('pro-pricer');
+                var firstBtn = document.querySelector('.pro-tab');
+                if (firstTab) { firstTab.classList.add('active'); firstTab.style.display = 'block'; }
+                if (firstBtn) firstBtn.classList.add('active');
+            }
             window.scrollTo({ top: 0 });
         }
 
@@ -1392,15 +1621,6 @@
             if (dd && btn && !dd.contains(event.target) && !btn.contains(event.target)) {
                 closeDropdown();
             }
-            // Close product modals on overlay click
-            ['pricer','marketplace','intelligence','managed'].forEach(function(id) {
-                var overlay = document.getElementById('modal-' + id);
-                if (overlay && event.target === overlay) {
-                    overlay.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            });
-            // Close other modals on overlay click
             var stdModals = ['whyModal','servicesModal','aboutModal','bookingModal','faqModal','privacyModal','newslettersModal','subscribeModal','reviewsModal'];
             stdModals.forEach(function(id) {
                 var modal = document.getElementById(id);
