@@ -17,6 +17,11 @@
     .logo span { color:#d4a843; }
     nav a { color:#888; font-size:11px; text-decoration:none; letter-spacing:1px; }
     nav a:hover { color:#d4a843; }
+    .nav-right { display:flex; align-items:center; gap:18px; }
+    #btn-manage-sub { display:none; background:none; border:none; color:#888; font-size:11px; letter-spacing:1px; cursor:pointer; font-family:inherit; padding:0; }
+    #btn-manage-sub:hover { color:#d4a843; }
+    #btn-signout-nav { display:none; background:none; border:none; color:#888; font-size:11px; letter-spacing:1px; cursor:pointer; font-family:inherit; padding:0; }
+    #btn-signout-nav:hover { color:#d4a843; }
     .header { padding:1.25rem 1.5rem; background:#fff; border-bottom:1px solid #e4e2dc; display:flex; align-items:center; justify-content:space-between; }
     .header h1 { font-size:22px; font-weight:300; color:#111; }
     .header h1 strong { color:#d4a843; }
@@ -124,12 +129,16 @@
     @keyframes loading { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
     @media(max-width:700px){.analysis-title{font-size:20px}.toolbar{padding:0.75rem}.table-shell{padding:8px}.analysis-shell{padding:8px}}
-  
+
     /* ── COMING SOON TOAST ── */
     #coming-soon-toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:12px 24px; border-radius:8px; font-size:13px; font-weight:600; z-index:9999; border:1px solid #333; display:none; align-items:center; gap:10px; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
     #coming-soon-toast.show { display:flex; }
     .toast-icon { font-size:16px; }
     .toast-badge { background:#d4a843; color:#111; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; letter-spacing:0.5px; text-transform:uppercase; }
+
+    /* ── SUCCESS TOAST ── */
+    #success-toast { position:fixed; top:80px; left:50%; transform:translateX(-50%); background:#0d1f12; color:#22c55e; padding:14px 28px; border-radius:8px; font-size:13px; font-weight:700; z-index:9999; border:1px solid #22c55e; display:none; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    #success-toast.show { display:block; }
 
     /* ── AUTH GATE ── */
     #vkt-auth-gate { position:fixed;inset:0;background:rgba(13,13,13,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px); }
@@ -154,6 +163,7 @@
     .trial-sub { font-size:11px;color:#888;margin-top:2px; }
     .btn-upgrade { padding:8px 20px;background:#d4a843;color:#111;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap; }
     .btn-upgrade:hover { background:#e0b84a; }
+    .btn-upgrade:disabled { opacity:0.6; cursor:not-allowed; }
 
     /* ── PAYWALL ── */
     #vkt-paywall { position:fixed;inset:0;background:rgba(13,13,13,0.97);z-index:9998;display:none;align-items:center;justify-content:center; }
@@ -168,10 +178,10 @@
     .paywall-feature-check { color:#4caf50;font-size:15px;flex-shrink:0; }
     .btn-subscribe { width:100%;padding:14px;background:#d4a843;color:#111;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px; }
     .btn-subscribe:hover { background:#e0b84a; }
+    .btn-subscribe:disabled { opacity:0.6; cursor:not-allowed; }
     .paywall-signout { font-size:11px;color:#555;margin-top:14px;cursor:pointer;text-decoration:underline; }
     .paywall-signout:hover { color:#888; }
 
-  
     .days-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; font-family:monospace; }
     .days-hot { background:#1a0d0d; color:#ef4444; }
     .days-soon { background:#1a1500; color:#d4a843; }
@@ -211,7 +221,6 @@
     .platform-card.best { border-color:#22c55e; background:#f0fff4; }
     .platform-card.best .platform-card-name { color:#22c55e; }
 
-  
     /* ── INFO MODAL ── */
     #info-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9990; align-items:center; justify-content:center; }
     #info-modal.open { display:flex; }
@@ -233,7 +242,8 @@
 </head>
 <body class="auth-pending">
 <script>
-// Immediately hide auth gate if valid token exists — prevents flash on event page nav
+// Immediately hide auth gate if valid token exists — prevents flash on event page nav.
+// NOTE: this is a visual optimization only — the real access check still runs in JS below.
 (function(){
   try {
     var stored = localStorage.getItem('vkt_google_token');
@@ -252,7 +262,11 @@
 
 <nav>
   <div class="logo">Victory Kay <span>Tickets</span></div>
-  <a href="/">← Back to site</a>
+  <div class="nav-right">
+    <button id="btn-manage-sub" onclick="openPortal()">Manage Subscription</button>
+    <button id="btn-signout-nav" onclick="signOut()">Sign Out</button>
+    <a href="/">← Back to site</a>
+  </div>
 </nav>
 
 <div class="header">
@@ -481,34 +495,29 @@ function buildRows(events, snaps){
     }
 
     // Demand score (0-100)
-    // Based on: days to event urgency + sell-through + floor trend + listing volume
     var demandScore = null;
     if(daysToEvent !== null && curListings > 0){
       var d = 0;
-      // Urgency: closer = higher demand signal
       if(daysToEvent <= 3) d += 40;
       else if(daysToEvent <= 7) d += 30;
       else if(daysToEvent <= 14) d += 20;
       else if(daysToEvent <= 30) d += 10;
       else d += 5;
-      // Sell-through: listings dropping = selling fast
       if(sellThru !== null){
         if(sellThru > 20) d += 30;
         else if(sellThru > 10) d += 20;
         else if(sellThru > 0) d += 10;
-        else if(sellThru < 0) d -= 10; // listings growing = lower demand
+        else if(sellThru < 0) d -= 10;
       }
-      // Floor trending up = demand rising
       if(floorVelocity !== null){
         if(floorVelocity > 50) d += 20;
         else if(floorVelocity > 20) d += 12;
         else if(floorVelocity > 0) d += 6;
         else if(floorVelocity < -20) d -= 10;
       }
-      // Volume trend
       if(listingsPct !== null){
-        if(listingsPct < -10) d += 10; // listings dropping fast
-        else if(listingsPct > 20) d -= 5; // supply growing
+        if(listingsPct < -10) d += 10;
+        else if(listingsPct > 20) d -= 5;
       }
       demandScore = Math.min(99, Math.max(1, d));
     }
@@ -682,7 +691,7 @@ function drawTable(){
     var safeName=esc(r.name).replace(/'/g,"&apos;");
     var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+'\','+r.floor+')" title="Set price alert">&#128276;</button>';
 
-    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+ 
+    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
       '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
       '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
       '<td class="td-right" style="'+dim+'">'+daysBadge+'</td>'+
@@ -720,7 +729,6 @@ function calcTrendline(data) {
 function mkChart(id,label,data,labels,color){
   var trend = calcTrendline(data);
   var trendColor = 'rgba(180,180,180,0.8)';
-  // Only show first and last label on x-axis
   var xLabels = labels.map(function(l,i){ return (i===0||i===labels.length-1)?l:''; });
   return new Chart(document.getElementById(id),{
     type:'line',
@@ -789,10 +797,9 @@ function drawSectionCharts(secName,snaps){
 }
 
 function aggregateDaily(snaps) {
-  // Group snapshots by day, take last snapshot of each day
   var byDay = {};
   snaps.forEach(function(s) {
-    var day = s.scraped_at.slice(0,10); // YYYY-MM-DD
+    var day = s.scraped_at.slice(0,10);
     if(!byDay[day] || s.scraped_at > byDay[day].scraped_at) byDay[day] = s;
   });
   return Object.keys(byDay).sort().map(function(d){ return byDay[d]; });
@@ -828,7 +835,6 @@ function loadAnalysis(eventId){
     var dTxt=function(v,money){if(!v||isNaN(v))return '—';var sign=v>0?'+':'-';var abs=Math.abs(v);return money?sign+'$'+Math.round(abs).toLocaleString():sign+Math.round(abs).toLocaleString();};
     function sc(label,value,delta,money){return '<div class="stat-card"><div class="stat-label">'+esc(label)+'</div><div class="stat-value">'+esc(value)+'</div>'+(delta!==null&&!isNaN(delta)?'<div class="stat-delta '+dEl(delta)+'">'+dTxt(delta,money)+'</div>':'')+'</div>';}
 
-    // Aggregate to daily data points — filter out zero values (bad data)
     var dailySnaps = aggregateDaily(eventSnaps).filter(function(s){ return n(s.event_floor) > 0; });
     var dailyListSnaps = aggregateDaily(eventSnaps).filter(function(s){ return n(s.total_listings) > 0; });
     var dailyAtpSnaps = aggregateDaily(atpSnaps).filter(function(s){ return n(s.section_avg) > 0; });
@@ -846,28 +852,27 @@ function loadAnalysis(eventId){
     if(!snaps.length){
       html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event.</div>';
     } else {
-      // Platform comparison — fetch from Supabase
-    var platformSnaps = {};
-    ['StubHub','SeatGeek','VividSeats'].forEach(function(plt){
-      var ps = snaps.filter(function(s){ return (s.platform||'StubHub')===plt && (!s.section||s.section===''); });
-      if(ps.length){ var latest = ps[ps.length-1]; platformSnaps[plt] = { floor: n(latest.event_floor), listings: n(latest.total_listings) }; }
-    });
-    var hasPlatformData = Object.keys(platformSnaps).length > 1;
-    if(hasPlatformData){
-      var floors = Object.values(platformSnaps).map(function(p){ return p.floor; }).filter(function(f){ return f>0; });
-      var bestFloor = floors.length ? Math.max.apply(null, floors) : 0;
-      html += '<div class="platform-compare">';
+      var platformSnaps = {};
       ['StubHub','SeatGeek','VividSeats'].forEach(function(plt){
-        var pd = platformSnaps[plt];
-        var isBest = pd && pd.floor === bestFloor && bestFloor > 0;
-        html += '<div class="platform-card'+(isBest?' best':'')+'"><div class="platform-card-name">'+(isBest?'✓ ':'')+plt+'</div>';
-        html += '<div class="platform-card-floor">'+(pd?cur(pd.floor):'—')+'</div>';
-        html += '<div class="platform-card-sub">'+(pd&&pd.listings?fmt(pd.listings)+' listings':'No data')+'</div></div>';
+        var ps = snaps.filter(function(s){ return (s.platform||'StubHub')===plt && (!s.section||s.section===''); });
+        if(ps.length){ var latest = ps[ps.length-1]; platformSnaps[plt] = { floor: n(latest.event_floor), listings: n(latest.total_listings) }; }
       });
-      html += '</div>';
-    }
+      var hasPlatformData = Object.keys(platformSnaps).length > 1;
+      if(hasPlatformData){
+        var floors = Object.values(platformSnaps).map(function(p){ return p.floor; }).filter(function(f){ return f>0; });
+        var bestFloor = floors.length ? Math.max.apply(null, floors) : 0;
+        html += '<div class="platform-compare">';
+        ['StubHub','SeatGeek','VividSeats'].forEach(function(plt){
+          var pd = platformSnaps[plt];
+          var isBest = pd && pd.floor === bestFloor && bestFloor > 0;
+          html += '<div class="platform-card'+(isBest?' best':'')+'"><div class="platform-card-name">'+(isBest?'✓ ':'')+plt+'</div>';
+          html += '<div class="platform-card-floor">'+(pd?cur(pd.floor):'—')+'</div>';
+          html += '<div class="platform-card-sub">'+(pd&&pd.listings?fmt(pd.listings)+' listings':'No data')+'</div></div>';
+        });
+        html += '</div>';
+      }
 
-    html+='<div class="stats-grid">';
+      html+='<div class="stats-grid">';
       html+=sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true);
       html+=sc('Current Listings',fmt(last?n(last.total_listings):0),listDelta,false);
       html+=sc('Avg ATP',cur(avgAtp),null,false);
@@ -920,7 +925,6 @@ function loadAnalysis(eventId){
     var sf=document.getElementById('secSel');
     if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
 
-    // Snapshot history section filter
     function renderSnapHistory(filterSection) {
       var body = document.getElementById('snapHistBody');
       if(!body) return;
@@ -943,11 +947,9 @@ function loadAnalysis(eventId){
 
 function setPlatform(platform) {
   activePlatform = platform;
-  // Update buttons
   document.getElementById('plt-sh').className = 'plt-btn' + (platform === 'StubHub' ? ' active sh' : '');
   document.getElementById('plt-sg').className = 'plt-btn' + (platform === 'SeatGeek' ? ' active sg' : '');
   document.getElementById('plt-vs').className = 'plt-btn' + (platform === 'VividSeats' ? ' active vs' : '');
-  // Rebuild rows with new platform filter
   allRows = buildRows(allEvents, allSnaps);
   buildTicker(allRows);
   drawTable();
@@ -1010,7 +1012,7 @@ function saveAlert(){
   vktAlerts[eventId] = { floor: floor, email: email, set: Date.now() };
   saveAlerts();
   closeAlert();
-  drawTable(); // refresh to show active state
+  drawTable();
 }
 
 function deleteAlert(){
@@ -1032,7 +1034,6 @@ function toggleDateSort(){
   if(sortDateDir === null) sortDateDir = 'asc';
   else if(sortDateDir === 'asc') sortDateDir = 'desc';
   else sortDateDir = null;
-  // Reset other sorts
   sortVolDir = null; sortFloorDir = null;
   var volIcon = document.getElementById('volSortIcon'); if(volIcon) volIcon.textContent = '⇅';
   var volHdr = document.getElementById('volHeader'); if(volHdr) volHdr.style.color = '';
@@ -1049,7 +1050,6 @@ function toggleFloorSort(){
   if(sortFloorDir === null) sortFloorDir = 'desc';
   else if(sortFloorDir === 'desc') sortFloorDir = 'asc';
   else sortFloorDir = null;
-  // Reset other sorts
   sortVolDir = null;
   sortDateDir = null;
   var dateIcon = document.getElementById('dateSortIcon');
@@ -1060,7 +1060,6 @@ function toggleFloorSort(){
   if(volIcon) volIcon.textContent = '⇅';
   var volHdr = document.getElementById('volHeader');
   if(volHdr) volHdr.style.color = '';
-  // Update floor header
   var icon = document.getElementById('floorSortIcon');
   if(icon) icon.textContent = sortFloorDir === 'desc' ? '↓' : sortFloorDir === 'asc' ? '↑' : '⇅';
   var hdr = document.getElementById('floorHeader');
@@ -1072,7 +1071,6 @@ function toggleVolSort(){
   if(sortVolDir === null) sortVolDir = 'desc';
   else if(sortVolDir === 'desc') sortVolDir = 'asc';
   else sortVolDir = null;
-  // Reset other sorts
   sortFloorDir = null;
   sortDateDir = null;
   var dateIcon = document.getElementById('dateSortIcon');
@@ -1083,7 +1081,6 @@ function toggleVolSort(){
   if(floorIcon) floorIcon.textContent = '⇅';
   var floorHdr = document.getElementById('floorHeader');
   if(floorHdr) floorHdr.style.color = '';
-  // Update vol header
   var icon = document.getElementById('volSortIcon');
   if(icon) icon.textContent = sortVolDir === 'desc' ? '↓' : sortVolDir === 'asc' ? '↑' : '⇅';
   var hdr = document.getElementById('volHeader');
@@ -1124,15 +1121,17 @@ function init(){
   });
 }
 
-// init() called by auth
+// ═══════════════════════════════════════════════════════════════════════
+// VKT AUTH + SUBSCRIPTION
+// ═══════════════════════════════════════════════════════════════════════
 
-// ── VKT AUTH ──
-const VKT_AUTH_API = 'https://vkt-volume-api.vercel.app';
-const GOOGLE_CLIENT_ID = '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
-const VKT_BYPASS_EMAILS = ['kabirkhanna2023@gmail.com', 'victorkaytickets@gmail.com', 'kaysingh@victorykaytickets.com']; // add your Google account email here
-const VKT_DEV_PARAM = 'vkt_dev_bypass'; // ?vkt_dev_bypass=true in URL // replace with your Google OAuth client ID
+var VKT_AUTH_API = 'https://vkt-volume-api.vercel.app';
+var GOOGLE_CLIENT_ID = '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
+var VKT_BYPASS_EMAILS = ['kabirkhanna2023@gmail.com', 'victorkaytickets@gmail.com', 'kaysingh@victorykaytickets.com'];
+var VKT_DEV_PARAM = 'vkt_dev_bypass';
+
 var vktToken = null;
-var vktUser = null;
+var vktUser = null;  // { email, googleId, status, trialEndsAt, currentPeriodEnd, daysRemaining }
 
 function getStoredToken() {
   try { return localStorage.getItem('vkt_google_token'); } catch(e) { return null; }
@@ -1144,92 +1143,209 @@ function clearStoredToken() {
   try { localStorage.removeItem('vkt_google_token'); } catch(e) {}
 }
 
-async function checkAccess(token) {
-  // Server API not yet deployed — disabled to prevent CORS errors
-  return null;
-}
-
-async function createCheckout(token) {
+function decodeJwt(token) {
   try {
-    const res = await fetch(VKT_AUTH_API + '/api/auth/checkout', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-  } catch(e) { alert('Error creating checkout. Please try again.'); }
+    var parts = token.split('.');
+    var b64 = parts[1].replace(/-/g,'+').replace(/_/g,'/');
+    while(b64.length % 4) b64 += '=';
+    return JSON.parse(decodeURIComponent(escape(atob(b64))));
+  } catch(e) { return null; }
 }
 
-function showDashboard(authData) {
+// Call /api/subscriber/status — this is the server-of-record for access
+function checkAccess(email, googleId) {
+  return fetch(VKT_AUTH_API + '/api/subscriber/status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, googleId: googleId || null })
+  }).then(function(r) { return r.json(); });
+}
+
+// Call /api/checkout/create-dashboard-session and redirect to Stripe
+function createCheckout() {
+  if(!vktUser || !vktUser.email) { alert('Please sign in first.'); return; }
+  var btns = document.querySelectorAll('#btn-upgrade, #btn-subscribe');
+  btns.forEach(function(b){ b.disabled = true; b.textContent = 'Loading...'; });
+
+  fetch(VKT_AUTH_API + '/api/checkout/create-dashboard-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: vktUser.email })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if(data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Checkout error: ' + (data.error || 'unknown'));
+      btns.forEach(function(b){ b.disabled = false; });
+      document.getElementById('btn-upgrade').textContent = 'Upgrade — $99/mo';
+      document.getElementById('btn-subscribe').textContent = 'Subscribe Now';
+    }
+  }).catch(function(e){
+    alert('Network error. Please try again.');
+    btns.forEach(function(b){ b.disabled = false; });
+    document.getElementById('btn-upgrade').textContent = 'Upgrade — $99/mo';
+    document.getElementById('btn-subscribe').textContent = 'Subscribe Now';
+  });
+}
+
+// Call /api/portal and redirect to Stripe Customer Portal
+function openPortal() {
+  if(!vktUser || !vktUser.email) return;
+  fetch(VKT_AUTH_API + '/api/portal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: vktUser.email })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if(data.url) window.location.href = data.url;
+    else alert('Could not open billing portal: ' + (data.error || 'unknown'));
+  }).catch(function(){ alert('Network error. Please try again.'); });
+}
+
+function hideGate() {
   document.body.classList.remove('auth-pending');
-  document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
-  document.getElementById('vkt-paywall').classList.remove('visible');
+  var gate = document.getElementById('vkt-auth-gate');
+  if(gate) { gate.classList.add('hidden'); gate.style.display = 'none'; }
+}
 
-  if (authData.isTrialing && authData.trialDaysLeft !== null) {
-    var banner = document.getElementById('trial-banner');
-    var text = document.getElementById('trial-text');
-    banner.style.display = 'flex';
-    var d = authData.trialDaysLeft;
-    text.textContent = d <= 1 ? '⚠️ Last day of your free trial!' : '⏱ ' + d + ' day' + (d===1?'':'s') + ' left in your free trial';
-    if (d <= 2) banner.style.background = 'linear-gradient(90deg,#1a0a00,#2a1000,#1a0a00)';
-  }
-
-  // Move trial banner into page flow (before ticker)
+function showTrialBanner(daysRemaining) {
   var banner = document.getElementById('trial-banner');
+  var text = document.getElementById('trial-text');
+  if(!banner || !text) return;
+  banner.style.display = 'flex';
+  var d = daysRemaining;
+  text.textContent = d <= 1 ? '⚠️ Last day of your free trial!' : '⏱ ' + d + ' day' + (d===1?'':'s') + ' left in your free trial';
+  if (d <= 2) banner.style.background = 'linear-gradient(90deg,#1a0a00,#2a1000,#1a0a00)';
+  // Move trial banner before ticker
   var ticker = document.getElementById('ticker-bar');
-  if (banner && ticker && banner.style.display !== 'none') {
-    ticker.parentNode.insertBefore(banner, ticker);
-  }
+  if(ticker && banner.parentNode !== ticker.parentNode) return;
+  if(ticker) ticker.parentNode.insertBefore(banner, ticker);
 }
 
-function showPaywall() {
+function showManageSubButton() {
+  var btn = document.getElementById('btn-manage-sub');
+  if(btn) btn.style.display = 'inline-block';
+  var sob = document.getElementById('btn-signout-nav');
+  if(sob) sob.style.display = 'inline-block';
+}
+
+function showPaywall(reason) {
+  hideGate();
+  var pw = document.getElementById('vkt-paywall');
+  if(pw) pw.classList.add('visible');
+  var title = document.querySelector('.paywall-title');
+  if(title && reason === 'trial_expired') title.textContent = 'Your Trial Has Ended';
+  else if(title && reason === 'canceled') title.textContent = 'Subscription Canceled';
+  else if(title && reason === 'past_due') title.textContent = 'Payment Issue';
+}
+
+function showAuthGate() {
   document.body.classList.remove('auth-pending');
-  document.getElementById('vkt-auth-gate').classList.add('hidden'); document.getElementById('vkt-auth-gate').style.display = 'none';
-  document.getElementById('vkt-paywall').classList.add('visible');
+  var gate = document.getElementById('vkt-auth-gate');
+  if(gate) { gate.classList.remove('hidden'); gate.style.display = 'flex'; }
+}
+
+function showSuccessToast(msg) {
+  var t = document.getElementById('success-toast');
+  if(!t) return;
+  t.textContent = msg || '✓ Subscription active — welcome to VKT Market Data';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 5000);
 }
 
 function signOut() {
   clearStoredToken();
   vktToken = null;
   vktUser = null;
-  google.accounts.id.disableAutoSelect();
+  try { if(window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); } catch(e){}
   window.location.reload();
 }
 
-async function handleCredentialResponse(response) {
-  console.log('[VKT] Google callback fired', response);
+// Grant access flow — called after status check returns 'granted'
+function grantAccess(authData) {
+  hideGate();
+  showManageSubButton();
+  if(authData.status === 'trial' && authData.daysRemaining !== undefined) {
+    showTrialBanner(authData.daysRemaining);
+  }
+  init();
+}
+
+// Main access resolver — branches on server status response
+function resolveAccess(email, googleId, onBypassSkip) {
+  // Client-side bypass — shortcut, still works even if server is down
+  if(VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
+    vktUser = { email: email, googleId: googleId, status: 'bypass' };
+    if(onBypassSkip) onBypassSkip();
+    hideGate();
+    showManageSubButton();
+    init();
+    return;
+  }
+
+  checkAccess(email, googleId).then(function(data) {
+    if(!data) throw new Error('No response');
+    vktUser = {
+      email: email,
+      googleId: googleId,
+      status: data.status,
+      trialEndsAt: data.trialEndsAt,
+      currentPeriodEnd: data.currentPeriodEnd,
+      daysRemaining: data.daysRemaining
+    };
+    if(data.access === 'granted') {
+      grantAccess(data);
+    } else {
+      showPaywall(data.status);
+    }
+  }).catch(function(e) {
+    console.error('[VKT] Status check failed:', e);
+    // Fail open with a warning — better UX than locking everyone out on a backend blip.
+    // The server is still the source of truth; next page load will recheck.
+    hideGate();
+    init();
+  });
+}
+
+// Google OAuth callback
+function handleCredentialResponse(response) {
+  console.log('[VKT] Google callback fired');
   var token = response.credential;
   vktToken = token;
   setStoredToken(token);
 
-  try {
-    var parts = token.split('.');
-    var b64 = parts[1].replace(/-/g,'+').replace(/_/g,'/');
-    while(b64.length % 4) b64 += '=';
-    var payload = JSON.parse(decodeURIComponent(escape(atob(b64))));
-    var email = payload.email || '';
-    console.log('[VKT] Signed in as:', email);
-
-    if(VKT_BYPASS_EMAILS.indexOf(email) >= 0) {
-      console.log('[VKT] Bypass granted');
-      document.body.classList.remove('auth-pending');
-      document.getElementById('vkt-auth-gate').classList.add('hidden');
-      document.getElementById('vkt-auth-gate').style.display = 'none';
-      init();
-      return;
-    }
-
-    showDashboard({ isTrialing: true, trialDaysLeft: 7, email: email });
-    init();
-  } catch(e) {
-    console.error('[VKT] Auth error:', e);
-    document.body.classList.remove('auth-pending');
-    document.getElementById('vkt-auth-gate').classList.add('hidden');
-    document.getElementById('vkt-auth-gate').style.display = 'none';
-    init();
+  var payload = decodeJwt(token);
+  if(!payload || !payload.email) {
+    console.error('[VKT] Could not decode token');
+    hideGate(); init();
+    return;
   }
+  resolveAccess(payload.email, payload.sub);
 }
 window.handleCredentialResponse = handleCredentialResponse;
+
+// ── URL param handling (post-checkout returns) ──
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var co = params.get('checkout');
+  if(co === 'success') {
+    // Clean the URL
+    params.delete('checkout');
+    var newQs = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (newQs ? '?' + newQs : ''));
+    // Show toast after page loads (needs the toast element to exist)
+    window.addEventListener('load', function(){ showSuccessToast(); });
+  } else if(co === 'canceled') {
+    params.delete('checkout');
+    var newQs2 = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (newQs2 ? '?' + newQs2 : ''));
+  }
+  // Legacy: ?subscribed=true (from old code)
+  if(params.get('subscribed') === 'true') {
+    params.delete('subscribed');
+    var newQs3 = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (newQs3 ? '?' + newQs3 : ''));
+  }
+})();
 
 // Close info modal on background click
 var infoModal = document.getElementById('info-modal');
@@ -1237,55 +1353,37 @@ if(infoModal) infoModal.addEventListener('click', function(e) {
   if(e.target === this) this.classList.remove('open');
 });
 
-// Check URL params for post-checkout redirect
-var urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('subscribed') === 'true') {
-  // Clear param from URL
-  window.history.replaceState({}, '', window.location.pathname + (urlParams.get('event_id') ? '?event_id=' + urlParams.get('event_id') : ''));
-}
-
 // Wire up buttons
 var btnUpgrade = document.getElementById('btn-upgrade');
-if(btnUpgrade) btnUpgrade.addEventListener('click', function() { if (vktToken) createCheckout(vktToken); });
+if(btnUpgrade) btnUpgrade.addEventListener('click', createCheckout);
 var btnSubscribe = document.getElementById('btn-subscribe');
-if(btnSubscribe) btnSubscribe.addEventListener('click', function() { if (vktToken) createCheckout(vktToken); });
+if(btnSubscribe) btnSubscribe.addEventListener('click', createCheckout);
 var btnSignout = document.getElementById('btn-paywall-signout');
 if(btnSignout) btnSignout.addEventListener('click', signOut);
 
-// Init — check stored token on load
+// ── Boot sequence ──
 window.addEventListener('load', function() {
-  function hideGate() {
-    document.body.classList.remove('auth-pending');
-    var gate = document.getElementById('vkt-auth-gate');
-    if(gate) { gate.classList.add('hidden'); gate.style.display = 'none'; }
-  }
-
-  // Dev bypass via URL param
+  // Dev bypass
   if (new URLSearchParams(window.location.search).get(VKT_DEV_PARAM) === 'true') {
     hideGate(); init(); return;
   }
 
-  // Check stored token
+  // Try stored token
   var stored = getStoredToken();
   if (stored) {
-    try {
-      var b64 = stored.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-      while (b64.length % 4) b64 += '=';
-      var payload = JSON.parse(atob(b64));
-      var exp = payload.exp ? payload.exp * 1000 : 0;
-      if (exp && Date.now() > exp) {
-        clearStoredToken();
-      } else if (payload.email) {
-        vktToken = stored;
-        hideGate();
-        init();
-        return;
-      }
-    } catch (e) { clearStoredToken(); }
+    var payload = decodeJwt(stored);
+    var exp = payload && payload.exp ? payload.exp * 1000 : 0;
+    if (exp && Date.now() > exp) {
+      clearStoredToken();
+    } else if (payload && payload.email) {
+      vktToken = stored;
+      resolveAccess(payload.email, payload.sub);
+      return;
+    }
   }
 
-  // No valid token — remove blur, show auth gate
-  document.body.classList.remove('auth-pending');
+  // No valid token — show auth gate
+  showAuthGate();
 });
 
 </script>
@@ -1370,6 +1468,9 @@ window.addEventListener('load', function() {
   <span class="toast-badge">Coming Soon</span>
 </div>
 
+<!-- SUCCESS TOAST -->
+<div id="success-toast"></div>
+
 <!-- ALERT MODAL -->
 <div id="alert-modal">
   <div class="alert-modal-card">
@@ -1418,7 +1519,7 @@ window.addEventListener('load', function() {
       data-logo_alignment="left"
       data-width="340">
     </div>
-    <div class="auth-terms">7-day free trial · No credit card required · $49.99/month after trial<br/>By signing in you agree to our <a href="/terms">Terms of Service</a></div>
+    <div class="auth-terms">7-day free trial · No credit card required · $99/month after trial<br/>By signing in you agree to our <a href="/terms">Terms of Service</a></div>
   </div>
 </div>
 
@@ -1428,7 +1529,7 @@ window.addEventListener('load', function() {
     <div class="trial-text" id="trial-text">⏱ 7 days left in your free trial</div>
     <div class="trial-sub">Subscribe to keep access to VKT Market Data</div>
   </div>
-  <button class="btn-upgrade" id="btn-upgrade">Upgrade — $49.99/mo</button>
+  <button class="btn-upgrade" id="btn-upgrade">Upgrade — $99/mo</button>
 </div>
 
 <!-- PAYWALL -->
@@ -1436,7 +1537,7 @@ window.addEventListener('load', function() {
   <div class="paywall-card">
     <div class="paywall-title">Your Trial Has Ended</div>
     <div class="paywall-sub">Subscribe to continue accessing VKT Market Data — the most comprehensive ticket pricing intelligence for resellers.</div>
-    <div class="paywall-price">$49.99</div>
+    <div class="paywall-price">$99</div>
     <div class="paywall-period">per month · cancel anytime</div>
     <div class="paywall-features">
       <div class="paywall-feature"><span class="paywall-feature-check">✓</span>Live pricing across StubHub, SeatGeek & VividSeats</div>
