@@ -458,6 +458,99 @@
             line-height: 1.6;
         }
 
+        /* ===== VIDEO PLACEHOLDER ===== */
+        .tool-video-wrap {
+            background: var(--black);
+            border-bottom: 1px solid #1e1e1e;
+            padding: 0 8%;
+        }
+        .tool-video-placeholder {
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            aspect-ratio: 16 / 9;
+            background: #060606;
+            border: 1px solid #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .tool-video-placeholder::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 24px,
+                rgba(212,168,67,0.025) 24px,
+                rgba(212,168,67,0.025) 25px
+            );
+        }
+        .tool-video-play {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            opacity: 0.6;
+        }
+        .tool-video-play::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 14px solid transparent;
+            border-bottom: 14px solid transparent;
+            border-left: 24px solid var(--gold);
+            margin-left: 6px;
+        }
+        .tool-video-placeholder-text {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .tool-video-placeholder-text strong {
+            display: block;
+            font-size: 0.72rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        .tool-video-placeholder-text span {
+            display: block;
+            font-size: 0.75rem;
+            color: #333;
+            letter-spacing: 1px;
+        }
+        .tool-video-tag {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #0c0c0c;
+            border: 1px solid #1e1e1e;
+            padding: 5px 12px;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #444;
+            font-weight: 700;
+            z-index: 2;
+        }
+        @media (max-width: 768px) {
+            .tool-video-wrap { padding: 0 5%; }
+        }
+
         @media (max-width: 768px) {
             .pro-tab-bar-inner { padding: 0 20px; }
             .pro-tab { padding: 16px 14px 14px; font-size: 0.65rem; letter-spacing: 1.5px; }
@@ -857,10 +950,9 @@
             <div class="pro-tab-bar">
                 <div class="pro-tab-bar-inner">
                     <button class="pro-tab active" onclick="switchProTab('pricer', this)">VKT Pricer</button>
-                    <button class="pro-tab" onclick="switchProTab('volume', this)">Volume Tracker</button>
-                    <button class="pro-tab" onclick="switchProTab('price', this)">Price Tracker</button>
+                    <button class="pro-tab" onclick="switchProTab('agent', this)">AI Agent</button>
                     <button class="pro-tab" onclick="switchProTab('strategy', this)">VKT Strategy</button>
-                    <button class="pro-tab" onclick="switchProTab('infra', this)">Infrastructure</button>
+                    <button class="pro-tab" onclick="switchProTab('data', this)">Market Data</button>
                 </div>
             </div>
 
@@ -869,7 +961,7 @@
                 <div class="tool-hero">
                     <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; AI-Powered</div>
                     <h2>VKT Pricer.<br><em>Know your number before you list.</em></h2>
-                    <p class="tool-hero-desc">The original VKT pricing tool. Enter your section, row, and quantity — the extension scrapes every live listing on the page, strips out filter noise, and sends clean market data to Claude AI. You get back a specific dollar recommendation for each of three goals, with the reasoning behind it.</p>
+                    <p class="tool-hero-desc">The original VKT pricing tool. Click your section on the map, enter your row and quantity, and the extension scrapes every live listing on the page, strips filter noise, and sends clean market data to Claude AI. You get a specific dollar recommendation for three goals — with the reasoning behind each one.</p>
                     <div class="tool-hero-platforms">
                         <div class="tool-platform-badge">StubHub</div>
                         <div class="tool-platform-badge">SeatGeek</div>
@@ -877,6 +969,19 @@
                         <div class="tool-platform-badge">Ticketmaster</div>
                     </div>
                 </div>
+
+                <!-- VIDEO PLACEHOLDER -->
+                <div class="tool-video-wrap">
+                    <div class="tool-video-placeholder">
+                        <div class="tool-video-tag">Marketing Video Coming Soon</div>
+                        <div class="tool-video-play"></div>
+                        <div class="tool-video-placeholder-text">
+                            <strong>VKT Pricer &nbsp;&middot;&nbsp; Product Overview</strong>
+                            <span>Video in production &mdash; check back soon</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tool-body">
                     <div class="tool-body-inner">
                         <div class="tool-section">
@@ -884,29 +989,29 @@
                             <div class="tool-feature">
                                 <div class="tool-feature-num">01</div>
                                 <div class="tool-feature-body">
-                                    <strong>Enter Your Seat Details</strong>
-                                    <p>Input your section, row, and quantity into the extension panel. The tool knows what section you're pricing and targets the right comparable listings automatically.</p>
+                                    <strong>Click Your Section on the Map</strong>
+                                    <p>On StubHub, click your section directly on the seating map. The extension captures all live listings for that section in real time — no API keys, no manual input required.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">02</div>
                                 <div class="tool-feature-body">
-                                    <strong>Click Your Section on the Map</strong>
-                                    <p>On StubHub, click your section directly on the seating map. The extension captures all live listings for that section in real time — no API keys, no manual input.</p>
+                                    <strong>Enter Row and Quantity</strong>
+                                    <p>Input your row and the number of tickets you're listing. VKT Pricer targets comparable rows automatically — not just the cheapest ticket in the section.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">03</div>
                                 <div class="tool-feature-body">
-                                    <strong>AI Scrapes and Cleans the Data</strong>
-                                    <p>VKT Pricer pulls every active listing, filters out outliers and noise, and packages the clean market picture — floor, median, and ceiling — for Claude AI to analyze.</p>
+                                    <strong>AI Scrapes, Cleans, and Analyzes</strong>
+                                    <p>The extension strips filter noise — removes the Recommended Tickets toggle, sets quantity to show all listings — then sends the clean data set to Claude AI for analysis.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">04</div>
                                 <div class="tool-feature-body">
-                                    <strong>Get Your Price with Reasoning</strong>
-                                    <p>Claude returns a specific price recommendation for each of your three goals, along with a written explanation of why that number makes sense given the current market.</p>
+                                    <strong>Get Your Price with Full Reasoning</strong>
+                                    <p>Claude returns a specific price for each of your three goals, plus a written explanation of why that number makes sense given the current market structure.</p>
                                 </div>
                             </div>
                         </div>
@@ -915,15 +1020,15 @@
                             <div class="tool-goal-cards">
                                 <div class="tool-goal-card">
                                     <div class="tool-goal-card-title">Price to Sell</div>
-                                    <p class="tool-goal-card-desc">Positions your listing to move first. Undercuts the section floor so you're the most competitive ticket on the market — built for sellers who need it gone.</p>
+                                    <p class="tool-goal-card-desc">Positions your listing to move first. Undercuts the section floor so you're the most competitive ticket on the market — built for sellers who need it gone fast.</p>
                                 </div>
                                 <div class="tool-goal-card">
                                     <div class="tool-goal-card-title">Price for Margin</div>
-                                    <p class="tool-goal-card-desc">Prices against the nearest comparable rows rather than the floor — capturing real value without racing to the bottom. Best for sellers who can hold a few days.</p>
+                                    <p class="tool-goal-card-desc">Anchored to the nearest comparable rows rather than the floor — capturing real value without racing to the bottom. Best when you can hold a few days.</p>
                                 </div>
                                 <div class="tool-goal-card">
                                     <div class="tool-goal-card-title">Hold High</div>
-                                    <p class="tool-goal-card-desc">A ceiling-anchored price for sellers who believe demand will increase as the event approaches. High risk, high reward — backed by AI reasoning on current trajectory.</p>
+                                    <p class="tool-goal-card-desc">A ceiling-anchored price for sellers who believe demand will rise as the event approaches. High risk, high reward — backed by AI reasoning on current trajectory.</p>
                                 </div>
                             </div>
                         </div>
@@ -935,176 +1040,12 @@
                 </div>
             </div>
 
-            <!-- ===== VOLUME TRACKER ===== -->
-            <div id="pro-volume" class="pro-tab-content">
+            <!-- ===== AI AGENT ===== -->
+            <div id="pro-agent" class="pro-tab-content">
                 <div class="tool-hero">
-                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; <span style="color:var(--gold);">Runs Silently</span></div>
-                    <h2>VKT Volume Tracker.<br><em>Watch supply move without lifting a finger.</em></h2>
-                    <p class="tool-hero-desc">Automatically logs how many tickets are on the market every time you visit an event page — no action required. Over time, you see exactly whether supply is rising, falling, or collapsing before you decide when to list.</p>
-                    <div class="tool-hero-platforms">
-                        <div class="tool-platform-badge silent">Runs Silently on All 6 Platforms</div>
-                    </div>
-                </div>
-                <div class="tool-body">
-                    <div class="tool-body-inner">
-                        <div class="tool-section">
-                            <div class="tool-section-label">What the Sidebar Shows</div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Total Event Listings</strong>
-                                    <p>The current number of tickets on the market for the entire event, pulled live from the page every time you visit.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Change Over Your Time Window</strong>
-                                    <p>Select 3d, 7d, 14d, or 30d to see how total supply has moved relative to your logged baseline. Up or down — and by how much.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Bar Chart of the Trend</strong>
-                                    <p>A visual history of listing counts across your selected window — so you can spot acceleration, stagnation, or sudden drops at a glance.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Supply Indicator</strong>
-                                    <p>A plain-language signal — Low Supply, High Supply, or Selling Fast (when StubHub confirms active demand) — so you don't have to interpret the chart yourself.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Section-Level Tracking</strong>
-                                    <p>Filter down to your specific section to see how inventory in your tier is moving — not just the whole event.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tool-section">
-                            <div class="tool-section-label">Why It Matters</div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">01</div>
-                                <div class="tool-feature-body">
-                                    <strong>It runs without any action</strong>
-                                    <p>Every time you browse an event page, Volume Tracker silently captures and stores the supply snapshot. You don't click anything — the data builds automatically.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">02</div>
-                                <div class="tool-feature-body">
-                                    <strong>Supply tells you when to list</strong>
-                                    <p>When supply drops fast, prices are about to rise. When supply stays flat for days, demand is soft. Volume Tracker gives you the signal before the price chart catches up.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">03</div>
-                                <div class="tool-feature-body">
-                                    <strong>Shared across all VKT users</strong>
-                                    <p>Every VKT user browsing the same event contributes to the same volume history. You get richer data with more frequent snapshots — even for events you've only visited once.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="tool-cta-bar">
-                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
-                    <p class="tool-cta-note">Works on StubHub, SeatGeek, Vivid Seats, Ticketmaster, AXS, and GameTime.</p>
-                </div>
-            </div>
-
-            <!-- ===== PRICE TRACKER ===== -->
-            <div id="pro-price" class="pro-tab-content">
-                <div class="tool-hero">
-                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; <span style="color:var(--gold);">Runs Silently</span></div>
-                    <h2>VKT Price Tracker.<br><em>See if prices are rising or falling before you decide.</em></h2>
-                    <p class="tool-hero-desc">Tracks floor price and average ticket price (ATP) over time for any event and section. Every page visit silently logs the current prices. Open the sidebar and you see the full history — so you know whether to list now or wait.</p>
-                    <div class="tool-hero-platforms">
-                        <div class="tool-platform-badge silent">Auto-Logs on Every Page Visit</div>
-                    </div>
-                </div>
-                <div class="tool-body">
-                    <div class="tool-body-inner">
-                        <div class="tool-section">
-                            <div class="tool-section-label">What Gets Tracked</div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Floor Price History</strong>
-                                    <p>The cheapest ticket available for the event, charted over time. Watch it climb as supply tightens, or drop as sellers undercut each other.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Average Ticket Price (ATP)</strong>
-                                    <p>The mean price across all listings — a cleaner signal than the floor because it isn't distorted by a single deeply discounted outlier.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Section-Level Floor and ATP</strong>
-                                    <p>Select your specific section to see floor and ATP just for that tier — the numbers that actually matter for your inventory.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Days to Event Badge</strong>
-                                    <p>Always visible at the top of the sidebar so you can interpret price trends in context. A price drop at 14 days out means something very different at 2 days out.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
-                                <div class="tool-feature-body">
-                                    <strong>Time Window Selector</strong>
-                                    <p>Toggle between 3d, 7d, 14d, and 30d to zoom in or out on the price trend. See both the short-term momentum and the longer-term trajectory.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tool-section">
-                            <div class="tool-section-label">How to Use It</div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">01</div>
-                                <div class="tool-feature-body">
-                                    <strong>Install and forget it</strong>
-                                    <p>Price Tracker works invisibly in the background. Browse any event page and it captures the current floor and ATP. No clicks, no setup per event.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">02</div>
-                                <div class="tool-feature-body">
-                                    <strong>Open the sidebar when you're ready to decide</strong>
-                                    <p>When you're thinking about listing, click the VKT icon. The charts show you exactly where prices have been and how fast they're moving.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">03</div>
-                                <div class="tool-feature-body">
-                                    <strong>Pair with Volume Tracker for the full picture</strong>
-                                    <p>Price trend plus supply trend together tell you whether a price rise is sustainable or a temporary spike. Both tools feed into VKT Strategy automatically.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="tool-cta-bar">
-                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
-                    <p class="tool-cta-note">Data is stored per-event and shared across VKT users, giving you more history faster.</p>
-                </div>
-            </div>
-
-            <!-- ===== VKT STRATEGY ===== -->
-            <div id="pro-strategy" class="pro-tab-content">
-                <div class="tool-hero">
-                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; All-in-One</div>
-                    <h2>VKT Strategy.<br><em>Live prices, historical data, and AI — in one decision.</em></h2>
-                    <p class="tool-hero-desc">The flagship VKT tool. Enter your section, row, quantity, and optional cost basis. The extension scrapes live prices, pulls your volume and price trend history from the database, factors in days to event, and returns three fully built strategy cards — one of which is auto-tagged Recommended.</p>
+                    <div class="tool-hero-type">Autonomous Agent &nbsp;&middot;&nbsp; AI-Powered</div>
+                    <h2>VKT AI Agent.<br><em>Automated market intelligence that runs while you sleep.</em></h2>
+                    <p class="tool-hero-desc">An autonomous AI agent built for high-volume resellers. The Agent monitors events across platforms continuously, detects market shifts, and executes data-driven actions on your behalf — so you're never reacting, always ahead.</p>
                     <div class="tool-hero-platforms">
                         <div class="tool-platform-badge">StubHub</div>
                         <div class="tool-platform-badge">SeatGeek</div>
@@ -1112,6 +1053,103 @@
                         <div class="tool-platform-badge">Ticketmaster</div>
                     </div>
                 </div>
+
+                <!-- VIDEO PLACEHOLDER -->
+                <div class="tool-video-wrap">
+                    <div class="tool-video-placeholder">
+                        <div class="tool-video-tag">Marketing Video Coming Soon</div>
+                        <div class="tool-video-play"></div>
+                        <div class="tool-video-placeholder-text">
+                            <strong>VKT AI Agent &nbsp;&middot;&nbsp; Product Overview</strong>
+                            <span>Video in production &mdash; check back soon</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-body">
+                    <div class="tool-body-inner">
+                        <div class="tool-section">
+                            <div class="tool-section-label">What the Agent Does</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Continuous Market Monitoring</strong>
+                                    <p>The Agent watches your events around the clock — tracking supply shifts, price movements, and demand signals across all major platforms without any manual check-ins.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Autonomous Decision Execution</strong>
+                                    <p>When market conditions hit your defined thresholds, the Agent acts — surfacing alerts, triggering repricing signals, and flagging the exact moment to list or pull inventory.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Multi-Event Portfolio View</strong>
+                                    <p>Manages intelligence across your entire inventory simultaneously. The Agent prioritizes events by urgency — so you always know which listing needs attention first.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>AI-Generated Action Summaries</strong>
+                                    <p>After each monitoring cycle, the Agent delivers a concise market brief — what moved, why it moved, and what you should do about it — written by Claude AI.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">Built For</div>
+                            <div class="tool-goal-cards">
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">High-Volume Resellers</div>
+                                    <p class="tool-goal-card-desc">Managing 20+ active listings across multiple events. The Agent handles the monitoring so you can focus on acquiring inventory, not tracking it.</p>
+                                </div>
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Sellers Who Travel</div>
+                                    <p class="tool-goal-card-desc">Can't watch the market while you're at the game or on the road? The Agent does it for you and surfaces anything that needs your attention when you're back.</p>
+                                </div>
+                                <div class="tool-goal-card">
+                                    <div class="tool-goal-card-title">Professional Operations</div>
+                                    <p class="tool-goal-card-desc">Teams and businesses that need structured, data-driven decision support at scale — not just a one-off price check.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tool-cta-bar">
+                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <p class="tool-cta-note">VKT AI Agent is built for serious volume operators. Contact us to discuss your use case.</p>
+                </div>
+            </div>
+
+            <!-- ===== VKT STRATEGY ===== -->
+            <div id="pro-strategy" class="pro-tab-content">
+                <div class="tool-hero">
+                    <div class="tool-hero-type">Chrome Extension &nbsp;&middot;&nbsp; All-in-One</div>
+                    <h2>VKT Strategy.<br><em>Live prices, trend history, and AI — in one decision.</em></h2>
+                    <p class="tool-hero-desc">The flagship VKT tool. Enter your section, row, quantity, and optional cost basis. The extension scrapes live prices, pulls volume and price trend history from the database, factors in days to event, and returns three fully built strategy cards — one auto-tagged Recommended based on the data.</p>
+                    <div class="tool-hero-platforms">
+                        <div class="tool-platform-badge">StubHub</div>
+                        <div class="tool-platform-badge">SeatGeek</div>
+                        <div class="tool-platform-badge">Vivid Seats</div>
+                        <div class="tool-platform-badge">Ticketmaster</div>
+                    </div>
+                </div>
+
+                <!-- VIDEO PLACEHOLDER -->
+                <div class="tool-video-wrap">
+                    <div class="tool-video-placeholder">
+                        <div class="tool-video-tag">Marketing Video Coming Soon</div>
+                        <div class="tool-video-play"></div>
+                        <div class="tool-video-placeholder-text">
+                            <strong>VKT Strategy &nbsp;&middot;&nbsp; Product Overview</strong>
+                            <span>Video in production &mdash; check back soon</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tool-body">
                     <div class="tool-body-inner">
                         <div class="tool-section">
@@ -1120,15 +1158,15 @@
                                 <div class="tool-goal-card recommended">
                                     <div class="tool-goal-badge">Auto-Tagged Based on Data</div>
                                     <div class="tool-goal-card-title">Price to Sell</div>
-                                    <p class="tool-goal-card-desc">Specific price, insight on why this is the fastest-exit option given current supply and days remaining. If cost basis entered — exact profit and ROI shown.</p>
+                                    <p class="tool-goal-card-desc">Specific price + insight on why this is the fastest exit given current supply and days to event. If cost basis entered — exact profit and ROI shown.</p>
                                 </div>
                                 <div class="tool-goal-card">
                                     <div class="tool-goal-card-title">Price for Margin</div>
-                                    <p class="tool-goal-card-desc">Anchored to comparable rows rather than the floor. Shows the premium you're capturing over a sell-now exit. Full profit breakdown if cost basis provided.</p>
+                                    <p class="tool-goal-card-desc">Anchored to comparable rows, not the floor. Shows the premium you're capturing over a sell-now exit. Full profit breakdown if cost basis provided.</p>
                                 </div>
                                 <div class="tool-goal-card">
                                     <div class="tool-goal-card-title">Hold High</div>
-                                    <p class="tool-goal-card-desc">A ceiling-anchored position for sellers who believe the market will move up. Backed by AI reasoning on current price and volume trajectory.</p>
+                                    <p class="tool-goal-card-desc">Ceiling-anchored position for sellers who believe the market will move up. Backed by AI reasoning on current price and volume trajectory.</p>
                                 </div>
                             </div>
                         </div>
@@ -1138,28 +1176,28 @@
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
                                     <strong>Live Price Scrape</strong>
-                                    <p>Current listings scraped and cleaned in real time — every active ticket in your section at this exact moment.</p>
+                                    <p>Current listings scraped and cleaned in real time — every active ticket in your section at this exact moment, with noise removed.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
-                                    <strong>Volume History from Database</strong>
-                                    <p>How many tickets have been on this event over time — pulled from the VKT shared database, not just your own visits.</p>
+                                    <strong>Volume + Price History</strong>
+                                    <p>How many tickets have been on the market, and where floor and ATP have moved — pulled from the VKT shared database across all user visits.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
-                                    <strong>Price Trend History</strong>
-                                    <p>Floor and ATP trajectory over the past 3–30 days — is the market rising or falling heading into the event?</p>
+                                    <strong>Market Signals Panel</strong>
+                                    <p>Time window selector (3d / 7d / 14d / 30d) showing volume and floor trends side by side — so you see both supply and price movement in the same view.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
-                                    <strong>Days to Event</strong>
-                                    <p>Weighted into every recommendation — a holding strategy that makes sense at 14 days is very different at 3 days.</p>
+                                    <strong>AI Market Analysis</strong>
+                                    <p>3–4 sentence strategic read synthesizing live data, trend history, days to event, and cost basis — written by Claude AI at the bottom of every analysis.</p>
                                 </div>
                             </div>
                         </div>
@@ -1168,19 +1206,19 @@
                             <div class="tool-signals-grid">
                                 <div class="tool-signal">
                                     <div class="tool-signal-label">Market Snapshot</div>
-                                    <div class="tool-signal-val">Live grid of key prices</div>
-                                </div>
-                                <div class="tool-signal">
-                                    <div class="tool-signal-label">Market Signals</div>
-                                    <div class="tool-signal-val">Volume + floor trends with window selector</div>
+                                    <div class="tool-signal-val">Live grid of floor, avg, and ceiling</div>
                                 </div>
                                 <div class="tool-signal">
                                     <div class="tool-signal-label">Cost Basis ROI</div>
-                                    <div class="tool-signal-val">Profit breakdown per strategy if cost entered</div>
+                                    <div class="tool-signal-val">Profit &amp; ROI per strategy if cost entered</div>
                                 </div>
                                 <div class="tool-signal">
-                                    <div class="tool-signal-label">AI Market Analysis</div>
-                                    <div class="tool-signal-val">3–4 sentence strategic read synthesizing everything</div>
+                                    <div class="tool-signal-label">Days to Event</div>
+                                    <div class="tool-signal-val">Weighted into every recommendation</div>
+                                </div>
+                                <div class="tool-signal">
+                                    <div class="tool-signal-label">Recommended Tag</div>
+                                    <div class="tool-signal-val">One card auto-selected based on all inputs</div>
                                 </div>
                             </div>
                         </div>
@@ -1188,116 +1226,125 @@
                 </div>
                 <div class="tool-cta-bar">
                     <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
-                    <p class="tool-cta-note">VKT Strategy is the most comprehensive tool in the suite — requires VKT Volume Tracker and Price Tracker data to be fully powered.</p>
+                    <p class="tool-cta-note">VKT Strategy is the most comprehensive tool in the suite and runs best when Volume Tracker and Price Tracker data are already building in the background.</p>
                 </div>
             </div>
 
-            <!-- ===== INFRASTRUCTURE ===== -->
-            <div id="pro-infra" class="pro-tab-content">
+            <!-- ===== MARKET DATA ===== -->
+            <div id="pro-data" class="pro-tab-content">
                 <div class="tool-hero">
-                    <div class="tool-hero-type">Backend Infrastructure &nbsp;&middot;&nbsp; Vercel + Supabase</div>
-                    <h2>Shared Infrastructure.<br><em>The data engine behind all four tools.</em></h2>
-                    <p class="tool-hero-desc">Every VKT extension runs on a shared backend — a Vercel API connected to a Supabase database. It seeds events, scrapes markets on a schedule, and stores the historical data that makes VKT Strategy's AI analysis possible. Data built by one user on one event benefits every VKT user tracking the same event.</p>
+                    <div class="tool-hero-type">Data Product &nbsp;&middot;&nbsp; API + Reports</div>
+                    <h2>VKT Market Data.<br><em>The secondary market's price history — organized and accessible.</em></h2>
+                    <p class="tool-hero-desc">Game-level and section-level resale data aggregated across every major platform. Floor prices, average ticket prices, listing volume, and trend curves — stored continuously and available via structured reports or direct API access.</p>
                     <div class="tool-hero-platforms">
-                        <div class="tool-platform-badge">Vercel API</div>
-                        <div class="tool-platform-badge">Supabase</div>
-                        <div class="tool-platform-badge">Shared Across All Extensions</div>
+                        <a href="https://victorykaytickets.com/vkt_data" target="_blank" style="text-decoration:none;">
+                            <div class="tool-platform-badge" style="color:var(--gold);border-color:#2a2200;background:#1a1400;cursor:pointer;">victorykaytickets.com/vkt_data &rarr;</div>
+                        </a>
                     </div>
                 </div>
+
+                <!-- VIDEO PLACEHOLDER -->
+                <div class="tool-video-wrap">
+                    <div class="tool-video-placeholder">
+                        <div class="tool-video-tag">Marketing Video Coming Soon</div>
+                        <div class="tool-video-play"></div>
+                        <div class="tool-video-placeholder-text">
+                            <strong>VKT Market Data &nbsp;&middot;&nbsp; Product Overview</strong>
+                            <span>Video in production &mdash; check back soon</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tool-body">
                     <div class="tool-body-inner">
-                        <div class="tool-section">
-                            <div class="tool-section-label">Automated Data Pipeline</div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">01</div>
-                                <div class="tool-feature-body">
-                                    <strong>Daily Event Seeding — 6am</strong>
-                                    <p>Every morning the system pulls upcoming events from StubHub and seeds them into the database. New events are automatically available to all extensions without any manual setup.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">02</div>
-                                <div class="tool-feature-body">
-                                    <strong>Four Scrapes Per Day</strong>
-                                    <p>At midnight, 6am, noon, and 6pm — the system scrapes listing counts for every tracked event and stores the snapshot. This is the data that powers Volume Tracker's bar charts and trend signals.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">03</div>
-                                <div class="tool-feature-body">
-                                    <strong>Continuous Price Logging</strong>
-                                    <p>Every time any VKT user visits an event page, the extension silently pushes floor price and ATP to Supabase. Price Tracker charts are built from this rolling dataset — updated by the community of users in real time.</p>
-                                </div>
-                            </div>
-                            <div class="tool-feature">
-                                <div class="tool-feature-num">04</div>
-                                <div class="tool-feature-body">
-                                    <strong>Section-Level Storage</strong>
-                                    <p>Data is stored at the section level, not just event level. So when you filter to Section 114 in Price Tracker or Strategy, you get section-specific floor and ATP history — not just the full event average.</p>
-                                </div>
-                            </div>
-                        </div>
                         <div class="tool-section">
                             <div class="tool-section-label">What Gets Stored</div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
-                                    <strong>Volume Snapshots</strong>
-                                    <p>Total listing count per event, four times per day, every day until the event occurs.</p>
+                                    <strong>Volume Snapshots — 4&times; Daily</strong>
+                                    <p>Total listing count per event, captured at midnight, 6am, noon, and 6pm — every day until the event occurs. See exactly how fast inventory moves at every stage.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
-                                    <strong>Floor Price &amp; ATP</strong>
-                                    <p>Per-event and per-section floor and average ticket price, logged on every user page visit.</p>
+                                    <strong>Floor Price &amp; ATP Trends</strong>
+                                    <p>Event-level and section-level floor and average ticket price, logged on every user page visit. Rolling dataset updated continuously by the VKT user network.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-body">
+                                    <strong>Section-Level Granularity</strong>
+                                    <p>Data stored at the section level, not just event level — so you can query floor and ATP history for Section 114 specifically, not just the full event average.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
                                 <div class="tool-feature-num">—</div>
                                 <div class="tool-feature-body">
                                     <strong>Event Metadata</strong>
-                                    <p>Event name, date, venue, days to event — all queryable so any extension can contextualize the data it pulls.</p>
+                                    <p>Event name, date, venue, days to event — all queryable so you can contextualize price trends against the event's position in its selling cycle.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-section">
+                            <div class="tool-section-label">Access Options</div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">01</div>
+                                <div class="tool-feature-body">
+                                    <strong>Structured Reports</strong>
+                                    <p>Pre-built data exports for specific teams, venues, or date ranges — delivered on a regular cadence. Clean CSVs or JSON ready to load into your own tools.</p>
                                 </div>
                             </div>
                             <div class="tool-feature">
-                                <div class="tool-feature-num">—</div>
+                                <div class="tool-feature-num">02</div>
                                 <div class="tool-feature-body">
-                                    <strong>Shared Across All Users</strong>
-                                    <p>Data contributed by any VKT user on any event flows into the shared pool. The more users, the richer and more frequent the history for every event.</p>
+                                    <strong>Direct API Access</strong>
+                                    <p>Query the VKT database directly via the Vercel API — pull event snapshots, section-level price history, or volume trends programmatically from any tool or workflow.</p>
+                                </div>
+                            </div>
+                            <div class="tool-feature">
+                                <div class="tool-feature-num">03</div>
+                                <div class="tool-feature-body">
+                                    <strong>Network-Powered Data</strong>
+                                    <p>Every VKT user browsing any event page contributes to the shared dataset. More users means more frequent snapshots and richer history — across every tracked event.</p>
                                 </div>
                             </div>
                         </div>
                         <div class="tool-section-full">
-                            <div class="tool-section-label">Summary: Which Tool Uses What</div>
+                            <div class="tool-section-label">Data Dashboard</div>
                             <div class="tool-signals-grid">
                                 <div class="tool-signal">
-                                    <div class="tool-signal-label">VKT Pricer</div>
-                                    <div class="tool-signal-val">Live scrape only — no history needed</div>
+                                    <div class="tool-signal-label">Floor Price History</div>
+                                    <div class="tool-signal-val">Per-event and per-section</div>
                                 </div>
                                 <div class="tool-signal">
-                                    <div class="tool-signal-label">Volume Tracker</div>
-                                    <div class="tool-signal-val">Volume snapshot history from Supabase</div>
+                                    <div class="tool-signal-label">ATP Trend</div>
+                                    <div class="tool-signal-val">Average ticket price over time</div>
                                 </div>
                                 <div class="tool-signal">
-                                    <div class="tool-signal-label">Price Tracker</div>
-                                    <div class="tool-signal-val">Floor + ATP history from Supabase</div>
+                                    <div class="tool-signal-label">Volume Curve</div>
+                                    <div class="tool-signal-val">Listing count from first post to event</div>
                                 </div>
                                 <div class="tool-signal">
-                                    <div class="tool-signal-label">VKT Strategy</div>
-                                    <div class="tool-signal-val">Live scrape + all history + Claude AI synthesis</div>
+                                    <div class="tool-signal-label">Live Dashboard</div>
+                                    <div class="tool-signal-val"><a href="https://victorykaytickets.com/vkt_data" target="_blank" style="color:var(--gold);text-decoration:none;">victorykaytickets.com/vkt_data</a></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="tool-cta-bar">
-                    <button class="tool-cta-btn" onclick="openBookingModal()">Contact Us &rarr;</button>
-                    <p class="tool-cta-note">Questions about the infrastructure or API access? Reach out directly.</p>
+                    <a href="https://victorykaytickets.com/vkt_data" target="_blank" style="text-decoration:none;">
+                        <button class="tool-cta-btn">View Live Dashboard &rarr;</button>
+                    </a>
+                    <p class="tool-cta-note">Contact us for API access or custom data report delivery.</p>
                 </div>
             </div>
 
         </div><!-- end page-professionals -->
+</div><!-- end page-professionals -->
 
     </div><!-- end page-container -->
 
@@ -1549,7 +1596,6 @@
             if (btn) btn.classList.add('active');
             window.scrollTo({ top: 72, behavior: 'smooth' });
         }
-        // Init first tab visible
         document.addEventListener('DOMContentLoaded', function() {
             var first = document.getElementById('pro-pricer');
             if (first) first.style.display = 'block';
@@ -1579,7 +1625,7 @@
             document.body.classList.add('page-active');
             var page = document.getElementById('page-' + name);
             if (page) page.style.display = 'block';
-            // If opening professionals, reset to first tab
+            // If opening professionals, reset to first tab (VKT Pricer)
             if (name === 'professionals') {
                 document.querySelectorAll('.pro-tab-content').forEach(function(el) { el.classList.remove('active'); el.style.display = 'none'; });
                 document.querySelectorAll('.pro-tab').forEach(function(b) { b.classList.remove('active'); });
