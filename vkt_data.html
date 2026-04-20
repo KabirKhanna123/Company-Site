@@ -185,11 +185,10 @@
     .alert-builder-row { display:flex; gap:8px; align-items:stretch; margin-bottom:12px; }
     .alert-select { flex:1; padding:9px 10px; border:1px solid #ddd; border-radius:7px; font-size:13px; outline:none; background:#fff; color:#111; cursor:pointer; }
     .alert-select:focus { border-color:#d4a843; }
-    .alert-cond-group { display:flex; border:1px solid #ddd; border-radius:7px; overflow:hidden; flex-shrink:0; }
-    .alert-cond-btn { padding:9px 16px; background:#fff; border:none; font-size:14px; font-weight:700; cursor:pointer; color:#aaa; transition:all 0.15s; }
-    .alert-cond-btn:first-child { border-right:1px solid #ddd; }
-    .alert-cond-btn.active { background:#111; color:#fff; }
-    .alert-cond-btn:hover:not(.active) { background:#f5f5f5; color:#111; }
+    .alert-cond-group { display:flex; gap:8px; flex-shrink:0; }
+    .alert-cond-btn { flex:1; padding:9px 18px; background:#fff; border:1px solid #ddd; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; color:#aaa; transition:all 0.15s; white-space:nowrap; letter-spacing:0.3px; }
+    .alert-cond-btn.active { background:#111; border-color:#111; color:#fff; }
+    .alert-cond-btn:hover:not(.active) { background:#f5f5f5; border-color:#bbb; color:#111; }
     .alert-value-wrap { position:relative; margin-bottom:12px; }
     .alert-value-wrap input { width:100%; padding:10px 42px 10px 12px; border:1px solid #ddd; border-radius:7px; font-size:16px; font-weight:700; color:#111; outline:none; font-family:monospace; }
     .alert-value-wrap input:focus { border-color:#d4a843; }
@@ -915,8 +914,8 @@ window.addEventListener('load',function(){if(new URLSearchParams(window.location
       </select>
       <!-- Greater than / Less than -->
       <div class="alert-cond-group">
-        <button class="alert-cond-btn active" id="alert-cond-lt" onclick="setAlertCondition('lt')" title="Less than">&lt;</button>
-        <button class="alert-cond-btn" id="alert-cond-gt" onclick="setAlertCondition('gt')" title="Greater than">&gt;</button>
+        <button class="alert-cond-btn active" id="alert-cond-lt" onclick="setAlertCondition('lt')">Less Than</button>
+        <button class="alert-cond-btn" id="alert-cond-gt" onclick="setAlertCondition('gt')">Greater Than</button>
       </div>
     </div>
 
