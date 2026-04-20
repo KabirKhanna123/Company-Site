@@ -208,6 +208,25 @@
     .info-col-desc strong { color:#111; }
     .info-btn { background:none; border:1px solid #ddd; border-radius:999px; padding:3px 10px; font-size:11px; color:#888; cursor:pointer; display:inline-flex; align-items:center; gap:5px; margin-left:8px; }
     .info-btn:hover { border-color:#d4a843; color:#d4a843; }
+
+    /* ── FAVORITES ── */
+    #fav-bar { background:#fff; border-bottom:1px solid #e4e2dc; padding:0 1.5rem; display:flex; align-items:center; gap:0; }
+    .fav-tab { padding:12px 20px; font-size:11px; font-weight:700; letter-spacing:0.5px; border:none; background:none; cursor:pointer; color:#aaa; border-bottom:2px solid transparent; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
+    .fav-tab:hover { color:#555; }
+    .fav-tab.active { color:#d4a843; border-bottom-color:#d4a843; }
+    .fav-tab .fav-count { display:inline-flex; align-items:center; justify-content:center; background:#f0eeea; color:#888; font-size:10px; font-weight:700; border-radius:999px; min-width:18px; height:18px; padding:0 5px; margin-left:6px; transition:all 0.15s; }
+    .fav-tab.active .fav-count { background:#fdf3dc; color:#d4a843; }
+    .fav-star-btn { background:none; border:none; font-size:15px; cursor:pointer; line-height:1; padding:2px 4px; color:#ddd; transition:all 0.15s; border-radius:4px; }
+    .fav-star-btn:hover { color:#d4a843; transform:scale(1.15); }
+    .fav-star-btn.active { color:#d4a843; }
+    .fav-star-btn.saving { opacity:0.4; pointer-events:none; }
+    .fav-empty { padding:60px 20px; text-align:center; }
+    .fav-empty-icon { font-size:40px; margin-bottom:14px; opacity:0.3; }
+    .fav-empty-title { font-size:15px; font-weight:700; color:#555; margin-bottom:6px; }
+    .fav-empty-sub { font-size:12px; color:#aaa; line-height:1.6; }
+    #fav-toast { position:fixed; bottom:28px; right:28px; background:#111; color:#fff; padding:11px 18px; border-radius:8px; font-size:12px; font-weight:600; z-index:9999; border:1px solid #333; display:none; align-items:center; gap:8px; box-shadow:0 4px 20px rgba(0,0,0,0.3); transition:opacity 0.3s; }
+    #fav-toast.show { display:flex; }
+    #fav-toast .fav-toast-star { font-size:14px; }
   </style>
 </head>
 <body class="auth-pending">
@@ -256,6 +275,11 @@
   <button class="plt-btn active sh" id="plt-sh" onclick="setPlatform('StubHub')">StubHub</button>
   <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')">SeatGeek <span style="font-size:9px;opacity:0.7;">Soon</span></button>
   <button class="plt-btn vs" id="plt-vs" onclick="showComingSoon('VividSeats')">VividSeats <span style="font-size:9px;opacity:0.7;">Soon</span></button>
+</div>
+
+<div id="fav-bar">
+  <button class="fav-tab active" id="fav-tab-all" onclick="setFavView('all')">All Events</button>
+  <button class="fav-tab" id="fav-tab-fav" onclick="setFavView('fav')">&#9733; Favorites <span class="fav-count" id="fav-count">0</span></button>
 </div>
 
 <div id="loadingBar" class="loading-bar"></div>
@@ -332,12 +356,94 @@ function drawTable(){
   var df=(document.getElementById('df')||{}).value||'';
   var dt=(document.getElementById('dt')||{}).value||'';
   var dataF=(document.getElementById('dataF')||{}).value||'';
-  var rows=allRows.filter(function(r){var hay=[r.name,r.raw,r.venue,r.fullVenue,r.category,r.date,r.performer,r.opponent].join(' ').toLowerCase();if(q&&!hay.includes(q))return false;if(performerQ&&!String(r.performer||'').toLowerCase().includes(performerQ)&&!String(r.opponent||'').toLowerCase().includes(performerQ))return false;if(venueQ&&!String(r.venue||'').toLowerCase().includes(venueQ)&&!String(r.fullVenue||'').toLowerCase().includes(venueQ))return false;if(catF&&r.category!==catF)return false;if(dataF==='data'&&!r.hasData)return false;if(dataF==='nodata'&&r.hasData)return false;if(df||dt){if(!r.date)return false;var d=parseEventDate(r.date);if(d===-Infinity)return false;if(df&&d<parseEventDate(df))return false;if(dt&&d>parseEventDate(dt))return false;}return true;});
-  rows=rows.filter(function(r){if(!r.hasData)return false;if(!r.date)return false;var yr=parseInt((r.date+'').slice(0,4),10);return isNaN(yr)||yr<=2027;});
-  if(sortDaysDir){rows.sort(function(a,b){var ad=a.daysToEvent!==null?a.daysToEvent:9999,bd=b.daysToEvent!==null?b.daysToEvent:9999;return sortDaysDir==='asc'?ad-bd:bd-ad;});}else if(sortDemandDir){rows.sort(function(a,b){var ad=a.demandScore!==null?a.demandScore:-1,bd=b.demandScore!==null?b.demandScore:-1;return sortDemandDir==='desc'?bd-ad:ad-bd;});}else if(sortSellThruDir){rows.sort(function(a,b){var at=a.sellThru!==null?a.sellThru:-9999,bt=b.sellThru!==null?b.sellThru:-9999;return sortSellThruDir==='desc'?bt-at:at-bt;});}else if(sortVolDir){rows.sort(function(a,b){var ap=a.listingsPct!==null?a.listingsPct:-9999,bp=b.listingsPct!==null?b.listingsPct:-9999;return sortVolDir==='desc'?bp-ap:ap-bp;});}else if(sortDateDir){rows.sort(function(a,b){var ad=parseEventDate(a.date),bd=parseEventDate(b.date);return sortDateDir==='desc'?bd-ad:ad-bd;});}else if(sortFloorDir){rows.sort(function(a,b){return sortFloorDir==='desc'?(b.floor||0)-(a.floor||0):(a.floor||0)-(b.floor||0);});}else{rows.sort(function(a,b){var ad=parseEventDate(a.date),bd=parseEventDate(b.date);if(ad!==bd)return ad-bd;if(a.hasData&&!b.hasData)return -1;if(!a.hasData&&b.hasData)return 1;return(b.listings||0)-(a.listings||0);});}
-  var tbl=document.getElementById('tbl');if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
-  var html='<table><colgroup><col class="col-name"><col class="col-cat"><col class="col-days"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-demand"><col class="col-sellthru"><col class="col-num"><col class="col-num"></colgroup><thead><tr><th>Event</th><th>Cat</th><th class="th-right" id="daysHeader" onclick="toggleDaysSort()" style="cursor:pointer;user-select:none;">Days <span id="daysSortIcon">&#8645;</span></th><th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;">Date <span id="dateSortIcon">&#8645;</span></th><th>Venue</th><th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th><th class="th-right">ATP</th><th class="th-right">Listings</th><th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th><th class="th-right" id="sellthruHeader" onclick="toggleSellThruSort()" style="cursor:pointer;user-select:none;">Sold &#9660; <span id="sellthruSortIcon">&#8645;</span></th><th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;">24h Vol <span id="volSortIcon">&#8645;</span></th><th class="th-right">Alert</th></tr></thead><tbody>';
-  rows.forEach(function(r){var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);var pctStr='\u2014',pctCls='chg-flat';if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}var dim=r.hasData?'':'opacity:0.35;';var daysBadge='\u2014';if(r.daysToEvent!==null){var dc=r.daysToEvent<=7?'days-hot':r.daysToEvent<=30?'days-soon':'days-normal';daysBadge='<span class="days-badge '+dc+'">'+r.daysToEvent+'d</span>';}var demandHtml='\u2014';if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';demandHtml='<span class="demand-score '+dc2+'">'+r.demandScore+'</span>';}var sellHtml='\u2014';if(r.sellThru!==null){var sc=r.sellThru>0?'sellthru-up':'sellthru-down';var ss=r.sellThru>0?'-'+r.sellThru:'+'+Math.abs(r.sellThru);sellHtml='<span class="'+sc+'">'+ss+'</span>';}var alertActive=vktAlerts[r.id]?' active':'';var safeName=esc(r.name).replace(/'/g,"&apos;");var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+'\','+r.floor+')" title="Set price alert">&#128276;</button>';html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')"><td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td><td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td><td class="td-right" style="'+dim+'">'+daysBadge+'</td><td style="'+dim+'">'+esc(fmtDate(r.date))+'</td><td style="'+dim+'">'+esc(r.venue)+'</td><td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td><td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">\u2014</span>')+'</td><td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td><td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td><td class="td-right" style="'+dim+'">'+(r.hasData?sellHtml:'\u2014')+'</td><td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td><td class="td-right">'+alertHtml+'</td></tr>';});
+
+  var rows=allRows.filter(function(r){
+    var hay=[r.name,r.raw,r.venue,r.fullVenue,r.category,r.date,r.performer,r.opponent].join(' ').toLowerCase();
+    if(q&&!hay.includes(q))return false;
+    if(performerQ&&!String(r.performer||'').toLowerCase().includes(performerQ)&&!String(r.opponent||'').toLowerCase().includes(performerQ))return false;
+    if(venueQ&&!String(r.venue||'').toLowerCase().includes(venueQ)&&!String(r.fullVenue||'').toLowerCase().includes(venueQ))return false;
+    if(catF&&r.category!==catF)return false;
+    if(dataF==='data'&&!r.hasData)return false;
+    if(dataF==='nodata'&&r.hasData)return false;
+    if(df||dt){if(!r.date)return false;var d=parseEventDate(r.date);if(d===-Infinity)return false;if(df&&d<parseEventDate(df))return false;if(dt&&d>parseEventDate(dt))return false;}
+    return true;
+  });
+
+  rows=rows.filter(function(r){
+    if(!r.hasData)return false;
+    if(!r.date)return false;
+    var yr=parseInt((r.date+'').slice(0,4),10);
+    return isNaN(yr)||yr<=2027;
+  });
+
+  // Favorites filter — when on favorites tab show only starred events
+  if(favView==='fav') rows=rows.filter(function(r){ return vktFavorites.has(r.id); });
+
+  if(sortDaysDir){rows.sort(function(a,b){var ad=a.daysToEvent!==null?a.daysToEvent:9999,bd=b.daysToEvent!==null?b.daysToEvent:9999;return sortDaysDir==='asc'?ad-bd:bd-ad;});}
+  else if(sortDemandDir){rows.sort(function(a,b){var ad=a.demandScore!==null?a.demandScore:-1,bd=b.demandScore!==null?b.demandScore:-1;return sortDemandDir==='desc'?bd-ad:ad-bd;});}
+  else if(sortSellThruDir){rows.sort(function(a,b){var at=a.sellThru!==null?a.sellThru:-9999,bt=b.sellThru!==null?b.sellThru:-9999;return sortSellThruDir==='desc'?bt-at:at-bt;});}
+  else if(sortVolDir){rows.sort(function(a,b){var ap=a.listingsPct!==null?a.listingsPct:-9999,bp=b.listingsPct!==null?b.listingsPct:-9999;return sortVolDir==='desc'?bp-ap:ap-bp;});}
+  else if(sortDateDir){rows.sort(function(a,b){var ad=parseEventDate(a.date),bd=parseEventDate(b.date);return sortDateDir==='desc'?bd-ad:ad-bd;});}
+  else if(sortFloorDir){rows.sort(function(a,b){return sortFloorDir==='desc'?(b.floor||0)-(a.floor||0):(a.floor||0)-(b.floor||0);});}
+  else{rows.sort(function(a,b){var ad=parseEventDate(a.date),bd=parseEventDate(b.date);if(ad!==bd)return ad-bd;if(a.hasData&&!b.hasData)return -1;if(!a.hasData&&b.hasData)return 1;return(b.listings||0)-(a.listings||0);});}
+
+  var tbl=document.getElementById('tbl');
+
+  // Favorites empty state
+  if(!rows.length && favView==='fav'){
+    tbl.innerHTML='<div class="fav-empty"><div class="fav-empty-icon">&#9733;</div><div class="fav-empty-title">No favorites yet</div><div class="fav-empty-sub">Click the star &#9734; next to any event to save it here.<br>Your favorites sync to your account and load automatically on every login.</div></div>';
+    return;
+  }
+  if(!rows.length){tbl.innerHTML='<div class="msg">No events match filters.</div>';return;}
+
+  var html='<table><colgroup><col style="width:32px"><col class="col-name"><col class="col-cat"><col class="col-days"><col class="col-date"><col class="col-venue"><col class="col-num"><col class="col-num"><col class="col-num"><col class="col-demand"><col class="col-sellthru"><col class="col-num"><col class="col-num"></colgroup>'+
+    '<thead><tr>'+
+    '<th style="width:32px;padding:0 4px;" title="Favorite">&#9733;</th>'+
+    '<th>Event</th><th>Cat</th>'+
+    '<th class="th-right" id="daysHeader" onclick="toggleDaysSort()" style="cursor:pointer;user-select:none;">Days <span id="daysSortIcon">&#8645;</span></th>'+
+    '<th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;">Date <span id="dateSortIcon">&#8645;</span></th>'+
+    '<th>Venue</th>'+
+    '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
+    '<th class="th-right">ATP</th><th class="th-right">Listings</th>'+
+    '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
+    '<th class="th-right" id="sellthruHeader" onclick="toggleSellThruSort()" style="cursor:pointer;user-select:none;">Sold &#9660; <span id="sellthruSortIcon">&#8645;</span></th>'+
+    '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;">24h Vol <span id="volSortIcon">&#8645;</span></th>'+
+    '<th class="th-right">Alert</th>'+
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
+    var pctStr='\u2014',pctCls='chg-flat';
+    if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}
+    var dim=r.hasData?'':'opacity:0.35;';
+    var daysBadge='\u2014';
+    if(r.daysToEvent!==null){var dc=r.daysToEvent<=7?'days-hot':r.daysToEvent<=30?'days-soon':'days-normal';daysBadge='<span class="days-badge '+dc+'">'+r.daysToEvent+'d</span>';}
+    var demandHtml='\u2014';
+    if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';demandHtml='<span class="demand-score '+dc2+'">'+r.demandScore+'</span>';}
+    var sellHtml='\u2014';
+    if(r.sellThru!==null){var sc=r.sellThru>0?'sellthru-up':'sellthru-down';var ss=r.sellThru>0?'-'+r.sellThru:'+'+Math.abs(r.sellThru);sellHtml='<span class="'+sc+'">'+ss+'</span>';}
+    var alertActive=vktAlerts[r.id]?' active':'';
+    var safeName=esc(r.name).replace(/'/g,"&apos;");
+    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+'\','+r.floor+')" title="Set price alert">&#128276;</button>';
+    var isFav=vktFavorites.has(r.id);
+    var starHtml='<button class="fav-star-btn'+(isFav?' active':'')+'" data-event-id="'+esc(r.id)+'" onclick="event.stopPropagation();toggleFavorite(\''+r.id+'\',this)" title="'+(isFav?'Remove from favorites':'Add to favorites')+'">'+(isFav?'&#9733;':'&#9734;')+'</button>';
+
+    html+='<tr onclick="go(\''+href.replace(/'/g,"\\'")+'\')">'+
+      '<td style="text-align:center;padding:0 4px;">'+starHtml+'</td>'+
+      '<td style="'+dim+'"><div class="event-name">'+esc(r.name)+'</div></td>'+
+      '<td style="'+dim+'"><span class="'+tagClass(r.category)+'">'+esc(r.category)+'</span></td>'+
+      '<td class="td-right" style="'+dim+'">'+daysBadge+'</td>'+
+      '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
+      '<td style="'+dim+'">'+esc(r.venue)+'</td>'+
+      '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td>'+
+      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">\u2014</span>')+'</td>'+
+      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+(r.hasData?sellHtml:'\u2014')+'</td>'+
+      '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
+      '<td class="td-right">'+alertHtml+'</td>'+
+      '</tr>';
+  });
   tbl.innerHTML=html+'</tbody></table>';
 }
 
@@ -410,6 +516,132 @@ function saveAlert(){var eventId=document.getElementById('alert-event-id').value
 function deleteAlert(){var eventId=document.getElementById('alert-event-id').value;delete vktAlerts[eventId];saveAlerts();closeAlert();drawTable();}
 function showComingSoon(platform){var toast=document.getElementById('coming-soon-toast');document.getElementById('toast-platform-name').textContent=platform;toast.classList.add('show');setTimeout(function(){toast.classList.remove('show');},3000);}
 
+// ═══════════════════════════════════════════════════════
+// FAVORITES — stored in Supabase per user email
+// Table required (run once in Supabase SQL editor):
+//
+//   create table user_favorites (
+//     id uuid default gen_random_uuid() primary key,
+//     user_email text not null,
+//     event_id text not null,
+//     created_at timestamptz default now(),
+//     unique(user_email, event_id)
+//   );
+//   alter table user_favorites enable row level security;
+//   create policy "open" on user_favorites for all using (true) with check (true);
+//
+// ═══════════════════════════════════════════════════════
+
+var vktFavorites = new Set(); // Set of event_id strings
+var favView = 'all';          // 'all' | 'fav'
+var favToastTimer = null;
+
+// ── Supabase CRUD ────────────────────────────────────────
+function fetchFavoritesFromDB(email) {
+  return fetch(SB + '/rest/v1/user_favorites?user_email=eq.' + encodeURIComponent(email) + '&select=event_id', { headers: H })
+    .then(function(r) { return r.ok ? r.json() : []; })
+    .catch(function() { return []; });
+}
+
+function insertFavoriteToDB(email, eventId) {
+  return fetch(SB + '/rest/v1/user_favorites', {
+    method: 'POST',
+    headers: Object.assign({}, H, { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
+    body: JSON.stringify({ user_email: email, event_id: eventId })
+  }).then(function(r) { return r.ok || r.status === 409; }) // 409 = already exists, that's fine
+    .catch(function() { return false; });
+}
+
+function deleteFavoriteFromDB(email, eventId) {
+  return fetch(SB + '/rest/v1/user_favorites?user_email=eq.' + encodeURIComponent(email) + '&event_id=eq.' + encodeURIComponent(eventId), {
+    method: 'DELETE',
+    headers: Object.assign({}, H, { 'Prefer': 'return=minimal' })
+  }).then(function(r) { return r.ok; })
+    .catch(function() { return false; });
+}
+
+// ── Load favorites on login ──────────────────────────────
+function loadFavorites(email) {
+  // Seed from localStorage immediately so UI doesn't flash empty
+  try {
+    var cached = JSON.parse(localStorage.getItem('vkt_fav_' + email) || '[]');
+    cached.forEach(function(id) { vktFavorites.add(id); });
+  } catch(e) {}
+
+  // Then sync from DB (authoritative)
+  fetchFavoritesFromDB(email).then(function(rows) {
+    if (!rows || !rows.length) { updateFavCount(); return; }
+    vktFavorites = new Set(rows.map(function(r) { return r.event_id; }));
+    persistFavLocally(email);
+    updateFavCount();
+    if (favView === 'fav') drawTable(); // refresh if on favorites tab
+    else refreshStars();
+  });
+}
+
+function persistFavLocally(email) {
+  try { localStorage.setItem('vkt_fav_' + email, JSON.stringify(Array.from(vktFavorites))); } catch(e) {}
+}
+
+// ── Toggle ───────────────────────────────────────────────
+function toggleFavorite(eventId, btnEl) {
+  if (!vktUser) return;
+  var wasFav = vktFavorites.has(eventId);
+
+  // Optimistic update
+  if (wasFav) { vktFavorites.delete(eventId); } else { vktFavorites.add(eventId); }
+  persistFavLocally(vktUser.email);
+  updateFavCount();
+  if (btnEl) { btnEl.classList.toggle('active', !wasFav); }
+
+  // If we're on favorites view and just removed one, redraw
+  if (favView === 'fav' && wasFav) { drawTable(); }
+
+  // Show toast
+  showFavToast(wasFav ? '&#9734; Removed from Favorites' : '&#9733; Added to Favorites');
+
+  // Persist to DB
+  if (wasFav) {
+    deleteFavoriteFromDB(vktUser.email, eventId).then(function(ok) {
+      if (!ok) { vktFavorites.add(eventId); persistFavLocally(vktUser.email); updateFavCount(); refreshStars(); }
+    });
+  } else {
+    insertFavoriteToDB(vktUser.email, eventId).then(function(ok) {
+      if (!ok) { vktFavorites.delete(eventId); persistFavLocally(vktUser.email); updateFavCount(); refreshStars(); }
+    });
+  }
+}
+
+// ── UI helpers ───────────────────────────────────────────
+function updateFavCount() {
+  var el = document.getElementById('fav-count');
+  if (el) el.textContent = vktFavorites.size;
+}
+
+function refreshStars() {
+  document.querySelectorAll('.fav-star-btn').forEach(function(btn) {
+    var id = btn.getAttribute('data-event-id');
+    if (id) btn.classList.toggle('active', vktFavorites.has(id));
+  });
+}
+
+function setFavView(view) {
+  favView = view;
+  document.getElementById('fav-tab-all').classList.toggle('active', view === 'all');
+  document.getElementById('fav-tab-fav').classList.toggle('active', view === 'fav');
+  drawTable();
+}
+
+function showFavToast(msg) {
+  var toast = document.getElementById('fav-toast');
+  var msgEl = document.getElementById('fav-toast-msg');
+  if (!toast || !msgEl) return;
+  msgEl.innerHTML = msg;
+  toast.classList.add('show');
+  clearTimeout(favToastTimer);
+  favToastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2200);
+}
+
 function init(){
   var eventId=qp('event_id');
   if(eventId){document.getElementById('loadingBar').style.display='none';loadAnalysis(eventId);return;}
@@ -461,9 +693,9 @@ function showPaywall(reason){hideGate();var pw=document.getElementById('vkt-payw
 function showAuthGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.remove('hidden');gate.style.display='flex';}}
 function showSuccessToast(msg){var t=document.getElementById('success-toast');if(!t)return;t.textContent=msg||'\u2713 Subscription active \u2014 welcome to VKT Market Data';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},5000);}
 function signOut(){clearStoredToken();vktToken=null;vktUser=null;try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}window.location.reload();}
-function grantAccess(authData){hideGate();showManageSubButton();if(authData.status==='trial'&&authData.daysRemaining!==undefined){showTrialBanner(authData.daysRemaining);}init();}
+function grantAccess(authData){hideGate();showManageSubButton();if(authData.status==='trial'&&authData.daysRemaining!==undefined){showTrialBanner(authData.daysRemaining);}init();if(vktUser&&vktUser.email)loadFavorites(vktUser.email);}
 function resolveAccess(email,googleId,onBypassSkip){
-  if(VKT_BYPASS_EMAILS.indexOf(email)>=0){vktUser={email:email,googleId:googleId,status:'bypass'};if(onBypassSkip)onBypassSkip();hideGate();showManageSubButton();init();return;}
+  if(VKT_BYPASS_EMAILS.indexOf(email)>=0){vktUser={email:email,googleId:googleId,status:'bypass'};if(onBypassSkip)onBypassSkip();hideGate();showManageSubButton();init();loadFavorites(email);return;}
   checkAccess(email,googleId).then(function(data){if(!data)throw new Error('No response');vktUser={email:email,googleId:googleId,status:data.status,trialEndsAt:data.trialEndsAt,currentPeriodEnd:data.currentPeriodEnd,daysRemaining:data.daysRemaining};if(data.access==='granted'){grantAccess(data);}else{showPaywall(data.status);}}).catch(function(e){console.error('[VKT] Status check failed:',e);hideGate();init();});
 }
 function handleCredentialResponse(response){var token=response.credential;vktToken=token;setStoredToken(token);var payload=decodeJwt(token);if(!payload||!payload.email){hideGate();init();return;}resolveAccess(payload.email,payload.sub);}
@@ -497,6 +729,9 @@ window.addEventListener('load',function(){if(new URLSearchParams(window.location
     <div class="info-row"><div class="info-col-name">Alert &#128276;</div><div class="info-col-desc">Set a <strong>floor price alert</strong>. Get notified when the floor drops to your target. Saved in your browser.</div></div>
   </div>
 </div>
+
+<!-- FAV TOAST -->
+<div id="fav-toast"><span class="fav-toast-star">&#9733;</span><span id="fav-toast-msg">Added to Favorites</span></div>
 
 <!-- COMING SOON TOAST -->
 <div id="coming-soon-toast">
