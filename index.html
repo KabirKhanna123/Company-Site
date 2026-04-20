@@ -633,6 +633,59 @@
         }
     </script>
 
+    <!-- EARLY ACCESS MODAL -->
+    <div id="earlyAccessModal" class="modal">
+        <div class="modal-content" style="max-width:560px;">
+            <button class="close-modal" onclick="closeEarlyAccessModal()">&times;</button>
+            <p class="modal-section-tag">Join the Waitlist</p>
+            <h2>Get Early Access</h2>
+            <p style="margin-bottom:2rem;">VKT professional tools are in beta. Drop your info below and we'll reach out when access opens up for you.</p>
+            <div id="earlyAccessForm">
+                <form onsubmit="handleEarlyAccessSubmit(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name <span style="color:#d4a843;">*</span></label>
+                            <input type="text" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name <span style="color:#d4a843;">*</span></label>
+                            <input type="text" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span style="color:#d4a843;">*</span></label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Which tool are you interested in? <span style="color:#d4a843;">*</span></label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;" id="toolCheckboxes">
+                            <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:0.9rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">
+                                <input type="checkbox" name="tools" value="VKT Pricer" style="width:16px;height:16px;accent-color:#d4a843;"> VKT Pricer
+                            </label>
+                            <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:0.9rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">
+                                <input type="checkbox" name="tools" value="AI Agent" style="width:16px;height:16px;accent-color:#d4a843;"> AI Agent
+                            </label>
+                            <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:0.9rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">
+                                <input type="checkbox" name="tools" value="VKT Strategy" style="width:16px;height:16px;accent-color:#d4a843;"> VKT Strategy
+                            </label>
+                            <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:0.9rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">
+                                <input type="checkbox" name="tools" value="All Tools" style="width:16px;height:16px;accent-color:#d4a843;"> All Tools
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn" style="margin-top:8px;">Request Access &rarr;</button>
+                    <div id="earlyAccessError" style="color:#c0392b;font-size:0.85rem;margin-top:10px;display:none;">Please select at least one tool.</div>
+                </form>
+            </div>
+            <div id="earlyAccessConfirm" style="display:none;text-align:center;padding:20px 0;">
+                <div style="font-size:2.5rem;margin-bottom:16px;">&#10003;</div>
+                <p class="modal-section-tag">You're on the list</p>
+                <h2 style="margin-bottom:12px;">We'll be in touch.</h2>
+                <p>Thanks for your interest. We'll reach out as soon as early access opens up for your selected tools.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- BOOKING MODAL -->
     <div id="bookingModal" class="modal">
         <div class="modal-content" id="book-now">
@@ -1037,7 +1090,7 @@
                     </div>
                 </div>
                 <div class="tool-cta-bar">
-                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <button class="tool-cta-btn" onclick="openEarlyAccessModal()">Get Early Access &rarr;</button>
                     <p class="tool-cta-note">Currently in beta. Contact us to join the early access list.</p>
                 </div>
             </div>
@@ -1120,7 +1173,7 @@
                     </div>
                 </div>
                 <div class="tool-cta-bar">
-                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <button class="tool-cta-btn" onclick="openEarlyAccessModal()">Get Early Access &rarr;</button>
                     <p class="tool-cta-note">VKT AI Agent is built for serious volume operators. Contact us to discuss your use case.</p>
                 </div>
             </div>
@@ -1225,7 +1278,7 @@
                     </div>
                 </div>
                 <div class="tool-cta-bar">
-                    <button class="tool-cta-btn" onclick="openBookingModal()">Get Early Access &rarr;</button>
+                    <button class="tool-cta-btn" onclick="openEarlyAccessModal()">Get Early Access &rarr;</button>
                     <p class="tool-cta-note">VKT Strategy is the most comprehensive tool in the suite and runs best when Volume Tracker and Price Tracker data are already building in the background.</p>
                 </div>
             </div>
@@ -1588,6 +1641,45 @@
         function closeBookingModal() { var modal = document.getElementById('bookingModal'); if(modal){ modal.classList.remove('active'); modal.style.display = ''; } document.body.style.overflow = 'auto'; }
         function openFAQModal() { document.getElementById('faqModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
         function closeFAQModal() { document.getElementById('faqModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        function openEarlyAccessModal() {
+            document.getElementById('earlyAccessForm').style.display = 'block';
+            document.getElementById('earlyAccessConfirm').style.display = 'none';
+            document.getElementById('earlyAccessError').style.display = 'none';
+            document.getElementById('earlyAccessModal').classList.add('active');
+            document.getElementById('earlyAccessModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        function closeEarlyAccessModal() {
+            document.getElementById('earlyAccessModal').classList.remove('active');
+            document.getElementById('earlyAccessModal').style.display = '';
+            document.body.style.overflow = 'auto';
+        }
+        async function handleEarlyAccessSubmit(e) {
+            e.preventDefault();
+            var form = e.target;
+            var checked = form.querySelectorAll('input[name="tools"]:checked');
+            if (!checked.length) {
+                document.getElementById('earlyAccessError').style.display = 'block';
+                return;
+            }
+            document.getElementById('earlyAccessError').style.display = 'none';
+            var tools = Array.from(checked).map(function(c){ return c.value; }).join(', ');
+            var data = {
+                firstName: form.firstName.value,
+                lastName:  form.lastName.value,
+                email:     form.email.value,
+                tools:     tools
+            };
+            try {
+                await fetch('https://formspree.io/f/xaqabdyn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch(err) {}
+            document.getElementById('earlyAccessForm').style.display = 'none';
+            document.getElementById('earlyAccessConfirm').style.display = 'block';
+        }
         function openPrivacyModal() { document.getElementById('privacyModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
         function closePrivacyModal() { document.getElementById('privacyModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
         function openNewslettersModal() { document.getElementById('newslettersModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
@@ -1677,7 +1769,7 @@
             if (dd && btn && !dd.contains(event.target) && !btn.contains(event.target)) {
                 closeDropdown();
             }
-            var stdModals = ['whyModal','servicesModal','aboutModal','bookingModal','faqModal','privacyModal','newslettersModal','subscribeModal','reviewsModal'];
+            var stdModals = ['whyModal','servicesModal','aboutModal','bookingModal','faqModal','privacyModal','newslettersModal','subscribeModal','reviewsModal','earlyAccessModal'];
             stdModals.forEach(function(id) {
                 var modal = document.getElementById(id);
                 if (event.target === modal) { modal.classList.remove('active'); document.body.style.overflow = 'auto'; }
