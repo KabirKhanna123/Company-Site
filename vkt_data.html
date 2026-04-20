@@ -171,22 +171,40 @@
     .demand-high { color:#22c55e; } .demand-med { color:#d4a843; } .demand-low { color:#ef4444; }
     .sellthru-up { color:#22c55e; font-weight:700; font-family:monospace; }
     .sellthru-down { color:#ef4444; font-weight:700; font-family:monospace; }
-    .alert-btn { background:none; border:1px solid #ddd; border-radius:5px; padding:3px 8px; font-size:10px; cursor:pointer; color:#888; }
+    .alert-btn { background:none; border:1px solid #ddd; border-radius:5px; padding:3px 8px; font-size:10px; cursor:pointer; color:#888; line-height:1.3; }
     .alert-btn:hover { border-color:#d4a843; color:#d4a843; }
     .alert-btn.active { border-color:#d4a843; color:#d4a843; background:#fdf9f2; }
+    .alert-btn-label { display:block; font-size:9px; color:#d4a843; font-weight:700; margin-top:1px; max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .col-days { width:7%; } .col-demand { width:8%; } .col-sellthru { width:8%; }
-    #alert-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9990; align-items:center; justify-content:center; }
+    #alert-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9990; align-items:center; justify-content:center; }
     #alert-modal.open { display:flex; }
-    .alert-modal-card { background:#fff; border-radius:12px; padding:28px; max-width:380px; width:90%; }
-    .alert-modal-title { font-size:16px; font-weight:700; margin-bottom:6px; }
-    .alert-modal-sub { font-size:12px; color:#888; margin-bottom:16px; }
-    .alert-modal-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-    .alert-modal-label { font-size:12px; color:#555; width:100px; }
-    .alert-modal-input { flex:1; padding:7px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; outline:none; }
+    .alert-modal-card { background:#fff; border-radius:12px; padding:28px; max-width:460px; width:92%; box-shadow:0 8px 40px rgba(0,0,0,0.18); }
+    .alert-modal-title { font-size:16px; font-weight:700; margin-bottom:4px; color:#111; }
+    .alert-modal-sub { font-size:12px; color:#888; margin-bottom:20px; line-height:1.4; }
+    .alert-section-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#888; margin-bottom:8px; }
+    .alert-builder-row { display:flex; gap:8px; align-items:stretch; margin-bottom:12px; }
+    .alert-select { flex:1; padding:9px 10px; border:1px solid #ddd; border-radius:7px; font-size:13px; outline:none; background:#fff; color:#111; cursor:pointer; }
+    .alert-select:focus { border-color:#d4a843; }
+    .alert-cond-group { display:flex; border:1px solid #ddd; border-radius:7px; overflow:hidden; flex-shrink:0; }
+    .alert-cond-btn { padding:9px 16px; background:#fff; border:none; font-size:14px; font-weight:700; cursor:pointer; color:#aaa; transition:all 0.15s; }
+    .alert-cond-btn:first-child { border-right:1px solid #ddd; }
+    .alert-cond-btn.active { background:#111; color:#fff; }
+    .alert-cond-btn:hover:not(.active) { background:#f5f5f5; color:#111; }
+    .alert-value-wrap { position:relative; margin-bottom:12px; }
+    .alert-value-wrap input { width:100%; padding:10px 42px 10px 12px; border:1px solid #ddd; border-radius:7px; font-size:16px; font-weight:700; color:#111; outline:none; font-family:monospace; }
+    .alert-value-wrap input:focus { border-color:#d4a843; }
+    .alert-value-unit { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:11px; color:#aaa; pointer-events:none; font-weight:700; }
+    .alert-summary { background:#fdf9f2; border:1px solid #f0c866; border-radius:7px; padding:10px 14px; font-size:12px; color:#8a6a18; font-weight:600; margin-bottom:16px; display:none; }
+    .alert-summary.visible { display:block; }
+    .alert-modal-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .alert-modal-label { font-size:12px; color:#555; white-space:nowrap; }
+    .alert-modal-input { flex:1; padding:9px 11px; border:1px solid #ddd; border-radius:7px; font-size:13px; outline:none; color:#111; }
     .alert-modal-input:focus { border-color:#d4a843; }
-    .alert-modal-btns { display:flex; gap:8px; margin-top:16px; }
-    .alert-modal-save { flex:1; padding:9px; background:#d4a843; color:#111; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:13px; }
-    .alert-modal-cancel { padding:9px 16px; background:#f0eeea; color:#555; border:none; border-radius:6px; cursor:pointer; font-size:13px; }
+    .alert-modal-btns { display:flex; gap:8px; margin-top:4px; }
+    .alert-modal-save { flex:1; padding:10px; background:#d4a843; color:#111; border:none; border-radius:7px; font-weight:700; cursor:pointer; font-size:13px; }
+    .alert-modal-save:hover { background:#e0b84a; }
+    .alert-modal-cancel { padding:10px 16px; background:#f0eeea; color:#555; border:none; border-radius:7px; cursor:pointer; font-size:13px; }
+    .alert-modal-cancel:hover { background:#e5e0d8; }
     .platform-compare { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
     .platform-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:14px; text-align:center; }
     .platform-card-name { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
@@ -422,9 +440,12 @@ function drawTable(){
     if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';demandHtml='<span class="demand-score '+dc2+'">'+r.demandScore+'</span>';}
     var sellHtml='\u2014';
     if(r.sellThru!==null){var sc=r.sellThru>0?'sellthru-up':'sellthru-down';var ss=r.sellThru>0?'-'+r.sellThru:'+'+Math.abs(r.sellThru);sellHtml='<span class="'+sc+'">'+ss+'</span>';}
-    var alertActive=vktAlerts[r.id]?' active':'';
+    var existingAlert=vktAlerts[r.id]||null;
+    var alertActive=existingAlert?' active':'';
     var safeName=esc(r.name).replace(/'/g,"&apos;");
-    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+'\','+r.floor+')" title="Set price alert">&#128276;</button>';
+    var miniLabel=existingAlert?alertMiniLabel(existingAlert):'';
+    var rowDataJson=JSON.stringify({floor:r.floor||0,atp:Math.round(r.atp)||0,listings:r.listings||0,demand:r.demandScore||0,vol24h:r.listingsPct||0,days:r.daysToEvent||0}).replace(/'/g,"\'");
+    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+"\',JSON.parse('"+rowDataJson+"'))" title="Set price alert">&#128276;'+(miniLabel?'<span class="alert-btn-label">'+miniLabel+'</span>':'')+'</button>';
     var isFav=vktFavorites.has(r.id);
     var starHtml='<button class="fav-star-btn'+(isFav?' active':'')+'" data-event-id="'+esc(r.id)+'" onclick="event.stopPropagation();toggleFavorite(\''+r.id+'\',this)" title="'+(isFav?'Remove from favorites':'Add to favorites')+'">'+(isFav?'&#9733;':'&#9734;')+'</button>';
 
@@ -508,12 +529,138 @@ function toggleDateSort(){if(sortDateDir===null)sortDateDir='asc';else if(sortDa
 function toggleFloorSort(){if(sortFloorDir===null)sortFloorDir='desc';else if(sortFloorDir==='desc')sortFloorDir='asc';else sortFloorDir=null;sortVolDir=null;sortDateDir=null;var di=document.getElementById('dateSortIcon');if(di)di.textContent='\u21C5';var dh=document.getElementById('dateHeader');if(dh)dh.style.color='';var vi=document.getElementById('volSortIcon');if(vi)vi.textContent='\u21C5';var vh=document.getElementById('volHeader');if(vh)vh.style.color='';var icon=document.getElementById('floorSortIcon');if(icon)icon.textContent=sortFloorDir==='desc'?'\u2193':sortFloorDir==='asc'?'\u2191':'\u21C5';var hdr=document.getElementById('floorHeader');if(hdr)hdr.style.color=sortFloorDir?'#d4a843':'';drawTable();}
 function toggleVolSort(){if(sortVolDir===null)sortVolDir='desc';else if(sortVolDir==='desc')sortVolDir='asc';else sortVolDir=null;sortFloorDir=null;sortDateDir=null;var di=document.getElementById('dateSortIcon');if(di)di.textContent='\u21C5';var dh=document.getElementById('dateHeader');if(dh)dh.style.color='';var fi=document.getElementById('floorSortIcon');if(fi)fi.textContent='\u21C5';var fh=document.getElementById('floorHeader');if(fh)fh.style.color='';var icon=document.getElementById('volSortIcon');if(icon)icon.textContent=sortVolDir==='desc'?'\u2193':sortVolDir==='asc'?'\u2191':'\u21C5';var hdr=document.getElementById('volHeader');if(hdr)hdr.style.color=sortVolDir?'#d4a843':'';drawTable();}
 
+// ── ALERT DATA POINTS CONFIG ──────────────────────────────────────
+var ALERT_FIELDS = [
+  { key:'floor',     label:'Floor Price',        unit:'$',  prefix:true  },
+  { key:'atp',       label:'Avg Ticket Price',   unit:'$',  prefix:true  },
+  { key:'listings',  label:'Total Listings',     unit:'',   prefix:false },
+  { key:'demand',    label:'Demand Score',       unit:'',   prefix:false },
+  { key:'vol24h',    label:'24h Vol Change',     unit:'%',  prefix:false },
+  { key:'days',      label:'Days to Event',      unit:'d',  prefix:false }
+];
+
 var vktAlerts={};try{vktAlerts=JSON.parse(localStorage.getItem('vkt_alerts')||'{}');}catch(e){}
 function saveAlerts(){try{localStorage.setItem('vkt_alerts',JSON.stringify(vktAlerts));}catch(e){}}
-function openAlert(eventId,eventName,currentFloor){var existing=vktAlerts[eventId]||{};document.getElementById('alert-event-name').textContent=eventName;document.getElementById('alert-floor-input').value=existing.floor||Math.round(currentFloor*0.9)||'';document.getElementById('alert-email-input').value=existing.email||(vktUser?vktUser.email:'');document.getElementById('alert-event-id').value=eventId;document.getElementById('alert-modal').classList.add('open');}
+
+// Build human-readable summary of an alert config
+function alertSummary(a) {
+  if(!a||!a.field||!a.condition||a.value===undefined) return '';
+  var fd = ALERT_FIELDS.find(function(f){return f.key===a.field;}) || {label:a.field,unit:'',prefix:false};
+  var cond = a.condition === 'gt' ? 'rises above' : 'drops below';
+  var val = fd.prefix ? '$'+a.value : a.value+fd.unit;
+  return 'Alert when '+fd.label+' '+cond+' '+val;
+}
+
+// Mini label shown in the table bell button
+function alertMiniLabel(a) {
+  if(!a||!a.field||!a.condition||a.value===undefined) return '';
+  var fd = ALERT_FIELDS.find(function(f){return f.key===a.field;}) || {label:a.field,unit:'',prefix:false};
+  var sym = a.condition === 'gt' ? '↑' : '↓';
+  var val = fd.prefix ? '$'+a.value : a.value+(fd.unit||'');
+  return sym+' '+fd.label.split(' ')[0]+' '+val;
+}
+
+var _alertCondition = 'lt'; // default: less than
+
+function openAlert(eventId, eventName, rowData) {
+  var existing = vktAlerts[eventId] || {};
+
+  // Populate header
+  document.getElementById('alert-event-name').textContent = eventName;
+  document.getElementById('alert-event-id').value = eventId;
+
+  // Field selector — default to floor
+  var fieldSel = document.getElementById('alert-field-select');
+  fieldSel.value = existing.field || 'floor';
+  updateAlertUnit();
+
+  // Condition buttons
+  _alertCondition = existing.condition || 'lt';
+  document.getElementById('alert-cond-lt').classList.toggle('active', _alertCondition === 'lt');
+  document.getElementById('alert-cond-gt').classList.toggle('active', _alertCondition === 'gt');
+
+  // Value — default to sensible guess based on field
+  var valInput = document.getElementById('alert-value-input');
+  if(existing.value !== undefined) {
+    valInput.value = existing.value;
+  } else {
+    // Sensible defaults from current row data
+    var defaults = {
+      floor: rowData&&rowData.floor ? Math.round(rowData.floor*0.9) : '',
+      atp: rowData&&rowData.atp ? Math.round(rowData.atp*0.9) : '',
+      listings: rowData&&rowData.listings ? Math.round(rowData.listings*0.8) : '',
+      demand: 50, vol24h: -10, days: 7
+    };
+    valInput.value = defaults[fieldSel.value] || '';
+  }
+
+  // Email
+  document.getElementById('alert-email-input').value = existing.email || (vktUser ? vktUser.email : '');
+
+  updateAlertSummary();
+  document.getElementById('alert-modal').classList.add('open');
+}
+
+function updateAlertUnit() {
+  var fieldSel = document.getElementById('alert-field-select');
+  var fd = ALERT_FIELDS.find(function(f){return f.key===fieldSel.value;}) || {unit:'',prefix:false};
+  var unitEl = document.getElementById('alert-value-unit');
+  if(fd.prefix) {
+    unitEl.textContent = '';
+    document.getElementById('alert-value-input').style.paddingLeft = '24px';
+    unitEl.style.left = '12px'; unitEl.style.right = 'auto';
+    unitEl.textContent = '$';
+  } else {
+    unitEl.style.left = 'auto'; unitEl.style.right = '12px';
+    unitEl.textContent = fd.unit;
+    document.getElementById('alert-value-input').style.paddingLeft = '12px';
+  }
+  updateAlertSummary();
+}
+
+function setAlertCondition(cond) {
+  _alertCondition = cond;
+  document.getElementById('alert-cond-lt').classList.toggle('active', cond === 'lt');
+  document.getElementById('alert-cond-gt').classList.toggle('active', cond === 'gt');
+  updateAlertSummary();
+}
+
+function updateAlertSummary() {
+  var field = document.getElementById('alert-field-select').value;
+  var val = parseFloat(document.getElementById('alert-value-input').value);
+  var summaryEl = document.getElementById('alert-summary');
+  if(field && !isNaN(val)) {
+    summaryEl.textContent = '🔔 ' + alertSummary({field:field, condition:_alertCondition, value:val});
+    summaryEl.classList.add('visible');
+  } else {
+    summaryEl.classList.remove('visible');
+  }
+}
+
 function closeAlert(){document.getElementById('alert-modal').classList.remove('open');}
-function saveAlert(){var eventId=document.getElementById('alert-event-id').value;var floor=parseFloat(document.getElementById('alert-floor-input').value);var email=document.getElementById('alert-email-input').value.trim();if(!floor||!email){alert('Please fill in both fields.');return;}vktAlerts[eventId]={floor:floor,email:email,set:Date.now()};saveAlerts();closeAlert();drawTable();}
-function deleteAlert(){var eventId=document.getElementById('alert-event-id').value;delete vktAlerts[eventId];saveAlerts();closeAlert();drawTable();}
+
+function saveAlert() {
+  var eventId = document.getElementById('alert-event-id').value;
+  var field   = document.getElementById('alert-field-select').value;
+  var value   = parseFloat(document.getElementById('alert-value-input').value);
+  var email   = document.getElementById('alert-email-input').value.trim();
+  if(!field || isNaN(value) || !email) {
+    alert('Please fill in all fields.');
+    return;
+  }
+  vktAlerts[eventId] = { field:field, condition:_alertCondition, value:value, email:email, set:Date.now() };
+  saveAlerts();
+  closeAlert();
+  drawTable();
+}
+
+function deleteAlert() {
+  var eventId = document.getElementById('alert-event-id').value;
+  delete vktAlerts[eventId];
+  saveAlerts();
+  closeAlert();
+  drawTable();
+}
 function showComingSoon(platform){var toast=document.getElementById('coming-soon-toast');document.getElementById('toast-platform-name').textContent=platform;toast.classList.add('show');setTimeout(function(){toast.classList.remove('show');},3000);}
 
 // ═══════════════════════════════════════════════════════
@@ -726,7 +873,7 @@ window.addEventListener('load',function(){if(new URLSearchParams(window.location
     <div class="info-row"><div class="info-col-name">Demand</div><div class="info-col-desc">VKT's proprietary <strong>Demand Score</strong> (1–99). From days to event, sell-through, floor trend, and volume momentum. <strong style="color:#22c55e;">60+</strong> = high, <strong style="color:#d4a843;">35–59</strong> = moderate, <strong style="color:#ef4444;">below 35</strong> = low.</div></div>
     <div class="info-row"><div class="info-col-name">Sold &#9660;</div><div class="info-col-desc"><strong>Sell-through</strong> — net listing change since first tracked. <strong style="color:#22c55e;">Negative</strong> = tickets sold. Positive = supply growing.</div></div>
     <div class="info-row"><div class="info-col-name">24h Vol</div><div class="info-col-desc"><strong>24-hour volume change</strong>. <strong style="color:#22c55e;">Green</strong> = listings dropping (selling fast). <strong style="color:#ef4444;">Red</strong> = listings growing.</div></div>
-    <div class="info-row"><div class="info-col-name">Alert &#128276;</div><div class="info-col-desc">Set a <strong>floor price alert</strong>. Get notified when the floor drops to your target. Saved in your browser.</div></div>
+    <div class="info-row"><div class="info-col-name">Alert &#128276;</div><div class="info-col-desc">Set a <strong>custom alert</strong> on any data point — Floor, ATP, Listings, Demand Score, 24h Vol %, or Days to Event. Choose <strong>&gt;</strong> (rises above) or <strong>&lt;</strong> (drops below) a number or percentage. Your alerts are saved in your browser and shown as a mini label on the bell icon.</div></div>
   </div>
 </div>
 
@@ -746,11 +893,44 @@ window.addEventListener('load',function(){if(new URLSearchParams(window.location
 <!-- ALERT MODAL -->
 <div id="alert-modal">
   <div class="alert-modal-card">
-    <div class="alert-modal-title">&#128276; Price Alert</div>
+    <div class="alert-modal-title">&#128276; Set Alert</div>
     <div class="alert-modal-sub" id="alert-event-name"></div>
     <input type="hidden" id="alert-event-id"/>
-    <div class="alert-modal-row"><div class="alert-modal-label">Alert when floor &le;</div><input class="alert-modal-input" id="alert-floor-input" type="number" placeholder="e.g. 150"/></div>
-    <div class="alert-modal-row"><div class="alert-modal-label">Email</div><input class="alert-modal-input" id="alert-email-input" type="email" placeholder="you@email.com"/></div>
+
+    <div class="alert-section-label">Notify me when</div>
+
+    <!-- Row 1: data point selector -->
+    <div class="alert-builder-row">
+      <select class="alert-select" id="alert-field-select" onchange="updateAlertUnit()">
+        <option value="floor">Floor Price</option>
+        <option value="atp">Avg Ticket Price (ATP)</option>
+        <option value="listings">Total Listings</option>
+        <option value="demand">Demand Score</option>
+        <option value="vol24h">24h Vol Change (%)</option>
+        <option value="days">Days to Event</option>
+      </select>
+      <!-- Greater than / Less than -->
+      <div class="alert-cond-group">
+        <button class="alert-cond-btn active" id="alert-cond-lt" onclick="setAlertCondition('lt')" title="Less than">&lt;</button>
+        <button class="alert-cond-btn" id="alert-cond-gt" onclick="setAlertCondition('gt')" title="Greater than">&gt;</button>
+      </div>
+    </div>
+
+    <!-- Row 2: value input -->
+    <div class="alert-value-wrap">
+      <input type="number" id="alert-value-input" placeholder="Enter value" oninput="updateAlertSummary()" step="any"/>
+      <span class="alert-value-unit" id="alert-value-unit"></span>
+    </div>
+
+    <!-- Live summary -->
+    <div class="alert-summary" id="alert-summary"></div>
+
+    <!-- Email -->
+    <div class="alert-modal-row">
+      <div class="alert-modal-label">Email</div>
+      <input class="alert-modal-input" id="alert-email-input" type="email" placeholder="you@email.com"/>
+    </div>
+
     <div class="alert-modal-btns">
       <button class="alert-modal-save" onclick="saveAlert()">Save Alert</button>
       <button class="alert-modal-cancel" onclick="deleteAlert()">Remove</button>
