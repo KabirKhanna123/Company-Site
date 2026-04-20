@@ -442,10 +442,11 @@ function drawTable(){
     if(r.sellThru!==null){var sc=r.sellThru>0?'sellthru-up':'sellthru-down';var ss=r.sellThru>0?'-'+r.sellThru:'+'+Math.abs(r.sellThru);sellHtml='<span class="'+sc+'">'+ss+'</span>';}
     var existingAlert=vktAlerts[r.id]||null;
     var alertActive=existingAlert?' active':'';
-    var safeName=esc(r.name).replace(/'/g,"&apos;");
     var miniLabel=existingAlert?alertMiniLabel(existingAlert):'';
-    var rowDataJson=JSON.stringify({floor:r.floor||0,atp:Math.round(r.atp)||0,listings:r.listings||0,demand:r.demandScore||0,vol24h:r.listingsPct||0,days:r.daysToEvent||0}).replace(/'/g,"\'");
-    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+r.id+'\',\''+safeName+"\',JSON.parse('"+rowDataJson+"'))" title="Set price alert">&#128276;'+(miniLabel?'<span class="alert-btn-label">'+miniLabel+'</span>':'')+'</button>';
+    // Store row market data in a global lookup so openAlert can access it safely
+    vktRowCache[r.id]={floor:r.floor||0,atp:Math.round(r.atp)||0,listings:r.listings||0,demand:r.demandScore||0,vol24h:r.listingsPct||0,days:r.daysToEvent||0,name:r.name||''};
+    var safeId=r.id.replace(/'/g,'');
+    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+safeId+'\')" title="Set price alert">&#128276;'+(miniLabel?'<span class="alert-btn-label">'+esc(miniLabel)+'</span>':'')+'</button>';
     var isFav=vktFavorites.has(r.id);
     var starHtml='<button class="fav-star-btn'+(isFav?' active':'')+'" data-event-id="'+esc(r.id)+'" onclick="event.stopPropagation();toggleFavorite(\''+r.id+'\',this)" title="'+(isFav?'Remove from favorites':'Add to favorites')+'">'+(isFav?'&#9733;':'&#9734;')+'</button>';
 
@@ -540,6 +541,7 @@ var ALERT_FIELDS = [
 ];
 
 var vktAlerts={};try{vktAlerts=JSON.parse(localStorage.getItem('vkt_alerts')||'{}');}catch(e){}
+var vktRowCache={}; // stores latest row data keyed by event ID for alert modal
 function saveAlerts(){try{localStorage.setItem('vkt_alerts',JSON.stringify(vktAlerts));}catch(e){}}
 
 // Build human-readable summary of an alert config
@@ -562,11 +564,12 @@ function alertMiniLabel(a) {
 
 var _alertCondition = 'lt'; // default: less than
 
-function openAlert(eventId, eventName, rowData) {
+function openAlert(eventId) {
   var existing = vktAlerts[eventId] || {};
+  var rowData  = vktRowCache[eventId] || {};
 
   // Populate header
-  document.getElementById('alert-event-name').textContent = eventName;
+  document.getElementById('alert-event-name').textContent = rowData.name || eventId;
   document.getElementById('alert-event-id').value = eventId;
 
   // Field selector — default to floor
@@ -579,22 +582,23 @@ function openAlert(eventId, eventName, rowData) {
   document.getElementById('alert-cond-lt').classList.toggle('active', _alertCondition === 'lt');
   document.getElementById('alert-cond-gt').classList.toggle('active', _alertCondition === 'gt');
 
-  // Value — default to sensible guess based on field
+  // Value — use existing alert value, or sensible default from row data
   var valInput = document.getElementById('alert-value-input');
   if(existing.value !== undefined) {
     valInput.value = existing.value;
   } else {
-    // Sensible defaults from current row data
     var defaults = {
-      floor: rowData&&rowData.floor ? Math.round(rowData.floor*0.9) : '',
-      atp: rowData&&rowData.atp ? Math.round(rowData.atp*0.9) : '',
-      listings: rowData&&rowData.listings ? Math.round(rowData.listings*0.8) : '',
-      demand: 50, vol24h: -10, days: 7
+      floor:    rowData.floor    ? Math.round(rowData.floor    * 0.9) : '',
+      atp:      rowData.atp      ? Math.round(rowData.atp      * 0.9) : '',
+      listings: rowData.listings ? Math.round(rowData.listings * 0.8) : '',
+      demand:   50,
+      vol24h:   -10,
+      days:     7
     };
-    valInput.value = defaults[fieldSel.value] || '';
+    valInput.value = defaults[fieldSel.value] !== undefined ? defaults[fieldSel.value] : '';
   }
 
-  // Email
+  // Email — pre-fill with signed-in user email
   document.getElementById('alert-email-input').value = existing.email || (vktUser ? vktUser.email : '');
 
   updateAlertSummary();
