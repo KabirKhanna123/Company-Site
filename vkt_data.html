@@ -360,22 +360,7 @@ function buildRows(events,snaps){
     var daysToEvent=null;
     if(ev.date){var evDate=new Date(String(ev.date)+'T12:00:00');if(!isNaN(evDate))daysToEvent=Math.max(0,Math.ceil((evDate-new Date())/86400000));}
     var sellThru=null;
-    if(runs.length>=2){
-      var now24=Date.now()-24*3600000;
-      // Find the run closest to 24 hours ago
-      var run24=null;
-      for(var ri=0;ri<runs.length;ri++){
-        var rt=new Date(runs[ri].scraped_at).getTime();
-        if(rt<=now24){run24=runs[ri];}else{break;}
-      }
-      // Fall back to oldest run if nothing is 24h old yet
-      if(!run24&&runs.length>=2)run24=runs[0];
-      if(run24){
-        var oldCount=n(run24.total_listings);
-        var newCount=n(runs[runs.length-1].total_listings);
-        if(oldCount>0)sellThru=oldCount-newCount;
-      }
-    }
+    if(runs.length>=2){var oldest=n(runs[0].total_listings);var newest=n(runs[runs.length-1].total_listings);if(oldest>0)sellThru=oldest-newest;}
     var floorVelocity=null;
     var floorSnaps=es.filter(function(s){return n(s.event_floor)>0;});
     if(floorSnaps.length>=2){floorVelocity=n(floorSnaps[floorSnaps.length-1].event_floor)-n(floorSnaps[0].event_floor);}
