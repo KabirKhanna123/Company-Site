@@ -172,17 +172,47 @@
         width:100%;
       }
 
-      /* Hide less critical columns on mobile */
-      .col-venue, th.col-venue, td.col-venue { display:none; }
-      .col-date  { width:auto; }
+      /* Table — full horizontal scroll, never collapse columns */
+      .table-shell { padding:0; }
+      .table-wrap {
+        overflow-x: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: calc(100vh - 180px);
+        width: 100%;
+        position: relative;
+      }
 
-      /* Table text — readable on small screen */
-      thead th { font-size:9px; padding:8px 6px; letter-spacing:0.3px; }
-      tbody td  { font-size:11px; padding:8px 6px; }
-      .event-name { font-size:11px; padding-left:8px; }
-      .tag { font-size:8px; padding:1px 5px; }
+      /* Scroll hint indicator */
+      .table-wrap::after {
+        content: '← scroll →';
+        display: block;
+        text-align: center;
+        font-size: 10px;
+        color: #aaa;
+        padding: 6px 0 4px;
+        letter-spacing: 1px;
+      }
 
-      /* Alert button mini label */
+      /* Table keeps full natural width — do NOT hide or shrink columns */
+      table { min-width: 700px; width: max-content; }
+      .col-venue, th.col-venue, td.col-venue { display:table-cell; }
+      .col-name  { min-width:160px; width:160px; }
+      .col-cat   { min-width:52px;  width:52px; }
+      .col-date  { min-width:80px;  width:80px; }
+      .col-venue { min-width:100px; width:100px; }
+      .col-num   { min-width:64px;  width:64px; }
+      .col-days  { min-width:52px;  width:52px; }
+      .col-demand    { min-width:60px; width:60px; }
+      .col-sellthru  { min-width:60px; width:60px; }
+
+      /* Readable text sizes */
+      thead th    { font-size:9px;  padding:8px 8px; letter-spacing:0.3px; white-space:nowrap; }
+      tbody td    { font-size:11px; padding:9px 8px; }
+      .event-name { font-size:11px; padding-left:8px; min-width:140px; }
+      .tag        { font-size:8px;  padding:1px 5px; }
+
+      /* Alert button */
       .alert-btn { padding:2px 6px; font-size:9px; }
       .alert-btn-label { font-size:8px; max-width:52px; }
 
