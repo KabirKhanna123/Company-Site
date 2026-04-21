@@ -1175,7 +1175,7 @@
                 <div class="tool-cta-bar">
                     <button class="tool-cta-btn" onclick="openEarlyAccessModal()">Get Early Access &rarr;</button>
                     <button class="tool-cta-btn" style="background:transparent;border:1px solid #d4a843;color:#d4a843;" onclick="showPage('agent')">Open VKT Agent &rarr;</button>
-                    <p class="tool-cta-note">VKT AI Agent is built for serious volume operators. Contact us to discuss your use case.</p>
+                    <p class="tool-cta-note">VKT AI Agent is built for serious volume operators. <strong style="color:#d4a843;">Early buyer pricing: $49/mo now &mdash; rises to $99 in June.</strong></p>
                 </div>
             </div>
 
@@ -1297,13 +1297,16 @@
                             </a>
                         </div>
                     </div>
-                    <div style="flex-shrink:0;text-align:right;padding-top:8px;">
-                        <div style="font-size:0.62rem;letter-spacing:3px;text-transform:uppercase;color:#444;font-weight:700;margin-bottom:10px;">Subscription</div>
-                        <div style="font-family:Georgia,'Times New Roman',serif;font-size:3rem;font-weight:bold;color:#ffffff;line-height:1;">$99</div>
-                        <div style="font-size:0.78rem;color:#555;letter-spacing:1px;margin-top:4px;">/month</div>
-                        <div style="font-size:0.68rem;color:#3a3a3a;margin-top:10px;line-height:1.5;">7-day free trial<br>Cancel anytime</div>
-                        <a href="https://victorykaytickets.com/vkt_data" target="_blank" style="text-decoration:none;display:inline-block;margin-top:16px;">
-                            <div style="padding:10px 22px;background:var(--gold);color:#0c0c0c;font-size:0.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Start Free Trial &rarr;</div>
+                    <div style="flex-shrink:0;text-align:right;padding-top:8px;min-width:200px;">
+                        <div style="font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#d4a843;font-weight:700;margin-bottom:8px;background:#1a1400;border:1px solid #3a2e00;padding:5px 10px;display:inline-block;">&#9889; Early Buyer Discount</div>
+                        <div style="margin-top:8px;">
+                            <div style="font-size:0.68rem;color:#555;text-decoration:line-through;letter-spacing:1px;">$299/mo after June</div>
+                            <div style="font-family:Georgia,'Times New Roman',serif;font-size:3rem;font-weight:bold;color:#ffffff;line-height:1;margin-top:2px;">$99</div>
+                            <div style="font-size:0.78rem;color:#d4a843;letter-spacing:1px;margin-top:2px;font-weight:700;">/month right now</div>
+                        </div>
+                        <div style="font-size:0.65rem;color:#444;margin-top:10px;line-height:1.6;">7-day free trial &middot; Cancel anytime<br>Price rises to $299 in June 2026</div>
+                        <a href="https://victorykaytickets.com/vkt_data" target="_blank" style="text-decoration:none;display:inline-block;margin-top:14px;">
+                            <div style="padding:10px 22px;background:var(--gold);color:#0c0c0c;font-size:0.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Lock In $99 &rarr;</div>
                         </a>
                     </div>
                 </div>
@@ -1403,7 +1406,7 @@
                     <a href="https://victorykaytickets.com/vkt_data" target="_blank" style="text-decoration:none;">
                         <button class="tool-cta-btn">View Live Dashboard &rarr;</button>
                     </a>
-                    <p class="tool-cta-note">Contact us for API access or custom data report delivery.</p>
+                    <p class="tool-cta-note">Contact us for API access or custom data report delivery. <strong style="color:#d4a843;">Early buyer pricing: $99/mo now &mdash; rises to $299 in June.</strong></p>
                 </div>
             </div>
 
@@ -1508,15 +1511,35 @@
         }
       </style>
 
-      <!-- AUTH GATE -->
-      <div id="ag-auth">
+      <!-- AUTH GATE (Google Sign-In) -->
+      <div id="ag-auth-gate" style="position:fixed;inset:0;background:rgba(13,13,13,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(4px);">
         <div class="ag-auth-card">
           <div class="ag-auth-eyebrow">Victory Kay Tickets</div>
           <div class="ag-auth-title">VKT Agent</div>
-          <div class="ag-auth-sub">Enter your email to manage your listings. The agent checks live prices every hour and emails you when a new price is recommended.</div>
-          <input class="ag-email-input" id="ag-auth-email" type="email" placeholder="you@email.com"/>
-          <button class="ag-add-btn" style="width:100%;" onclick="agSignIn()">Access My Listings &rarr;</button>
-          <div id="ag-auth-err" style="font-size:10px;color:#ef4444;margin-top:10px;display:none;"></div>
+          <div class="ag-auth-sub">Sign in with Google to access your listings. The agent monitors live prices 24/7 and emails you when a new price is recommended.</div>
+          <div id="ag-g_id_onload" data-client_id="224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com" data-callback="agHandleCredential" data-auto_prompt="false"></div>
+          <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left" data-width="320"></div>
+        </div>
+      </div>
+
+      <!-- PAYWALL -->
+      <div id="ag-paywall" style="position:fixed;inset:0;background:rgba(13,13,13,0.97);z-index:9998;display:none;align-items:center;justify-content:center;">
+        <div class="paywall-card">
+          <div class="paywall-title" id="ag-paywall-title">Subscribe to VKT Agent</div>
+          <div class="paywall-sub">24/7 live pricing alerts for your ticket listings. No Chrome needed &mdash; runs on our servers.</div>
+          <div style="display:inline-block;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#d4a843;font-weight:700;background:#1a1400;border:1px solid #3a2e00;padding:4px 10px;margin-bottom:10px;">&#9889; Early Buyer Discount</div>
+          <div style="font-size:12px;color:#555;text-decoration:line-through;margin-bottom:2px;">$99/mo after June</div>
+          <div class="paywall-price">$49</div>
+          <div class="paywall-period">/month right now &middot; 7-day free trial<br><span style="font-size:11px;color:#d4a843;">Price rises to $99 in June 2026</span></div>
+          <div class="paywall-features">
+            <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Live StubHub price checks every hour</div>
+            <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Email alerts when your price should change</div>
+            <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Sell Fast, Margin &amp; Hold High strategies</div>
+            <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Track unlimited listings</div>
+            <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Works 24/7 without Chrome open</div>
+          </div>
+          <button class="btn-subscribe" id="ag-btn-subscribe" onclick="agCreateCheckout()">Start Free Trial &rarr;</button>
+          <div class="paywall-signout" onclick="agSignOut()">Sign out</div>
         </div>
       </div>
 
@@ -1530,6 +1553,7 @@
           <div style="display:flex;gap:10px;align-items:center;">
             <span style="font-size:11px;color:#444;" id="ag-user-email"></span>
             <button onclick="agSignOut()" style="background:none;border:1px solid #222;color:#555;font-size:10px;font-family:inherit;letter-spacing:1px;padding:6px 12px;cursor:pointer;">Sign Out</button>
+            <button onclick="agOpenPortal()" id="ag-manage-sub" style="display:none;background:none;border:1px solid #d4a843;color:#d4a843;font-size:10px;font-family:inherit;letter-spacing:1px;padding:6px 12px;cursor:pointer;">Manage Subscription</button>
             <button class="ag-add-btn" onclick="agOpenModal()">+ Add Listing</button>
           </div>
         </div>
@@ -1624,41 +1648,165 @@
       <script>
       (function(){
         var AG_API = 'https://vkt-volume-api.vercel.app';
-        var agEmail  = localStorage.getItem('vkt_agent_email') || null;
+        var agEmail  = null;
         var agEditId = null;
         var agStrat  = 'sell';
+        var agUser   = null;
+        var AG_VKT_SESSION_KEY = 'vkt_agent_session';
+        var AG_SESSION_TTL = 7 * 24 * 3600000;
 
         function agEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
         function agStratLabel(s){ return s==='sell'?'Sell Fast':s==='margin'?'Margin':'Hold High'; }
 
-        window.agSignIn = function() {
-          var email = document.getElementById('ag-auth-email').value.trim().toLowerCase();
-          if (!email || !email.includes('@')) {
-            var err = document.getElementById('ag-auth-err');
-            err.textContent = 'Enter a valid email address';
-            err.style.display = 'block'; return;
-          }
-          localStorage.setItem('vkt_agent_email', email);
-          agEmail = email;
-          agBoot();
+        // ── Session helpers ────────────────────────────────────────────────
+        function agGetSession(){
+          try{
+            var s=JSON.parse(localStorage.getItem(AG_VKT_SESSION_KEY)||'null');
+            if(!s||!s.verifiedAt)return null;
+            if(Date.now()-s.verifiedAt>AG_SESSION_TTL){localStorage.removeItem(AG_VKT_SESSION_KEY);return null;}
+            return s;
+          }catch(e){return null;}
+        }
+        function agSetSession(email,status){
+          try{localStorage.setItem(AG_VKT_SESSION_KEY,JSON.stringify({email:email,status:status,verifiedAt:Date.now()}));}catch(e){}
+        }
+        function agClearSession(){
+          try{localStorage.removeItem(AG_VKT_SESSION_KEY);localStorage.removeItem('vkt_agent_google_token');}catch(e){}
+        }
+
+        // ── Google credential handler ──────────────────────────────────────
+        window.agHandleCredential = function(response) {
+          var token = response.credential;
+          try{localStorage.setItem('vkt_agent_google_token', token);}catch(e){}
+          var parts = token.split('.');
+          var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+          if (!payload || !payload.email) return;
+          agCheckAccess(payload.email, payload.sub);
         };
 
-        window.agSignOut = function() {
-          localStorage.removeItem('vkt_agent_email');
-          agEmail = null;
-          document.getElementById('ag-auth').style.display = 'block';
-          document.getElementById('ag-app').style.display  = 'none';
-        };
+        function agCheckAccess(email, googleId) {
+          fetch(AG_API+'/api/subscriber/status', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email:email, googleId:googleId||null, product:'agent'})
+          })
+          .then(function(r){return r.json();})
+          .then(function(data){
+            agUser = {email:email, googleId:googleId, status:data.status};
+            agEmail = email;
+            if (data.access === 'granted') {
+              agSetSession(email, data.status);
+              agGrantAccess();
+            } else {
+              agShowPaywall(data.status);
+            }
+          })
+          .catch(function(){
+            // If check fails, grant access anyway (fail open)
+            agEmail = email;
+            agGrantAccess();
+          });
+        }
 
-        function agBoot() {
-          document.getElementById('ag-auth').style.display = 'none';
-          document.getElementById('ag-app').style.display  = 'block';
+        function agGrantAccess() {
+          var gate = document.getElementById('ag-auth-gate');
+          if (gate) gate.style.display = 'none';
+          var pw = document.getElementById('ag-paywall');
+          if (pw) pw.style.display = 'none';
+          var manageSub = document.getElementById('ag-manage-sub');
+          if (manageSub) manageSub.style.display = 'inline-block';
+          document.getElementById('ag-app').style.display = 'block';
           document.getElementById('ag-user-email').textContent = agEmail;
           document.getElementById('ag-f-email').value = agEmail;
           agLoadListings();
         }
 
-        if (agEmail) agBoot();
+        function agShowPaywall(reason) {
+          var gate = document.getElementById('ag-auth-gate');
+          if (gate) gate.style.display = 'none';
+          var pw = document.getElementById('ag-paywall');
+          if (pw) pw.style.display = 'flex';
+          var title = document.getElementById('ag-paywall-title');
+          if (title && reason === 'trial_expired') title.textContent = 'Your Trial Has Ended';
+          else if (title && reason === 'canceled')  title.textContent = 'Subscription Canceled';
+          else if (title && reason === 'past_due')  title.textContent = 'Payment Issue';
+        }
+
+        window.agCreateCheckout = function() {
+          if (!agEmail) return;
+          var btn = document.getElementById('ag-btn-subscribe');
+          if (btn) { btn.disabled=true; btn.textContent='Loading...'; }
+          fetch(AG_API+'/api/checkout/create-agent-session', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email:agEmail})
+          })
+          .then(function(r){return r.json();})
+          .then(function(data){
+            if (data.url) { window.location.href = data.url; }
+            else { alert('Checkout error: '+(data.error||'unknown')); if(btn){btn.disabled=false;btn.textContent='Start Free Trial →';} }
+          })
+          .catch(function(){
+            alert('Network error. Please try again.');
+            if(btn){btn.disabled=false;btn.textContent='Start Free Trial →';}
+          });
+        };
+
+        window.agOpenPortal = function() {
+          if (!agEmail) return;
+          fetch(AG_API+'/api/portal', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({email:agEmail})
+          })
+          .then(function(r){return r.json();})
+          .then(function(data){if(data.url)window.location.href=data.url;});
+        };
+
+        window.agSignOut = function() {
+          agClearSession();
+          agEmail = null; agUser = null;
+          document.getElementById('ag-app').style.display = 'none';
+          var gate = document.getElementById('ag-auth-gate');
+          if (gate) { gate.style.display = 'flex'; }
+          var pw = document.getElementById('ag-paywall');
+          if (pw) pw.style.display = 'none';
+          // Re-init Google Sign-In
+          try{ if(window.google&&google.accounts&&google.accounts.id) google.accounts.id.disableAutoSelect(); }catch(e){}
+        };
+
+        // ── Boot: check session first ──────────────────────────────────────
+        (function agBootCheck(){
+          var session = agGetSession();
+          if (session && session.email) {
+            agEmail = session.email;
+            agGrantAccess();
+            return;
+          }
+          // Try stored Google token
+          try {
+            var stored = localStorage.getItem('vkt_agent_google_token');
+            if (stored) {
+              var p = JSON.parse(atob(stored.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+              if (p && p.exp && Date.now() < p.exp*1000 && p.email) {
+                agCheckAccess(p.email, p.sub);
+                return;
+              }
+            }
+          } catch(e){}
+          // Show auth gate — initialize Google Sign-In button
+          var gate = document.getElementById('ag-auth-gate');
+          if (gate) gate.style.display = 'flex';
+          try {
+            if (window.google && google.accounts && google.accounts.id) {
+              google.accounts.id.initialize({
+                client_id: '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com',
+                callback: window.agHandleCredential
+              });
+              google.accounts.id.renderButton(
+                document.querySelector('#ag-auth-gate .g_id_signin'),
+                { theme:'filled_black', size:'large', width:320 }
+              );
+            }
+          } catch(e){}
+        })();
 
         window.agSwitchTab = function(tab) {
           ['listings','alerts'].forEach(function(t){
