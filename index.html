@@ -729,6 +729,7 @@
             <a href="#" onclick="showPage('newsletters'); return false;">Newsletters</a>
             <a href="#" onclick="showPage('reviews'); return false;">Reviews</a>
             <a href="#" class="professionals-link" onclick="showPage('professionals'); return false;">Professionals</a>
+            <a href="#" onclick="showPage('agent'); return false;">VKT Agent</a>
         </div>
 
         <div class="logo" style="pointer-events:auto;">
@@ -750,6 +751,7 @@
             <a href="#" onclick="showPage('newsletters'); return false;">Newsletters</a>
             <a href="#" onclick="showPage('reviews'); return false;">Reviews</a>
             <a href="#" onclick="showPage('professionals'); closeMobileMenu(); return false;">Professionals</a>
+            <a href="#" onclick="showPage('agent'); closeMobileMenu(); return false;">VKT Agent</a>
             <a href="#" onclick="openBookingModal(); closeMobileMenu(); return false;">Book Now</a>
         </div>
     </div>
@@ -1408,6 +1410,440 @@
 
         </div><!-- end page-professionals -->
 </div><!-- end page-professionals -->
+
+
+    <!-- VKT AGENT PAGE -->
+    <div id="page-agent" class="page-content" style="display:none;background:#080808;min-height:100vh;">
+      <style>
+        #page-agent { font-family:'Inter',Arial,sans-serif; }
+        .ag-header { padding:48px 6% 28px; border-bottom:1px solid #1e1e1e; display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+        .ag-title { font-family:Georgia,'Times New Roman',serif; font-size:2.8rem; font-weight:bold; color:#fff; line-height:1; }
+        .ag-title span { color:#d4a843; font-style:italic; }
+        .ag-sub { font-size:12px; color:#555; margin-top:6px; letter-spacing:0.5px; }
+        .ag-add-btn { padding:11px 28px; background:#d4a843; color:#111; border:none; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; font-family:inherit; transition:opacity 0.2s; }
+        .ag-add-btn:hover { opacity:0.85; }
+        #ag-auth { padding:80px 6%; text-align:center; }
+        .ag-auth-card { max-width:380px; margin:0 auto; background:#111; border:1px solid #1e1e1e; border-top:2px solid #d4a843; padding:40px 32px; }
+        .ag-auth-eyebrow { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:#d4a843; font-weight:700; margin-bottom:10px; }
+        .ag-auth-title { font-family:Georgia,serif; font-size:24px; font-weight:bold; color:#fff; margin-bottom:8px; }
+        .ag-auth-sub { font-size:12px; color:#555; line-height:1.6; margin-bottom:24px; }
+        .ag-email-input { width:100%; padding:11px 14px; background:#0c0c0c; border:1px solid #222; color:#fff; font-family:inherit; font-size:13px; outline:none; margin-bottom:10px; }
+        .ag-email-input:focus { border-color:#d4a843; }
+        .ag-tabs { background:#0c0c0c; border-bottom:1px solid #1e1e1e; padding:0 6%; display:flex; }
+        .ag-tab { padding:14px 20px 12px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700; color:#444; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; }
+        .ag-tab.active { color:#d4a843; border-bottom-color:#d4a843; }
+        .ag-tab:hover:not(.active) { color:#888; }
+        .ag-grid { padding:28px 6% 60px; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; }
+        .ag-card { background:#111; border:1px solid #1e1e1e; border-top:2px solid #1e1e1e; padding:20px; transition:border-top-color 0.2s; }
+        .ag-card.has-alert { border-top-color:#d4a843; }
+        .ag-card.inactive { opacity:0.4; }
+        .ag-card-event { font-size:14px; font-weight:700; color:#fff; margin-bottom:4px; line-height:1.3; }
+        .ag-card-meta { font-size:11px; color:#555; margin-bottom:14px; }
+        .ag-prices { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+        .ag-price-box { background:#0c0c0c; border:1px solid #1a1a1a; padding:10px 8px; text-align:center; }
+        .ag-price-box.alert-glow { background:#1a1400; border-color:#3a2e00; }
+        .ag-price-label { font-size:8px; letter-spacing:1.5px; text-transform:uppercase; color:#444; margin-bottom:5px; }
+        .ag-price-label.gld { color:#d4a843; }
+        .ag-price-val { font-size:19px; font-weight:700; color:#d4a843; font-family:'Courier New',monospace; }
+        .ag-price-val.dim { color:#555; font-size:16px; }
+        .ag-price-chg { font-size:9px; color:#d4a843; margin-top:3px; font-weight:700; }
+        .ag-strat-badge { display:inline-flex; align-items:center; gap:3px; font-size:9px; padding:3px 9px; border-radius:999px; font-weight:700; }
+        .ag-strat-badge.sell   { background:#0d1a0d; color:#4caf50; }
+        .ag-strat-badge.margin { background:#1a1500; color:#d4a843; }
+        .ag-strat-badge.hold   { background:#1a0d0d; color:#ef4444; }
+        .ag-card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+        .ag-checked { font-size:10px; color:#2a2a2a; font-family:'Courier New',monospace; }
+        .ag-card-btns { display:flex; gap:6px; }
+        .ag-btn { padding:5px 10px; font-size:10px; font-weight:700; cursor:pointer; border:1px solid #222; background:transparent; color:#555; font-family:inherit; letter-spacing:0.5px; transition:all 0.15s; }
+        .ag-btn:hover { border-color:#d4a843; color:#d4a843; }
+        .ag-btn.del:hover { border-color:#ef4444; color:#ef4444; }
+        .ag-empty { grid-column:1/-1; text-align:center; padding:72px 20px; color:#2a2a2a; }
+        .ag-empty-icon { font-size:48px; margin-bottom:16px; opacity:0.3; }
+        .ag-empty-text { font-size:16px; font-weight:700; color:#444; margin-bottom:8px; }
+        .ag-empty-sub  { font-size:12px; color:#333; }
+        .ag-alerts { padding:24px 6% 60px; }
+        .ag-alert-row { background:#111; border:1px solid #1e1e1e; padding:16px 20px; margin-bottom:8px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+        .ag-alert-event { flex:1; min-width:180px; }
+        .ag-alert-name { font-size:13px; font-weight:700; color:#fff; }
+        .ag-alert-meta { font-size:10px; color:#555; margin-top:2px; }
+        .ag-alert-prices { display:flex; align-items:center; gap:10px; font-family:'Courier New',monospace; }
+        .ag-alert-old { font-size:16px; color:#555; }
+        .ag-alert-arr { font-size:16px; color:#d4a843; font-weight:700; }
+        .ag-alert-new { font-size:20px; font-weight:700; color:#d4a843; }
+        .ag-alert-time { font-size:10px; color:#333; font-family:'Courier New',monospace; }
+        .ag-alert-empty { text-align:center; padding:60px; color:#333; font-size:13px; }
+        #ag-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:9000; align-items:center; justify-content:center; padding:20px; }
+        #ag-modal-overlay.open { display:flex; }
+        .ag-modal { background:#111; border:1px solid #1e1e1e; border-top:2px solid #d4a843; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:28px; position:relative; }
+        .ag-modal-title { font-family:Georgia,serif; font-size:20px; font-weight:bold; color:#fff; margin-bottom:20px; }
+        .ag-modal-close { position:absolute; right:18px; top:14px; background:none; border:none; color:#555; font-size:24px; cursor:pointer; }
+        .ag-modal-close:hover { color:#d4a843; }
+        .ag-field { margin-bottom:13px; }
+        .ag-field-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#d4a843; font-weight:700; margin-bottom:5px; display:block; }
+        .ag-field-label .opt { color:#333; text-transform:none; letter-spacing:0; font-weight:400; font-size:10px; }
+        .ag-input { width:100%; padding:10px 12px; background:#0c0c0c; border:1px solid #222; color:#fff; font-family:inherit; font-size:13px; outline:none; }
+        .ag-input:focus { border-color:#d4a843; }
+        .ag-field-hint { font-size:10px; color:#333; margin-top:4px; }
+        .ag-field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .ag-strat-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px; }
+        .ag-strat-card { padding:12px 8px; border:1px solid #222; cursor:pointer; text-align:center; background:#0c0c0c; transition:all 0.15s; }
+        .ag-strat-card .sc-icon { font-size:18px; margin-bottom:5px; }
+        .ag-strat-card .sc-name { font-size:10px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:0.5px; }
+        .ag-strat-card .sc-desc { font-size:9px; color:#2a2a2a; margin-top:3px; line-height:1.3; }
+        .ag-strat-card.sel-sell   { border-color:#4caf50; background:#0a1a0a; }
+        .ag-strat-card.sel-margin { border-color:#d4a843; background:#1a1500; }
+        .ag-strat-card.sel-hold   { border-color:#ef4444; background:#1a0a0a; }
+        .ag-strat-card.sel-sell .sc-name,.ag-strat-card.sel-margin .sc-name,.ag-strat-card.sel-hold .sc-name { color:#fff; }
+        .ag-thresh-row { margin-bottom:13px; }
+        .ag-thresh-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#d4a843; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between; }
+        .ag-form-error { color:#ef4444; font-size:11px; text-align:center; margin-top:8px; display:none; }
+        .ag-save-btn { width:100%; padding:12px; background:#d4a843; color:#111; border:none; font-family:inherit; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; margin-top:14px; }
+        .ag-save-btn:hover { opacity:0.85; }
+        @media(max-width:600px){
+          .ag-grid{grid-template-columns:1fr;padding:20px 5% 48px;}
+          .ag-prices{grid-template-columns:1fr 1fr;}
+          .ag-strat-cards{grid-template-columns:1fr;}
+          .ag-field-row{grid-template-columns:1fr;}
+          .ag-header{padding:28px 5% 20px;}
+          .ag-title{font-size:2rem;}
+        }
+      </style>
+
+      <!-- AUTH GATE -->
+      <div id="ag-auth">
+        <div class="ag-auth-card">
+          <div class="ag-auth-eyebrow">Victory Kay Tickets</div>
+          <div class="ag-auth-title">VKT Agent</div>
+          <div class="ag-auth-sub">Enter your email to manage your listings. The agent checks live prices every hour and emails you when a new price is recommended.</div>
+          <input class="ag-email-input" id="ag-auth-email" type="email" placeholder="you@email.com"/>
+          <button class="ag-add-btn" style="width:100%;" onclick="agSignIn()">Access My Listings &rarr;</button>
+          <div id="ag-auth-err" style="font-size:10px;color:#ef4444;margin-top:10px;display:none;"></div>
+        </div>
+      </div>
+
+      <!-- MAIN APP -->
+      <div id="ag-app" style="display:none;">
+        <div class="ag-header">
+          <div>
+            <div class="ag-title">My <span>Listings</span></div>
+            <div class="ag-sub" id="ag-sub">Checks live StubHub prices every hour &middot; alerts by email</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span style="font-size:11px;color:#444;" id="ag-user-email"></span>
+            <button onclick="agSignOut()" style="background:none;border:1px solid #222;color:#555;font-size:10px;font-family:inherit;letter-spacing:1px;padding:6px 12px;cursor:pointer;">Sign Out</button>
+            <button class="ag-add-btn" onclick="agOpenModal()">+ Add Listing</button>
+          </div>
+        </div>
+        <div class="ag-tabs">
+          <div class="ag-tab active" id="ag-tab-listings" onclick="agSwitchTab('listings')">My Listings</div>
+          <div class="ag-tab" id="ag-tab-alerts" onclick="agSwitchTab('alerts')">Alert History</div>
+        </div>
+        <div id="ag-listings-view">
+          <div class="ag-grid" id="ag-grid">
+            <div class="ag-empty"><div class="ag-empty-icon">&#129302;</div><div class="ag-empty-text">No listings yet</div><div class="ag-empty-sub">Add your first listing and the agent monitors it 24/7</div></div>
+          </div>
+        </div>
+        <div id="ag-alerts-view" style="display:none;">
+          <div class="ag-alerts" id="ag-alerts-container">
+            <div class="ag-alert-empty">No alerts yet &mdash; the agent will email you when prices shift.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL -->
+      <div id="ag-modal-overlay" onclick="if(event.target===this)agCloseModal()">
+        <div class="ag-modal">
+          <button class="ag-modal-close" onclick="agCloseModal()">&times;</button>
+          <div class="ag-modal-title" id="ag-modal-title">Add Listing</div>
+          <div class="ag-field">
+            <label class="ag-field-label">StubHub Event ID</label>
+            <input class="ag-input" id="ag-f-eventid" placeholder="e.g. 153021561"/>
+            <div class="ag-field-hint">From URL: stubhub.com/event/<strong style="color:#555;">153021561</strong>/</div>
+          </div>
+          <div class="ag-field">
+            <label class="ag-field-label">Event Name</label>
+            <input class="ag-input" id="ag-f-name" placeholder="e.g. Lakers vs Warriors"/>
+          </div>
+          <div class="ag-field-row">
+            <div class="ag-field">
+              <label class="ag-field-label">Your Section</label>
+              <input class="ag-input" id="ag-f-section" placeholder="e.g. 114"/>
+            </div>
+            <div class="ag-field">
+              <label class="ag-field-label">Row <span class="opt">(optional)</span></label>
+              <input class="ag-input" id="ag-f-row" placeholder="e.g. 12"/>
+            </div>
+          </div>
+          <div class="ag-field-row">
+            <div class="ag-field">
+              <label class="ag-field-label">Your Listed Price</label>
+              <input class="ag-input" id="ag-f-price" type="number" placeholder="e.g. 250"/>
+            </div>
+            <div class="ag-field">
+              <label class="ag-field-label">Event Date <span class="opt">(optional)</span></label>
+              <input class="ag-input" id="ag-f-date" type="date"/>
+            </div>
+          </div>
+          <div class="ag-field">
+            <label class="ag-field-label">Alert Email</label>
+            <input class="ag-input" id="ag-f-email" type="email" placeholder="you@email.com"/>
+            <div class="ag-field-hint">Where to send price alert emails</div>
+          </div>
+          <div class="ag-field">
+            <label class="ag-field-label">Pricing Strategy</label>
+            <div class="ag-strat-cards">
+              <div class="ag-strat-card sel-sell" data-s="sell" onclick="agSelectStrat('sell')">
+                <div class="sc-icon">&#9889;</div>
+                <div class="sc-name">Sell Fast</div>
+                <div class="sc-desc">Just under live floor</div>
+              </div>
+              <div class="ag-strat-card" data-s="margin" onclick="agSelectStrat('margin')">
+                <div class="sc-icon">&#128176;</div>
+                <div class="sc-name">Margin</div>
+                <div class="sc-desc">Floor + avg midpoint</div>
+              </div>
+              <div class="ag-strat-card" data-s="hold" onclick="agSelectStrat('hold')">
+                <div class="sc-icon">&#128679;</div>
+                <div class="sc-name">Hold High</div>
+                <div class="sc-desc">Above ceiling</div>
+              </div>
+            </div>
+          </div>
+          <div class="ag-thresh-row">
+            <div class="ag-thresh-label">
+              <span>Alert Threshold</span>
+              <span id="ag-thresh-display">$5 change</span>
+            </div>
+            <input type="range" id="ag-f-threshold" min="1" max="50" value="5" style="width:100%;accent-color:#d4a843;"
+                   oninput="document.getElementById('ag-thresh-display').textContent='$'+this.value+' change'"/>
+          </div>
+          <div class="ag-form-error" id="ag-form-error"></div>
+          <button class="ag-save-btn" onclick="agSaveListing()">Save Listing</button>
+        </div>
+      </div>
+
+      <script>
+      (function(){
+        var AG_API = 'https://vkt-volume-api.vercel.app';
+        var agEmail  = localStorage.getItem('vkt_agent_email') || null;
+        var agEditId = null;
+        var agStrat  = 'sell';
+
+        function agEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function agStratLabel(s){ return s==='sell'?'Sell Fast':s==='margin'?'Margin':'Hold High'; }
+
+        window.agSignIn = function() {
+          var email = document.getElementById('ag-auth-email').value.trim().toLowerCase();
+          if (!email || !email.includes('@')) {
+            var err = document.getElementById('ag-auth-err');
+            err.textContent = 'Enter a valid email address';
+            err.style.display = 'block'; return;
+          }
+          localStorage.setItem('vkt_agent_email', email);
+          agEmail = email;
+          agBoot();
+        };
+
+        window.agSignOut = function() {
+          localStorage.removeItem('vkt_agent_email');
+          agEmail = null;
+          document.getElementById('ag-auth').style.display = 'block';
+          document.getElementById('ag-app').style.display  = 'none';
+        };
+
+        function agBoot() {
+          document.getElementById('ag-auth').style.display = 'none';
+          document.getElementById('ag-app').style.display  = 'block';
+          document.getElementById('ag-user-email').textContent = agEmail;
+          document.getElementById('ag-f-email').value = agEmail;
+          agLoadListings();
+        }
+
+        if (agEmail) agBoot();
+
+        window.agSwitchTab = function(tab) {
+          ['listings','alerts'].forEach(function(t){
+            document.getElementById('ag-tab-'+t).classList.toggle('active', t===tab);
+            document.getElementById('ag-'+t+'-view').style.display = t===tab?'block':'none';
+          });
+          if (tab==='alerts') agLoadAlerts();
+        };
+
+        function agLoadListings() {
+          fetch(AG_API+'/api/agent/listings?email='+encodeURIComponent(agEmail))
+            .then(function(r){return r.json();})
+            .then(function(data){agRenderListings(data.listings||[]);})
+            .catch(function(){agRenderListings([]);});
+        }
+
+        function agRenderListings(listings) {
+          var grid = document.getElementById('ag-grid');
+          var active = listings.filter(function(l){return l.active;}).length;
+          document.getElementById('ag-sub').textContent = active+' active listing'+(active!==1?'s':'')+' · checks every hour · alerts by email';
+
+          if (!listings.length) {
+            grid.innerHTML = '<div class="ag-empty"><div class="ag-empty-icon">&#129302;</div><div class="ag-empty-text">No listings yet</div><div class="ag-empty-sub">Add your first listing and the agent monitors it 24/7</div></div>';
+            return;
+          }
+
+          grid.innerHTML = listings.map(function(l){
+            var hasNew = l.recommended_price && l.recommended_price !== l.current_price;
+            var diff   = (l.recommended_price && l.prev_recommended) ? Math.abs(l.recommended_price - l.prev_recommended) : null;
+            var dir    = l.recommended_price > (l.prev_recommended||0) ? '&#8679;' : '&#8681;';
+            var checked = l.last_checked
+              ? 'Checked '+new Date(l.last_checked).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(l.last_listings?' &middot; '+l.last_listings+' live listings':'')
+              : 'Not checked yet';
+            var safeId = String(l.id).replace(/[^a-z0-9-]/gi,'');
+            var lJson  = JSON.stringify(l).replace(/\/g,'\\').replace(/'/g,"\'").replace(/"/g,'&quot;');
+
+            return '<div class="ag-card'+(hasNew?' has-alert':'')+(l.active?'':' inactive')+'">'
+              +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">'
+              +'<div class="ag-card-event">'+agEsc(l.event_name)+'</div>'
+              +'<span class="ag-strat-badge '+l.strategy+'">'+agStratLabel(l.strategy)+'</span>'
+              +'</div>'
+              +'<div class="ag-card-meta">Sec '+agEsc(l.section)+(l.row?' &middot; Row '+agEsc(l.row):'')+
+              (l.event_date?' &middot; '+new Date(l.event_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'')+'</div>'
+              +'<div class="ag-prices">'
+              +'<div class="ag-price-box"><div class="ag-price-label">Your Price</div><div class="ag-price-val dim">$'+l.current_price+'</div></div>'
+              +'<div class="ag-price-box'+(hasNew?' alert-glow':'')+'"><div class="ag-price-label'+(hasNew?' gld':'')+'">'+
+              (hasNew?'&#128276; New Price':'Suggested')+'</div>'
+              +'<div class="ag-price-val">'+(l.recommended_price?'$'+l.recommended_price:'&mdash;')+'</div>'
+              +(diff&&hasNew?'<div class="ag-price-chg">'+dir+' $'+diff+'</div>':'')
+              +'</div>'
+              +'<div class="ag-price-box"><div class="ag-price-label">Live Floor</div>'
+              +'<div class="ag-price-val" style="color:#555;font-size:16px;">'+(l.last_floor?'$'+l.last_floor:'&mdash;')+'</div>'
+              +'</div></div>'
+              +'<div class="ag-card-footer">'
+              +'<div class="ag-checked">'+checked+'</div>'
+              +'<div class="ag-card-btns">'
+              +'<button class="ag-btn" onclick="agToggle(''+safeId+'','+(l.active?'false':'true')+')">'+( l.active?'Pause':'Resume')+'</button>'
+              +'<button class="ag-btn" onclick="agEdit('+lJson+')">Edit</button>'
+              +'<button class="ag-btn del" onclick="agDelete(''+safeId+'')">Delete</button>'
+              +'</div></div></div>';
+          }).join('');
+        }
+
+        window.agToggle = function(id, active) {
+          fetch(AG_API+'/api/agent/listings?id='+id, {
+            method:'PATCH', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({email:agEmail, active:active})
+          }).then(function(){agLoadListings();});
+        };
+
+        window.agDelete = function(id) {
+          if (!confirm('Remove this listing?')) return;
+          fetch(AG_API+'/api/agent/listings?id='+id, {
+            method:'DELETE', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({email:agEmail})
+          }).then(function(){agLoadListings();});
+        };
+
+        function agLoadAlerts() {
+          fetch(AG_API+'/api/agent/alerts?email='+encodeURIComponent(agEmail))
+            .then(function(r){return r.json();})
+            .then(function(data){agRenderAlerts(data.alerts||[]);})
+            .catch(function(){agRenderAlerts([]);});
+        }
+
+        function agRenderAlerts(alerts) {
+          var container = document.getElementById('ag-alerts-container');
+          if (!alerts.length) {
+            container.innerHTML = '<div class="ag-alert-empty">No alerts yet &mdash; the agent will email you when prices shift.</div>';
+            return;
+          }
+          container.innerHTML = alerts.map(function(a){
+            var dir = a.new_price > a.old_price ? '&uarr;' : '&darr;';
+            return '<div class="ag-alert-row">'
+              +'<div class="ag-alert-event"><div class="ag-alert-name">'+agEsc(a.event_name)+'</div>'
+              +'<div class="ag-alert-meta">Sec '+agEsc(a.section||'&mdash;')+' &middot; '+agStratLabel(a.strategy)+' &middot; Floor $'+(a.live_floor||'&mdash;')+'</div></div>'
+              +'<div class="ag-alert-prices">'
+              +'<span class="ag-alert-old">$'+a.old_price+'</span>'
+              +'<span class="ag-alert-arr">'+dir+'</span>'
+              +'<span class="ag-alert-new">$'+a.new_price+'</span></div>'
+              +'<div class="ag-alert-time">'+new Date(a.alerted_at).toLocaleString()+'</div>'
+              +'</div>';
+          }).join('');
+        }
+
+        window.agOpenModal = function() {
+          agEditId = null;
+          document.getElementById('ag-modal-title').textContent = 'Add Listing';
+          ['ag-f-eventid','ag-f-name','ag-f-section','ag-f-row','ag-f-price','ag-f-date'].forEach(function(id){document.getElementById(id).value='';});
+          document.getElementById('ag-f-email').value = agEmail;
+          document.getElementById('ag-f-threshold').value = '5';
+          document.getElementById('ag-thresh-display').textContent = '$5 change';
+          document.getElementById('ag-form-error').style.display = 'none';
+          agSelectStrat('sell');
+          document.getElementById('ag-modal-overlay').classList.add('open');
+        };
+
+        window.agEdit = function(l) {
+          agEditId = l.id;
+          document.getElementById('ag-modal-title').textContent = 'Edit Listing';
+          document.getElementById('ag-f-eventid').value  = l.event_id||'';
+          document.getElementById('ag-f-name').value     = l.event_name||'';
+          document.getElementById('ag-f-section').value  = l.section||'';
+          document.getElementById('ag-f-row').value      = l.row||'';
+          document.getElementById('ag-f-price').value    = l.current_price||'';
+          document.getElementById('ag-f-date').value     = l.event_date?l.event_date.slice(0,10):'';
+          document.getElementById('ag-f-email').value    = l.user_email||agEmail;
+          document.getElementById('ag-f-threshold').value = l.threshold||5;
+          document.getElementById('ag-thresh-display').textContent = '$'+(l.threshold||5)+' change';
+          agSelectStrat(l.strategy||'sell');
+          document.getElementById('ag-form-error').style.display = 'none';
+          document.getElementById('ag-modal-overlay').classList.add('open');
+        };
+
+        window.agCloseModal = function() {
+          document.getElementById('ag-modal-overlay').classList.remove('open');
+        };
+
+        window.agSelectStrat = function(s) {
+          agStrat = s;
+          document.querySelectorAll('.ag-strat-card').forEach(function(c){
+            c.className = 'ag-strat-card'+(c.dataset.s===s?' sel-'+s:'');
+          });
+        };
+
+        window.agSaveListing = function() {
+          var eventId = document.getElementById('ag-f-eventid').value.trim();
+          var name    = document.getElementById('ag-f-name').value.trim();
+          var section = document.getElementById('ag-f-section').value.trim();
+          var price   = parseFloat(document.getElementById('ag-f-price').value);
+          var row     = document.getElementById('ag-f-row').value.trim();
+          var date    = document.getElementById('ag-f-date').value||null;
+          var email   = document.getElementById('ag-f-email').value.trim();
+          var thresh  = parseInt(document.getElementById('ag-f-threshold').value)||5;
+          var errEl   = document.getElementById('ag-form-error');
+
+          if (!eventId)         {errEl.textContent='Enter a StubHub Event ID';errEl.style.display='block';return;}
+          if (!name)            {errEl.textContent='Enter the event name';errEl.style.display='block';return;}
+          if (!section)         {errEl.textContent='Enter your section';errEl.style.display='block';return;}
+          if (!price||price<=0) {errEl.textContent='Enter your listing price';errEl.style.display='block';return;}
+          if (!email)           {errEl.textContent='Enter your alert email';errEl.style.display='block';return;}
+
+          var btn = document.querySelector('.ag-save-btn');
+          btn.textContent = 'Saving...'; btn.disabled = true;
+
+          fetch(AG_API+'/api/agent/listings', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+              email: email,
+              listing: { id:agEditId, eventId:eventId, eventName:name, eventDate:date,
+                section:section, row:row||null, quantity:1, currentPrice:price,
+                strategy:agStrat, platform:'StubHub', threshold:thresh }
+            })
+          }).then(function(r){return r.json().then(function(d){return {ok:r.ok,data:d};});})
+          .then(function(res){
+            btn.textContent = 'Save Listing'; btn.disabled = false;
+            if (res.ok) { agCloseModal(); agLoadListings(); }
+            else { errEl.textContent=res.data.error||'Save failed'; errEl.style.display='block'; }
+          });
+        };
+
+      })();
+      </script>
+    </div><!-- end page-agent -->
 
     </div><!-- end page-container -->
 
