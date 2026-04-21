@@ -6,6 +6,7 @@
     <title>Victory Kay Tickets - Turn Unused Tickets Into Effortless Revenue</title>
   <link rel="icon" type="image/png" href="https://www.image2url.com/r2/default/images/1776658427724-f70d05b6-8aec-43a0-9b13-dc06fd799896.png">
   <link rel="apple-touch-icon" href="https://www.image2url.com/r2/default/images/1776658427724-f70d05b6-8aec-43a0-9b13-dc06fd799896.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1803,21 +1804,31 @@
               }
             }
           } catch(e){}
-          // Show auth gate — initialize Google Sign-In button
+          // Show auth gate — wait for GSI script to load then render button
           var gate = document.getElementById('ag-auth-gate');
           if (gate) gate.style.display = 'flex';
-          try {
-            if (window.google && google.accounts && google.accounts.id) {
-              google.accounts.id.initialize({
-                client_id: '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com',
-                callback: window.agHandleCredential
-              });
-              google.accounts.id.renderButton(
-                document.querySelector('#ag-auth-gate .g_id_signin'),
-                { theme:'filled_black', size:'large', width:320 }
-              );
+
+          function agInitGoogle() {
+            try {
+              if (window.google && google.accounts && google.accounts.id) {
+                google.accounts.id.initialize({
+                  client_id: '224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com',
+                  callback: window.agHandleCredential
+                });
+                google.accounts.id.renderButton(
+                  document.querySelector('#ag-auth-gate .g_id_signin'),
+                  { theme: 'filled_black', size: 'large', width: 320 }
+                );
+              } else {
+                // GSI not ready yet — retry in 300ms
+                setTimeout(agInitGoogle, 300);
+              }
+            } catch(e) {
+              setTimeout(agInitGoogle, 300);
             }
-          } catch(e){}
+          }
+
+          agInitGoogle();
         })();
 
         window.agSwitchTab = function(tab) {
