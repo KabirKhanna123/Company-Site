@@ -1729,7 +1729,17 @@
           agCheckAccess(email, null);
         };
 
+        var OWNER_EMAILS = ['victorykaytickets@gmail.com'];
+
         function agCheckAccess(email, googleId) {
+          // Owner bypass
+          if (OWNER_EMAILS.indexOf(email.toLowerCase()) !== -1) {
+            agEmail = email;
+            agSetSession(email, 'owner');
+            agGrantAccess();
+            return;
+          }
+
           fetch(AG_API+'/api/subscriber/status', {
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({email:email, googleId:googleId||null, product:'agent'})
@@ -1742,12 +1752,16 @@
               agSetSession(email, data.status);
               agGrantAccess();
             } else {
+              // Reset button on paywall show
+              var btn = document.getElementById('ag-email-btn');
+              if (btn) { btn.disabled = false; btn.textContent = 'Continue →'; }
               agShowPaywall(data.status);
             }
           })
           .catch(function(){
-            // If check fails, grant access anyway (fail open)
+            // If check fails, grant access (fail open)
             agEmail = email;
+            agSetSession(email, 'unknown');
             agGrantAccess();
           });
         }
