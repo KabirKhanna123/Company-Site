@@ -1532,6 +1532,16 @@
           <div class="ag-auth-sub">Sign in with Google to access your listings. The agent monitors live prices 24/7 and emails you when a new price is recommended.</div>
           <div id="ag-g_id_onload" data-client_id="224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com" data-callback="agHandleCredential" data-auto_prompt="false"></div>
           <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left" data-width="320"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin:18px 0 14px;">
+            <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+            <span style="font-size:10px;color:#444;letter-spacing:2px;text-transform:uppercase;">or</span>
+            <div style="flex:1;height:1px;background:#1e1e1e;"></div>
+          </div>
+          <div id="ag-email-form">
+            <input id="ag-email-input" type="email" placeholder="Enter your email" style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px;" />
+            <button onclick="agEmailSignIn()" style="width:100%;padding:11px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;font-family:inherit;">Continue with Email &rarr;</button>
+            <div id="ag-email-error" style="font-size:11px;color:#c0392b;margin-top:8px;display:none;"></div>
+          </div>
         </div>
       </div>
 
@@ -1695,6 +1705,21 @@
           var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
           if (!payload || !payload.email) return;
           agCheckAccess(payload.email, payload.sub);
+        };
+
+        // ── Email sign-in ──────────────────────────────────────────────────
+        window.agEmailSignIn = function() {
+          var input = document.getElementById('ag-email-input');
+          var errEl = document.getElementById('ag-email-error');
+          var email = (input ? input.value : '').trim().toLowerCase();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (errEl) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; }
+            return;
+          }
+          if (errEl) errEl.style.display = 'none';
+          var btn = input.nextElementSibling;
+          if (btn) { btn.disabled = true; btn.textContent = 'Checking...'; }
+          agCheckAccess(email, null);
         };
 
         function agCheckAccess(email, googleId) {
