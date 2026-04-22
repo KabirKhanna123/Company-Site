@@ -1415,6 +1415,59 @@
                         </div>
                     </div>
                 </div>
+                <!-- REQUEST EVENT FORM -->
+                <div class="tool-body" style="margin-top:0;padding-top:0;">
+                    <div class="tool-body-inner">
+                        <div class="tool-section-full" style="margin-top:0;">
+                            <div class="tool-section-label">Request an Event</div>
+                            <p style="font-size:13px;color:#777;margin:0 0 20px;line-height:1.6;">Don't see an event in the dashboard? Submit a request and we'll add it to our tracking queue.</p>
+                            <form id="event-request-form" action="https://formspree.io/f/mnjlodzb" method="POST"
+                                style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;"
+                                onsubmit="handleEventRequestSubmit(event)">
+                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                    <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;font-weight:700;">Event Name *</label>
+                                    <input type="text" name="event_name" required placeholder="e.g. Yankees vs Red Sox"
+                                        style="padding:10px 12px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;" />
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                    <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;font-weight:700;">Event Date</label>
+                                    <input type="date" name="event_date"
+                                        style="padding:10px 12px;background:#0a0a0a;border:1px solid #2a2a2a;color:#777;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;" />
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                    <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;font-weight:700;">Venue / City</label>
+                                    <input type="text" name="venue" placeholder="e.g. Yankee Stadium, New York"
+                                        style="padding:10px 12px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;" />
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:4px;">
+                                    <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;font-weight:700;">Platform</label>
+                                    <select name="platform"
+                                        style="padding:10px 12px;background:#0a0a0a;border:1px solid #2a2a2a;color:#777;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;">
+                                        <option value="">Select platform</option>
+                                        <option value="StubHub">StubHub</option>
+                                        <option value="SeatGeek">SeatGeek</option>
+                                        <option value="Vivid Seats">Vivid Seats</option>
+                                        <option value="Ticketmaster">Ticketmaster</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:4px;grid-column:1/-1;">
+                                    <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;font-weight:700;">StubHub Event URL (optional)</label>
+                                    <input type="url" name="stubhub_url" placeholder="https://www.stubhub.com/..."
+                                        style="padding:10px 12px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box;" />
+                                </div>
+                                <div style="grid-column:1/-1;display:flex;align-items:center;gap:16px;margin-top:4px;">
+                                    <button type="submit" id="event-req-btn"
+                                        style="padding:11px 28px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;font-family:inherit;">
+                                        Submit Request &rarr;
+                                    </button>
+                                    <div id="event-req-msg" style="font-size:12px;color:#d4a843;display:none;"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tool-cta-bar">
                     <a href="https://victorykaytickets.com/vkt_data" target="_blank" style="text-decoration:none;">
                         <button class="tool-cta-btn">View Live Dashboard &rarr;</button>
@@ -2357,6 +2410,34 @@
 
         /* ===== MARKETPLACE ===== */
         var marketplaceData = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8bWV0YSBuYW1lPSJ2aWV3cG9ydCIgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLCBpbml0aWFsLXNjYWxlPTEuMCI+CiAgICA8dGl0bGU+VGlja2V0IE1hcmtldHBsYWNlICZtZGFzaDsgVmljdG9yeSBLYXkgVGlja2V0czwvdGl0bGU+";
+        function handleEventRequestSubmit(e) {
+          e.preventDefault();
+          var btn = document.getElementById('event-req-btn');
+          var msg = document.getElementById('event-req-msg');
+          var form = document.getElementById('event-request-form');
+          if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+          fetch('https://formspree.io/f/mnjlodzb', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: new FormData(form)
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.ok) {
+              form.reset();
+              if (msg) { msg.textContent = 'Request sent — we'll add it soon.'; msg.style.color = '#d4a843'; msg.style.display = 'block'; }
+              if (btn) { btn.textContent = 'Sent ✓'; }
+            } else {
+              if (msg) { msg.textContent = 'Something went wrong. Try again.'; msg.style.color = '#c0392b'; msg.style.display = 'block'; }
+              if (btn) { btn.disabled = false; btn.textContent = 'Submit Request →'; }
+            }
+          })
+          .catch(function() {
+            if (msg) { msg.textContent = 'Network error. Try again.'; msg.style.color = '#c0392b'; msg.style.display = 'block'; }
+            if (btn) { btn.disabled = false; btn.textContent = 'Submit Request →'; }
+          });
+        }
+
         function openMarketplacePage() {
             var html = atob(marketplaceData + "PC9oZWFkPjxib2R5PjxwPk1hcmtldHBsYWNlIGNvbWluZyBzb29uLjwvcD48L2JvZHk+PC9odG1sPg==");
             var blob = new Blob([html], { type: 'text/html' });
