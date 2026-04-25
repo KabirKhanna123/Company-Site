@@ -717,7 +717,7 @@
 
     <nav>
         <div class="nav-left">
-            <button class="hamburger-btn" id="hamburger-btn" onclick="toggleDropdown()">
+            <button class="hamburger-btn" id="hamburger-btn">
                 <span></span><span></span><span></span>
             </button>
         </div>
@@ -2615,6 +2615,11 @@
             dd.classList.toggle('open');
             btn.classList.toggle('open');
         }
+
+        document.getElementById('hamburger-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleDropdown();
+        });
         function closeDropdown() {
             document.getElementById('desktop-dropdown').classList.remove('open');
             document.getElementById('hamburger-btn').classList.remove('open');
