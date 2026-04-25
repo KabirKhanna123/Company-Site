@@ -2616,13 +2616,27 @@
             btn.classList.toggle('open');
         }
 
-        document.getElementById('hamburger-btn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleDropdown();
+        document.addEventListener('DOMContentLoaded', function() {
+            var hamburgerBtn = document.getElementById('hamburger-btn');
+            var desktopDropdown = document.getElementById('desktop-dropdown');
+
+            if (!hamburgerBtn || !desktopDropdown) {
+                console.warn('Hamburger menu elements not found');
+                return;
+            }
+
+            hamburgerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                desktopDropdown.classList.toggle('open');
+                hamburgerBtn.classList.toggle('open');
+            });
         });
         function closeDropdown() {
-            document.getElementById('desktop-dropdown').classList.remove('open');
-            document.getElementById('hamburger-btn').classList.remove('open');
+            var dd = document.getElementById('desktop-dropdown');
+            var btn = document.getElementById('hamburger-btn');
+            if (dd) dd.classList.remove('open');
+            if (btn) btn.classList.remove('open');
         }
 
         function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('active'); }
