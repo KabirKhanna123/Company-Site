@@ -2024,9 +2024,10 @@
               }
             }
           } catch(e){}
-          // Show auth gate — wait for GSI script to load then render button
+          // Hide gate by default — only show when user opens Agent tab
           var gate = document.getElementById('ag-auth-gate');
-          if (gate) gate.style.display = 'flex';
+          if (gate) gate.style.display = 'none';
+          window.__agNeedsAuth = true; // flag so tab click can show it
 
           function agInitGoogle() {
             try {
@@ -2523,6 +2524,11 @@
             if (tab) { tab.classList.add('active'); tab.style.display = 'block'; }
             if (btn) btn.classList.add('active');
             window.scrollTo({ top: 72, behavior: 'smooth' });
+            // Show auth gate only when agent tab is opened and user not yet authenticated
+            if (id === 'agent' && window.__agNeedsAuth) {
+              var gate = document.getElementById('ag-auth-gate');
+              if (gate) gate.style.display = 'flex';
+            }
         }
         document.addEventListener('DOMContentLoaded', function() {
             var first = document.getElementById('pro-pricer');
