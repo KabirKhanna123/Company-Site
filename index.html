@@ -619,6 +619,7 @@
             .hero-stat:last-child { border-bottom: none; }
         }
     </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 
@@ -1582,17 +1583,60 @@
         <div class="ag-auth-card">
           <div class="ag-auth-eyebrow">Victory Kay Tickets</div>
           <div class="ag-auth-title">VKT Agent</div>
-          <div class="ag-auth-sub">Enter your email to access your listings. The agent monitors live prices 24/7 and emails you when to reprice.</div>
+          <div class="ag-auth-sub">Sign in to access your listings. The agent monitors live prices 24/7 and alerts you when to reprice.</div>
 
-          <input id="ag-email-input" type="email" placeholder="Your email address" autocomplete="email"
-            style="width:100%;box-sizing:border-box;padding:12px 14px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px;"
-            onkeydown="if(event.key==='Enter')agEmailSignIn()" />
-          <button id="ag-email-btn" onclick="agEmailSignIn()"
-            style="width:100%;padding:12px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;font-family:inherit;">
-            Continue &rarr;
-          </button>
-          <div id="ag-email-error" style="font-size:11px;color:#c0392b;margin-top:8px;margin-bottom:4px;display:none;"></div>
+          <!-- Tabs -->
+          <div style="display:flex;border-bottom:1px solid #1e1e1e;margin-bottom:18px;">
+            <button id="ag-tab-signin" onclick="agSwitchAuthTab('signin')"
+              style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid #d4a843;color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;">
+              Sign In
+            </button>
+            <button id="ag-tab-register" onclick="agSwitchAuthTab('register')"
+              style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:#555;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;">
+              Create Account
+            </button>
+          </div>
 
+          <!-- Sign In Form -->
+          <div id="ag-form-signin">
+            <input id="ag-signin-email" type="email" placeholder="Email address" autocomplete="email"
+              style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;" />
+            <input id="ag-signin-password" type="password" placeholder="Password" autocomplete="current-password"
+              style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px;"
+              onkeydown="if(event.key==='Enter')agSignIn()" />
+            <button id="ag-signin-btn" onclick="agSignIn()"
+              style="width:100%;padding:12px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;font-family:inherit;margin-bottom:8px;">
+              Sign In &rarr;
+            </button>
+            <div style="text-align:center;">
+              <button onclick="agForgotPassword()" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;">Forgot password?</button>
+            </div>
+          </div>
+
+          <!-- Register Form -->
+          <div id="ag-form-register" style="display:none;">
+            <input id="ag-reg-email" type="email" placeholder="Email address" autocomplete="email"
+              style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;" />
+            <input id="ag-reg-password" type="password" placeholder="Password (min 8 characters)" autocomplete="new-password"
+              style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #2a2a2a;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px;"
+              onkeydown="if(event.key==='Enter')agRegister()" />
+            <button id="ag-reg-btn" onclick="agRegister()"
+              style="width:100%;padding:12px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;font-family:inherit;">
+              Create Account &rarr;
+            </button>
+          </div>
+
+          <!-- Verification sent message -->
+          <div id="ag-verify-msg" style="display:none;text-align:center;padding:12px 0;">
+            <div style="font-size:24px;margin-bottom:10px;">&#9993;</div>
+            <div style="font-size:13px;color:#fff;font-weight:700;margin-bottom:6px;">Check your email</div>
+            <div style="font-size:11px;color:#777;line-height:1.6;">We sent a verification link to your email.<br>Click it to activate your account, then sign in.</div>
+          </div>
+
+          <!-- Error -->
+          <div id="ag-auth-error" style="font-size:11px;color:#c0392b;margin-top:10px;display:none;text-align:center;"></div>
+
+          <!-- Google divider -->
           <div style="display:flex;align-items:center;gap:10px;margin:16px 0 12px;">
             <div style="flex:1;height:1px;background:#1e1e1e;"></div>
             <span style="font-size:10px;color:#444;letter-spacing:2px;text-transform:uppercase;">or</span>
@@ -1767,19 +1811,100 @@
           agCheckAccess(payload.email, payload.sub);
         };
 
-        // ── Email sign-in ──────────────────────────────────────────────────
-        window.agEmailSignIn = function() {
-          var input = document.getElementById('ag-email-input');
-          var errEl = document.getElementById('ag-email-error');
-          var btn   = document.getElementById('ag-email-btn');
-          var email = (input ? input.value : '').trim().toLowerCase();
-          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            if (errEl) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; }
-            return;
+        // ── Supabase Auth client ───────────────────────────────────────────
+        var _sbClient = null;
+        function getSB() {
+          if (!_sbClient) {
+            _sbClient = window.supabase.createClient(
+              'https://unypasitbzulafehbqtj.supabase.co',
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI'
+            );
           }
-          if (errEl) errEl.style.display = 'none';
-          if (btn) { btn.disabled = true; btn.textContent = 'Checking...'; }
-          agCheckAccess(email, null);
+          return _sbClient;
+        }
+
+        // ── Auth tab switcher ──────────────────────────────────────────────
+        window.agSwitchAuthTab = function(tab) {
+          var isSignin = tab === 'signin';
+          document.getElementById('ag-form-signin').style.display  = isSignin ? 'block' : 'none';
+          document.getElementById('ag-form-register').style.display = isSignin ? 'none' : 'block';
+          document.getElementById('ag-verify-msg').style.display   = 'none';
+          document.getElementById('ag-auth-error').style.display   = 'none';
+          document.getElementById('ag-tab-signin').style.borderBottomColor  = isSignin ? '#d4a843' : 'transparent';
+          document.getElementById('ag-tab-signin').style.color               = isSignin ? '#fff' : '#555';
+          document.getElementById('ag-tab-register').style.borderBottomColor = isSignin ? 'transparent' : '#d4a843';
+          document.getElementById('ag-tab-register').style.color              = isSignin ? '#555' : '#fff';
+        };
+
+        function agAuthError(msg) {
+          var el = document.getElementById('ag-auth-error');
+          if (el) { el.textContent = msg; el.style.display = 'block'; }
+        }
+        function agAuthErrorClear() {
+          var el = document.getElementById('ag-auth-error');
+          if (el) el.style.display = 'none';
+        }
+
+        // ── Register ───────────────────────────────────────────────────────
+        window.agRegister = async function() {
+          agAuthErrorClear();
+          var email    = (document.getElementById('ag-reg-email')?.value || '').trim().toLowerCase();
+          var password = (document.getElementById('ag-reg-password')?.value || '').trim();
+          var btn      = document.getElementById('ag-reg-btn');
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { agAuthError('Please enter a valid email address.'); return; }
+          if (!password || password.length < 8) { agAuthError('Password must be at least 8 characters.'); return; }
+          if (btn) { btn.disabled = true; btn.textContent = 'Creating account...'; }
+          try {
+            var res = await getSB().auth.signUp({ email: email, password: password });
+            if (res.error) {
+              agAuthError(res.error.message);
+              if (btn) { btn.disabled = false; btn.textContent = 'Create Account →'; }
+            } else {
+              // Show verification message
+              document.getElementById('ag-form-register').style.display = 'none';
+              document.getElementById('ag-verify-msg').style.display = 'block';
+            }
+          } catch(e) {
+            agAuthError('Something went wrong. Please try again.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Create Account →'; }
+          }
+        };
+
+        // ── Sign In ────────────────────────────────────────────────────────
+        window.agSignIn = async function() {
+          agAuthErrorClear();
+          var email    = (document.getElementById('ag-signin-email')?.value || '').trim().toLowerCase();
+          var password = (document.getElementById('ag-signin-password')?.value || '').trim();
+          var btn      = document.getElementById('ag-signin-btn');
+          if (!email) { agAuthError('Please enter your email.'); return; }
+          if (!password) { agAuthError('Please enter your password.'); return; }
+          if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+          try {
+            var res = await getSB().auth.signInWithPassword({ email: email, password: password });
+            if (res.error) {
+              var msg = res.error.message;
+              if (/email not confirmed/i.test(msg)) msg = 'Please verify your email before signing in. Check your inbox.';
+              if (/invalid login/i.test(msg)) msg = 'Incorrect email or password.';
+              agAuthError(msg);
+              if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+            } else {
+              var userEmail = res.data.user?.email || email;
+              agCheckAccess(userEmail, null);
+            }
+          } catch(e) {
+            agAuthError('Something went wrong. Please try again.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+          }
+        };
+
+        // ── Forgot password ────────────────────────────────────────────────
+        window.agForgotPassword = async function() {
+          var email = (document.getElementById('ag-signin-email')?.value || '').trim().toLowerCase();
+          if (!email) { agAuthError('Enter your email address above first.'); return; }
+          agAuthErrorClear();
+          await getSB().auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+          agAuthError('Password reset email sent. Check your inbox.');
+          document.getElementById('ag-auth-error').style.color = '#d4a843';
         };
 
         var OWNER_EMAILS = ['victorykaytickets@gmail.com'];
@@ -1805,14 +1930,10 @@
               agSetSession(email, data.status);
               agGrantAccess();
             } else {
-              // Reset button on paywall show
-              var btn = document.getElementById('ag-email-btn');
-              if (btn) { btn.disabled = false; btn.textContent = 'Continue →'; }
               agShowPaywall(data.status);
             }
           })
           .catch(function(){
-            // If check fails, grant access (fail open)
             agEmail = email;
             agSetSession(email, 'unknown');
             agGrantAccess();
