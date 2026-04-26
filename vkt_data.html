@@ -1056,18 +1056,30 @@ function openPortal(){if(!vktUser||!vktUser.email)return;fetch(VKT_AUTH_API+'/ap
 function hideGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.add('hidden');gate.style.display='none';}}
 function showManageSubButton(){var btn=document.getElementById('btn-manage-sub');if(btn)btn.style.display='inline-block';var sob=document.getElementById('btn-signout-nav');if(sob)sob.style.display='inline-block';}
 function showTrialBanner(daysRemaining){var banner=document.getElementById('trial-banner');var text=document.getElementById('trial-text');if(!banner||!text)return;banner.style.display='flex';var d=daysRemaining;text.textContent=d<=1?'\u26A0\uFE0F Last day of your free trial!':'\u23F1 '+d+' day'+(d===1?'':'s')+' left in your free trial';if(d<=2)banner.style.background='linear-gradient(90deg,#1a0a00,#2a1000,#1a0a00)';var ticker=document.getElementById('ticker-bar');if(ticker&&banner.parentNode!==ticker.parentNode)return;if(ticker)ticker.parentNode.insertBefore(banner,ticker);}
-function showPaywall(reason){hideGate();var pw=document.getElementById('vkt-paywall');if(pw)pw.classList.add('visible');var title=document.querySelector('.paywall-title');if(title&&reason==='trial_expired')title.textContent='Your Trial Has Ended';else if(title&&reason==='canceled')title.textContent='Subscription Canceled';else if(title&&reason==='past_due')title.textContent='Payment Issue';}
+function showPaywall(reason){hideGate();var pw=document.getElementById('vkt-paywall');if(pw)pw.classList.add('visible');var title=document.querySelector('.paywall-title');if(title&&reason==='trial_expired')title.textContent='Your Trial Has Ended';else if(title&&reason==='canceled')title.textContent='Subscription Canceled';else if(title&&reason==='past_due')title.textContent='Payment Issue';else if(title&&reason==='subscribe')title.textContent='Subscribe to VKT Market Data';}
 function showAuthGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.remove('hidden');gate.style.display='flex';}}
 function showSuccessToast(msg){var t=document.getElementById('success-toast');if(!t)return;t.textContent=msg||'\u2713 Subscription active \u2014 welcome to VKT Market Data';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},5000);}
 function signOut(){clearStoredToken();clearVktSession();vktToken=null;vktUser=null;try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}window.location.reload();}
-function grantAccess(authData){hideGate();showManageSubButton();if(authData.status==='trial'&&authData.daysRemaining!==undefined){showTrialBanner(authData.daysRemaining);}if(vktUser&&vktUser.email)setVktSession(vktUser.email,vktUser.googleId,authData.status,authData.daysRemaining);init();if(vktUser&&vktUser.email)loadFavorites(vktUser.email);}
+function grantAccess(authData){
+  // If user came from pro site wanting to subscribe, show paywall first
+  if(window.__showPaywallOnAuth && authData.status !== 'active' && authData.status !== 'bypass'){
+    window.__showPaywallOnAuth = false;
+    hideGate();
+    showPaywall(authData.status || 'subscribe');
+    if(vktUser&&vktUser.email)setVktSession(vktUser.email,vktUser.googleId,authData.status,authData.daysRemaining);
+    return;
+  }
+  hideGate();showManageSubButton();if(authData.status==='trial'&&authData.daysRemaining!==undefined){showTrialBanner(authData.daysRemaining);}if(vktUser&&vktUser.email)setVktSession(vktUser.email,vktUser.googleId,authData.status,authData.daysRemaining);init();if(vktUser&&vktUser.email)loadFavorites(vktUser.email);}
 function resolveAccess(email,googleId,onBypassSkip){
   if(VKT_BYPASS_EMAILS.indexOf(email)>=0){vktUser={email:email,googleId:googleId,status:'bypass'};if(onBypassSkip)onBypassSkip();setVktSession(email,googleId,'bypass',null);hideGate();showManageSubButton();init();loadFavorites(email);return;}
   checkAccess(email,googleId).then(function(data){if(!data)throw new Error('No response');vktUser={email:email,googleId:googleId,status:data.status,trialEndsAt:data.trialEndsAt,currentPeriodEnd:data.currentPeriodEnd,daysRemaining:data.daysRemaining};if(data.access==='granted'){grantAccess(data);}else{showPaywall(data.status);}}).catch(function(e){console.error('[VKT] Status check failed:',e);hideGate();init();});
 }
 function handleCredentialResponse(response){var token=response.credential;vktToken=token;setStoredToken(token);var payload=decodeJwt(token);if(!payload||!payload.email){hideGate();init();return;}resolveAccess(payload.email,payload.sub);}
 window.handleCredentialResponse=handleCredentialResponse;
-(function(){var params=new URLSearchParams(window.location.search);var co=params.get('checkout');if(co==='success'){params.delete('checkout');var nq=params.toString();window.history.replaceState({},'',window.location.pathname+(nq?'?'+nq:''));window.addEventListener('load',function(){showSuccessToast();});}else if(co==='canceled'){params.delete('checkout');var nq2=params.toString();window.history.replaceState({},'',window.location.pathname+(nq2?'?'+nq2:''));}if(params.get('subscribed')==='true'){params.delete('subscribed');var nq3=params.toString();window.history.replaceState({},'',window.location.pathname+(nq3?'?'+nq3:''));}})();
+(function(){var params=new URLSearchParams(window.location.search);var co=params.get('checkout');if(co==='success'){params.delete('checkout');var nq=params.toString();window.history.replaceState({},'',window.location.pathname+(nq?'?'+nq:''));window.addEventListener('load',function(){showSuccessToast();});}else if(co==='canceled'){params.delete('checkout');var nq2=params.toString();window.history.replaceState({},'',window.location.pathname+(nq2?'?'+nq2:''));}if(params.get('subscribed')==='true'){params.delete('subscribed');var nq3=params.toString();window.history.replaceState({},'',window.location.pathname+(nq3?'?'+nq3:''));}
+// Show paywall immediately if coming from pro site via ?subscribe=true
+if(params.get('subscribe')==='true'){window.__showPaywallOnAuth=true;params.delete('subscribe');window.history.replaceState({},'',window.location.pathname+(params.toString()?'?'+params.toString():''));}
+})();
 var infoModal=document.getElementById('info-modal');if(infoModal)infoModal.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 var btnUpgrade=document.getElementById('btn-upgrade');if(btnUpgrade)btnUpgrade.addEventListener('click',createCheckout);
 var btnSubscribe=document.getElementById('btn-subscribe');if(btnSubscribe)btnSubscribe.addEventListener('click',createCheckout);
