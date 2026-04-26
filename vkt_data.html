@@ -378,6 +378,96 @@
     #fav-toast.show { display:flex; }
     #fav-toast .fav-toast-star { font-size:14px; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+  // ── Supabase Auth for VKT Market Data ─────────────────────────────────
+  var _sbClient = null;
+  function getSB() {
+    if (!_sbClient) {
+      _sbClient = window.supabase.createClient(
+        'https://unypasitbzulafehbqtj.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXBhc2l0Ynp1bGFmZWhicXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTE2MjAsImV4cCI6MjA5MDU4NzYyMH0.ywGB7ZccbVxcgZDXMOQB9Ui8R-SF4xF0SKkWavDbRGI'
+      );
+    }
+    return _sbClient;
+  }
+
+  function switchAuthTab(tab) {
+    var isSignin = tab === 'signin';
+    document.getElementById('auth-signin-form').style.display = isSignin ? 'block' : 'none';
+    document.getElementById('auth-register-form').style.display = isSignin ? 'none' : 'block';
+    document.getElementById('auth-verify-msg').style.display = 'none';
+    document.getElementById('auth-error-msg').style.display = 'none';
+    document.getElementById('tab-signin-btn').style.borderBottomColor = isSignin ? '#d4a843' : 'transparent';
+    document.getElementById('tab-signin-btn').style.color = isSignin ? '#fff' : '#555';
+    document.getElementById('tab-register-btn').style.borderBottomColor = isSignin ? 'transparent' : '#d4a843';
+    document.getElementById('tab-register-btn').style.color = isSignin ? '#555' : '#fff';
+  }
+
+  function showAuthError(msg) {
+    var el = document.getElementById('auth-error-msg');
+    if (el) { el.textContent = msg; el.style.display = 'block'; }
+  }
+
+  window.vktRegister = async function() {
+    var email = (document.getElementById('auth-reg-email').value || '').trim().toLowerCase();
+    var password = (document.getElementById('auth-reg-password').value || '').trim();
+    var btn = document.getElementById('btn-do-register');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthError('Please enter a valid email.'); return; }
+    if (!password || password.length < 8) { showAuthError('Password must be at least 8 characters.'); return; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Creating account...'; }
+    document.getElementById('auth-error-msg').style.display = 'none';
+    try {
+      var res = await getSB().auth.signUp({ email: email, password: password });
+      if (res.error) {
+        showAuthError(res.error.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'Create Account →'; }
+      } else {
+        document.getElementById('auth-register-form').style.display = 'none';
+        document.getElementById('auth-verify-msg').style.display = 'block';
+      }
+    } catch(e) {
+      showAuthError('Something went wrong. Try again.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Account →'; }
+    }
+  };
+
+  window.vktSignIn = async function() {
+    var email = (document.getElementById('auth-signin-email').value || '').trim().toLowerCase();
+    var password = (document.getElementById('auth-signin-password').value || '').trim();
+    var btn = document.getElementById('btn-do-signin');
+    if (!email) { showAuthError('Please enter your email.'); return; }
+    if (!password) { showAuthError('Please enter your password.'); return; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+    document.getElementById('auth-error-msg').style.display = 'none';
+    try {
+      var res = await getSB().auth.signInWithPassword({ email: email, password: password });
+      if (res.error) {
+        var msg = res.error.message;
+        if (/email not confirmed/i.test(msg)) msg = 'Please verify your email first. Check your inbox.';
+        if (/invalid login/i.test(msg)) msg = 'Incorrect email or password.';
+        showAuthError(msg);
+        if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+      } else {
+        var userEmail = res.data.user.email;
+        vktUser = { email: userEmail, googleId: null };
+        resolveAccess(userEmail, null);
+      }
+    } catch(e) {
+      showAuthError('Something went wrong. Try again.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+    }
+  };
+
+  window.vktForgotPassword = async function() {
+    var email = (document.getElementById('auth-signin-email').value || '').trim().toLowerCase();
+    if (!email) { showAuthError('Enter your email above first.'); return; }
+    document.getElementById('auth-error-msg').style.display = 'none';
+    await getSB().auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    var el = document.getElementById('auth-error-msg');
+    if (el) { el.textContent = 'Password reset email sent. Check your inbox.'; el.style.color = '#d4a843'; el.style.display = 'block'; }
+  };
+  </script>
 </head>
 <body class="auth-pending">
 <script>
@@ -1056,7 +1146,7 @@ function openPortal(){if(!vktUser||!vktUser.email)return;fetch(VKT_AUTH_API+'/ap
 function hideGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.add('hidden');gate.style.display='none';}}
 function showManageSubButton(){var btn=document.getElementById('btn-manage-sub');if(btn)btn.style.display='inline-block';var sob=document.getElementById('btn-signout-nav');if(sob)sob.style.display='inline-block';}
 function showTrialBanner(daysRemaining){var banner=document.getElementById('trial-banner');var text=document.getElementById('trial-text');if(!banner||!text)return;banner.style.display='flex';var d=daysRemaining;text.textContent=d<=1?'\u26A0\uFE0F Last day of your free trial!':'\u23F1 '+d+' day'+(d===1?'':'s')+' left in your free trial';if(d<=2)banner.style.background='linear-gradient(90deg,#1a0a00,#2a1000,#1a0a00)';var ticker=document.getElementById('ticker-bar');if(ticker&&banner.parentNode!==ticker.parentNode)return;if(ticker)ticker.parentNode.insertBefore(banner,ticker);}
-function showPaywall(reason){hideGate();var pw=document.getElementById('vkt-paywall');if(pw)pw.classList.add('visible');var title=document.querySelector('.paywall-title');if(title&&reason==='trial_expired')title.textContent='Your Trial Has Ended';else if(title&&reason==='canceled')title.textContent='Subscription Canceled';else if(title&&reason==='past_due')title.textContent='Payment Issue';else if(title&&reason==='subscribe')title.textContent='Subscribe to VKT Market Data';}
+function showPaywall(reason){hideGate();var pw=document.getElementById('vkt-paywall');if(pw)pw.classList.add('visible');var title=document.querySelector('.paywall-title');if(title&&reason==='trial_expired')title.textContent='Let\'s Get Started';else if(title&&reason==='canceled')title.textContent='Subscription Canceled';else if(title&&reason==='past_due')title.textContent='Payment Issue';else if(title&&reason==='subscribe')title.textContent='Subscribe to VKT Market Data';}
 function showAuthGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.remove('hidden');gate.style.display='flex';}}
 function showSuccessToast(msg){var t=document.getElementById('success-toast');if(!t)return;t.textContent=msg||'\u2713 Subscription active \u2014 welcome to VKT Market Data';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},5000);}
 function signOut(){clearStoredToken();clearVktSession();vktToken=null;vktUser=null;try{if(window.google&&google.accounts&&google.accounts.id)google.accounts.id.disableAutoSelect();}catch(e){}window.location.reload();}
@@ -1207,16 +1297,52 @@ window.addEventListener('load',function(){
   <div class="auth-card">
     <div class="auth-logo">Victory Kay <span>Tickets</span></div>
     <div class="auth-title">VKT Market Data</div>
-    <div class="auth-sub">Real-time ticket pricing intelligence across StubHub, SeatGeek, and VividSeats. Sign in to start your 7-day free trial.</div>
-    <div class="auth-features">
-      <div class="auth-feature"><span class="auth-feature-icon">&#128202;</span>Live floor prices, ATP, and listing volume for 3,000+ events</div>
-      <div class="auth-feature"><span class="auth-feature-icon">&#128200;</span>24h volume trends and price history charts</div>
-      <div class="auth-feature"><span class="auth-feature-icon">&#9889;</span>StubHub, SeatGeek &amp; VividSeats in one dashboard</div>
-      <div class="auth-feature"><span class="auth-feature-icon">&#127919;</span>Section-level data for FIFA World Cup 2026</div>
+    <div class="auth-sub">Real-time ticket pricing intelligence for serious resellers. Create an account to start your 7-day free trial.</div>
+
+    <!-- Tab switcher -->
+    <div style="display:flex;border-bottom:1px solid #222;margin-bottom:20px;">
+      <button id="tab-signin-btn" onclick="switchAuthTab('signin')" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid #d4a843;color:#fff;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;">Sign In</button>
+      <button id="tab-register-btn" onclick="switchAuthTab('register')" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:#555;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit;">Create Account</button>
     </div>
-    <div id="g_id_onload" data-client_id="224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
-    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-logo_alignment="left" data-width="340"></div>
-    <div class="auth-terms">7-day free trial &middot; No credit card required &middot; $99/month now &mdash; rises to $299 in June<br/>By signing in you agree to our <a href="/terms">Terms of Service</a></div>
+
+    <!-- Sign In -->
+    <div id="auth-signin-form">
+      <input id="auth-signin-email" type="email" placeholder="Email address" autocomplete="email"
+        style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #333;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;border-radius:6px;" />
+      <input id="auth-signin-password" type="password" placeholder="Password" autocomplete="current-password"
+        style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #333;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:12px;border-radius:6px;"
+        onkeydown="if(event.key==='Enter')vktSignIn()" />
+      <button onclick="vktSignIn()" id="btn-do-signin"
+        style="width:100%;padding:12px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;font-family:inherit;margin-bottom:8px;">
+        Sign In &rarr;
+      </button>
+      <div style="text-align:center;">
+        <button onclick="vktForgotPassword()" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline;">Forgot password?</button>
+      </div>
+    </div>
+
+    <!-- Register -->
+    <div id="auth-register-form" style="display:none;">
+      <input id="auth-reg-email" type="email" placeholder="Email address" autocomplete="email"
+        style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #333;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px;border-radius:6px;" />
+      <input id="auth-reg-password" type="password" placeholder="Password (min 8 characters)" autocomplete="new-password"
+        style="width:100%;box-sizing:border-box;padding:11px 14px;background:#0a0a0a;border:1px solid #333;color:#fff;font-size:13px;font-family:inherit;outline:none;margin-bottom:12px;border-radius:6px;"
+        onkeydown="if(event.key==='Enter')vktRegister()" />
+      <button onclick="vktRegister()" id="btn-do-register"
+        style="width:100%;padding:12px;background:#d4a843;color:#0c0c0c;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">
+        Create Account &rarr;
+      </button>
+    </div>
+
+    <!-- Verify message -->
+    <div id="auth-verify-msg" style="display:none;text-align:center;padding:12px 0;">
+      <div style="font-size:28px;margin-bottom:10px;">&#9993;</div>
+      <div style="font-size:14px;color:#fff;font-weight:700;margin-bottom:6px;">Check your email</div>
+      <div style="font-size:12px;color:#666;line-height:1.6;">We sent a verification link. Click it then sign in.</div>
+    </div>
+
+    <div id="auth-error-msg" style="font-size:11px;color:#c0392b;margin-top:10px;display:none;text-align:center;"></div>
+    <div class="auth-terms" style="margin-top:16px;">7-day free trial &middot; $199/month &middot; Cancel anytime</div>
   </div>
 </div>
 
@@ -1232,7 +1358,7 @@ window.addEventListener('load',function(){
 <!-- PAYWALL -->
 <div id="vkt-paywall">
   <div class="paywall-card">
-    <div class="paywall-title">Your Trial Has Ended</div>
+    <div class="paywall-title">Let's Get Started</div>
     <div class="paywall-sub">Subscribe to continue accessing VKT Market Data &mdash; the most comprehensive ticket pricing intelligence for resellers.</div>
     <div class="paywall-price">$199</div>
     <div class="paywall-period">per month &middot; 7-day free trial &middot; cancel anytime</div>
