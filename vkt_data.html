@@ -1141,7 +1141,7 @@ function setVktSession(email,googleId,status,daysRemaining){
 function clearVktSession(){try{localStorage.removeItem('vkt_session');}catch(e){}}
 function decodeJwt(token){try{var parts=token.split('.');var b64=parts[1].replace(/-/g,'+').replace(/_/g,'/');while(b64.length%4)b64+='=';return JSON.parse(decodeURIComponent(escape(atob(b64))));}catch(e){return null;}}
 function checkAccess(email,googleId){return fetch(VKT_AUTH_API+'/api/subscriber/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,googleId:googleId||null})}).then(function(r){return r.json();});}
-function createCheckout(){if(!vktUser||!vktUser.email){alert('Please sign in first.');return;}var btns=document.querySelectorAll('#btn-upgrade, #btn-subscribe');btns.forEach(function(b){b.disabled=true;b.textContent='Loading...';});fetch(VKT_AUTH_API+'/api/checkout/create-dashboard-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:vktUser.email})}).then(function(r){return r.json();}).then(function(data){if(data.url){window.location.href=data.url;}else{alert('Checkout error: '+(data.error||'unknown'));btns.forEach(function(b){b.disabled=false;});document.getElementById('btn-upgrade').textContent='Subscribe \u2014 $199/mo';document.getElementById('btn-subscribe').textContent='Subscribe Now';}}).catch(function(e){alert('Network error. Please try again.');btns.forEach(function(b){b.disabled=false;});document.getElementById('btn-upgrade').textContent='Subscribe \u2014 $199/mo';document.getElementById('btn-subscribe').textContent='Subscribe Now';});}
+function createCheckout(){if(!vktUser||!vktUser.email){alert('Please sign in first.');return;}var btns=document.querySelectorAll('#btn-upgrade, #btn-subscribe');btns.forEach(function(b){b.disabled=true;b.textContent='Loading...';});fetch(VKT_AUTH_API+'/api/checkout/create-dashboard-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:vktUser.email})}).then(function(r){return r.json();}).then(function(data){if(data.url){window.location.href=data.url;}else{alert('Checkout error: '+(data.error||'unknown'));btns.forEach(function(b){b.disabled=false;});document.getElementById('btn-upgrade').textContent='Subscribe \u2014 $299/mo';document.getElementById('btn-subscribe').textContent='Subscribe Now';}}).catch(function(e){alert('Network error. Please try again.');btns.forEach(function(b){b.disabled=false;});document.getElementById('btn-upgrade').textContent='Subscribe \u2014 $299/mo';document.getElementById('btn-subscribe').textContent='Subscribe Now';});}
 function openPortal(){ window.open('https://billing.stripe.com/p/login/6oU9AUcdPa2H2YX5cg4ow00', '_blank'); }
 function hideGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.add('hidden');gate.style.display='none';}}
 function showManageSubButton(){var btn=document.getElementById('btn-manage-sub');if(btn)btn.style.display='inline-block';var sob=document.getElementById('btn-signout-nav');if(sob)sob.style.display='inline-block';var bar=document.getElementById('manage-sub-bar');if(bar)bar.style.display='flex';}
@@ -1349,7 +1349,7 @@ window.addEventListener('load',function(){
     </div>
 
     <div id="auth-error-msg" style="font-size:11px;color:#c0392b;margin-top:10px;display:none;text-align:center;"></div>
-    <div class="auth-terms" style="margin-top:16px;">7-day free trial &middot; $199/month &middot; Cancel anytime</div>
+    <div class="auth-terms" style="margin-top:16px;">7-day free trial &middot; $299/month &middot; Cancel anytime</div>
   </div>
 </div>
 
@@ -1369,7 +1369,7 @@ window.addEventListener('load',function(){
     <div class="trial-text" id="trial-text">&#9201; 7 days left in your free trial</div>
     <div class="trial-sub">Subscribe to keep access to VKT Market Data</div>
   </div>
-  <button class="btn-upgrade" id="btn-upgrade" onclick="createCheckout()">Subscribe &mdash; $199/mo</button>
+  <button class="btn-upgrade" id="btn-upgrade" onclick="createCheckout()">Subscribe &mdash; $299/mo</button>
 </div>
 
 <!-- PAYWALL -->
@@ -1377,7 +1377,7 @@ window.addEventListener('load',function(){
   <div class="paywall-card">
     <div class="paywall-title">Let's Get Started</div>
     <div class="paywall-sub">Subscribe to continue accessing VKT Market Data &mdash; the most comprehensive ticket pricing intelligence for resellers.</div>
-    <div class="paywall-price">$199</div>
+    <div class="paywall-price">$299</div>
     <div class="paywall-period">per month &middot; 7-day free trial &middot; card required &middot; cancel anytime</div>
     <div class="paywall-features">
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Live pricing across StubHub, SeatGeek &amp; VividSeats</div>
