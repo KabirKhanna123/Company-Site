@@ -1166,7 +1166,14 @@ function resolveAccess(email,googleId,onBypassSkip){
 }
 function handleCredentialResponse(response){var token=response.credential;vktToken=token;setStoredToken(token);var payload=decodeJwt(token);if(!payload||!payload.email){hideGate();init();return;}resolveAccess(payload.email,payload.sub);}
 window.handleCredentialResponse=handleCredentialResponse;
-(function(){var params=new URLSearchParams(window.location.search);var co=params.get('checkout');if(co==='success'){params.delete('checkout');var nq=params.toString();window.history.replaceState({},'',window.location.pathname+(nq?'?'+nq:''));window.addEventListener('load',function(){showSuccessToast();});}else if(co==='canceled'){params.delete('checkout');var nq2=params.toString();window.history.replaceState({},'',window.location.pathname+(nq2?'?'+nq2:''));}if(params.get('subscribed')==='true'){params.delete('subscribed');var nq3=params.toString();window.history.replaceState({},'',window.location.pathname+(nq3?'?'+nq3:''));}
+(function(){var params=new URLSearchParams(window.location.search);var co=params.get('checkout');if(co==='success'){params.delete('checkout');var nq=params.toString();window.history.replaceState({},'',window.location.pathname+(nq?'?'+nq:''));window.addEventListener('load',function(){
+  // Show auth gate with a welcome message after checkout
+  var sub = document.querySelector('.auth-sub');
+  if (sub) sub.innerHTML = '&#10003; Payment confirmed! Sign in with the email you used on Stripe to access your dashboard.';
+  // Pre-fill signin tab
+  setTimeout(function() { switchAuthTab && switchAuthTab('signin'); }, 300);
+  showSuccessToast();
+});}else if(co==='canceled'){params.delete('checkout');var nq2=params.toString();window.history.replaceState({},'',window.location.pathname+(nq2?'?'+nq2:''));}if(params.get('subscribed')==='true'){params.delete('subscribed');var nq3=params.toString();window.history.replaceState({},'',window.location.pathname+(nq3?'?'+nq3:''));}
 // Show paywall immediately if coming from pro site via ?subscribe=true
 if(params.get('subscribe')==='true'){window.__showPaywallOnAuth=true;params.delete('subscribe');window.history.replaceState({},'',window.location.pathname+(params.toString()?'?'+params.toString():''));}
 })();
