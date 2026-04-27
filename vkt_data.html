@@ -796,16 +796,16 @@ function loadAnalysis(eventId){
       html+='</tbody></table></div>';
     }else html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
     html+='</div></div>';
-    // Live Odds \u2014 Coming Soon card
+    if(snaps.length){var snapSections=['All'].concat(Array.from(new Set(snaps.map(function(s){return s.section||'';}))).filter(Boolean).sort());html+='<div class="detail-card" style="margin-bottom:14px"><div class="section-header"><h3>Snapshot History</h3><select class="section-select" id="snapSecSel">'+snapSections.map(function(s){return'<option value="'+esc(s)+'">'+esc(s==='All'?'All Sections':s)+'</option>';}).join('')+'</select></div><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody id="snapHistBody"></tbody></table></div></div>';}
     html+='</div>';
-    html += '<div class="detail-card" style="margin-bottom:14px;"><div class="section-header"><h3>Live Odds</h3></div><div style="padding:28px 20px;text-align:center;background:#f7f4ef;border-top:1px solid #e4e2dc;"><div style="font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:10px;">Coming Soon</div><div style="font-size:1rem;font-weight:700;color:#111;margin-bottom:8px;">Matchup Odds</div><div style="width:28px;height:2px;background:#d4a843;margin:0 auto 12px;"></div><div style="font-size:0.82rem;color:#888;line-height:1.7;max-width:360px;margin:0 auto;">Live betting odds for this matchup &mdash; so you can price around who the market thinks will advance.</div></div></div>';
-
     document.getElementById('app').innerHTML=html;
     destroyCharts();
     if(labels.length>1)fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');
     if(listLabels.length>1)lChart=mkChart('lChart','Listings',listData,listLabels,'rgb(59,130,246)');
     if(atpLabels.length>1)aChart=mkChart('aChart','ATP',atpData,atpLabels,'rgb(16,185,129)');
     var sf=document.getElementById('secSel');if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
+    function renderSnapHistory(filterSection){var body=document.getElementById('snapHistBody');if(!body)return;var filtered=snaps.slice().reverse().filter(function(s){if(n(s.total_listings)===10)return false;if(filterSection==='All')return true;if(filterSection==='')return!s.section;return(s.section||'')===filterSection;}).slice(0,200);body.innerHTML=filtered.map(function(s){return'<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'\u2014')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';}).join('');}
+    var snapSel=document.getElementById('snapSecSel');if(snapSel){renderSnapHistory('All');snapSel.addEventListener('change',function(){renderSnapHistory(this.value);});}
   }).catch(function(err){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';});
 
 function setPlatform(platform){activePlatform=platform;document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');allRows=buildRows(allEvents,allSnaps);buildTicker(allRows);drawTable();}
@@ -1370,7 +1370,7 @@ window.addEventListener('load',function(){
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>3,000+ events updated 2x daily</div>
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Floor, ATP, ceiling &amp; 24h volume trends</div>
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>FIFA World Cup section-level data</div>
-      <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Price history charts &amp; live odds (coming soon)</div>
+      <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Price history charts &amp; snapshot history</div>
     </div>
     <button class="btn-subscribe" id="btn-subscribe" onclick="createCheckout()">Subscribe Now</button>
     <div class="paywall-signout" id="btn-paywall-signout">Sign out</div>
