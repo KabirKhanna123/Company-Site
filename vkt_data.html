@@ -921,7 +921,7 @@ function updateAlertSummary() {
   var val = parseFloat(document.getElementById('alert-value-input').value);
   var summaryEl = document.getElementById('alert-summary');
   if(field && !isNaN(val)) {
-    summaryEl.textContent = '\u1F514 ' + alertSummary({field:field, condition:_alertCondition, value:val});
+    summaryEl.textContent = '&#128276; ' + alertSummary({field:field, condition:_alertCondition, value:val});
     summaryEl.classList.add('visible');
   } else {
     summaryEl.classList.remove('visible');
