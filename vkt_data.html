@@ -1141,7 +1141,7 @@ function checkAccess(email,googleId){return fetch(VKT_AUTH_API+'/api/subscriber/
 function createCheckout(){if(!vktUser||!vktUser.email){alert('Please sign in first.');return;}var btns=document.querySelectorAll('#btn-upgrade, #btn-subscribe');btns.forEach(function(b){b.disabled=true;b.textContent='Loading...';});fetch(VKT_AUTH_API+'/api/checkout/create-dashboard-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:vktUser.email})}).then(function(r){return r.json();}).then(function(data){if(data.url){window.location.href=data.url;}else{alert('Checkout error: '+(data.error||'unknown'));btns.forEach(function(b){b.disabled=false;});document.getElementById('btn-upgrade').textContent='Subscribe \u2014 $299/mo';document.getElementById('btn-subscribe').textContent='Subscribe Now';}}).catch(function(e){alert('Network error. Please try again.');btns.forEach(function(b){b.disabled=false;});document.getElementById('btn-upgrade').textContent='Subscribe \u2014 $299/mo';document.getElementById('btn-subscribe').textContent='Subscribe Now';});}
 function openPortal(){ window.open('https://billing.stripe.com/p/login/6oU9AUcdPa2H2YX5cg4ow00', '_blank'); }
 function hideGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.add('hidden');gate.style.display='none';}}
-function showManageSubButton(){var sob=document.getElementById('btn-signout-nav');if(sob)sob.style.display='inline-block';var footer=document.getElementById('manage-sub-footer');if(footer)footer.style.display='block';}
+function showManageSubButton(){var sob=document.getElementById('btn-signout-nav');if(sob)sob.style.display='inline-block';var footer=document.getElementById('manage-sub-footer');if(footer)footer.style.display='flex';}
 function showTrialBanner(daysRemaining){var banner=document.getElementById('trial-banner');var text=document.getElementById('trial-text');if(!banner||!text)return;banner.style.display='flex';var d=daysRemaining;text.textContent=d<=1?'\u26A0\uFE0F Last day of your free trial!':'\u23F1 '+d+' day'+(d===1?'':'s')+' left in your free trial';if(d<=2)banner.style.background='linear-gradient(90deg,#1a0a00,#2a1000,#1a0a00)';var ticker=document.getElementById('ticker-bar');if(ticker&&banner.parentNode!==ticker.parentNode)return;if(ticker)ticker.parentNode.insertBefore(banner,ticker);}
 function showPaywall(reason){hideGate();var pw=document.getElementById('vkt-paywall');if(pw)pw.classList.add('visible');var title=document.querySelector('.paywall-title');if(title&&reason==='trial_expired')title.textContent='Let\'s Get Started';else if(title&&reason==='canceled')title.textContent='Subscription Canceled';else if(title&&reason==='past_due')title.textContent='Payment Issue';else if(title&&reason==='subscribe')title.textContent='Subscribe to VKT Market Data';}
 function showAuthGate(){document.body.classList.remove('auth-pending');var gate=document.getElementById('vkt-auth-gate');if(gate){gate.classList.remove('hidden');gate.style.display='flex';}}
@@ -1378,11 +1378,11 @@ window.addEventListener('load',function(){
   </div>
 </div>
 
-<div id="manage-sub-footer" style="display:none;text-align:center;padding:20px;background:#0c0c0c;border-top:1px solid #111;">
+<div id="manage-sub-footer" style="display:none;padding:8px 20px;background:#0c0c0c;border-top:1px solid #111;display:none;justify-content:flex-end;">
   <button onclick="openPortal()" id="btn-manage-sub"
-    style="background:none;border:none;color:#333;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:color 0.2s;"
-    onmouseover="this.style.color='#888'" onmouseout="this.style.color='#333'">
-    Manage / Cancel Subscription
+    style="background:none;border:none;color:#333;font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:color 0.2s;"
+    onmouseover="this.style.color='#666'" onmouseout="this.style.color='#333'">
+    Manage Subscription
   </button>
 </div>
 </body>
