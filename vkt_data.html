@@ -378,7 +378,7 @@
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-  // ── Supabase Auth for VKT Market Data ─────────────────────────────────
+  // \u2500\u2500 Supabase Auth for VKT Market Data \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var _sbClient = null;
   function getSB() {
     if (!_sbClient) {
@@ -419,14 +419,14 @@
       var res = await getSB().auth.signUp({ email: email, password: password });
       if (res.error) {
         showAuthError(res.error.message);
-        if (btn) { btn.disabled = false; btn.textContent = 'Create Account →'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'Create Account \u2192'; }
       } else {
         document.getElementById('auth-register-form').style.display = 'none';
         document.getElementById('auth-verify-msg').style.display = 'block';
       }
     } catch(e) {
       showAuthError('Something went wrong. Try again.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Create Account →'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Account \u2192'; }
     }
   };
 
@@ -445,7 +445,7 @@
         if (/email not confirmed/i.test(msg)) msg = 'Please verify your email first. Check your inbox.';
         if (/invalid login/i.test(msg)) msg = 'Incorrect email or password.';
         showAuthError(msg);
-        if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'Sign In \u2192'; }
       } else {
         var userEmail = res.data.user.email;
         vktUser = { email: userEmail, googleId: null };
@@ -453,7 +453,7 @@
       }
     } catch(e) {
       showAuthError('Something went wrong. Try again.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In \u2192'; }
     }
   };
 
@@ -471,7 +471,7 @@
 <script>
 (function(){
   try {
-    // Check long-lived VKT session first (7 days) — survives Google JWT expiry
+    // Check long-lived VKT session first (7 days) \u2014 survives Google JWT expiry
     var session = JSON.parse(localStorage.getItem('vkt_session') || 'null');
     if(session && session.verifiedAt && (Date.now() - session.verifiedAt) < 7*24*3600000) {
       document.write('<style>#vkt-auth-gate{display:none!important}</style>');
@@ -620,7 +620,7 @@ function drawTable(){
     return isNaN(yr)||yr<=2027;
   });
 
-  // Favorites filter — when on favorites tab show only starred events
+  // Favorites filter \u2014 when on favorites tab show only starred events
   if(favView==='fav') rows=rows.filter(function(r){ return vktFavorites.has(r.id); });
 
   if(sortDaysDir){rows.sort(function(a,b){var ad=a.daysToEvent!==null?a.daysToEvent:9999,bd=b.daysToEvent!==null?b.daysToEvent:9999;return sortDaysDir==='asc'?ad-bd:bd-ad;});}
@@ -699,7 +699,7 @@ function go(href){window.location.href=href;}
 function destroyCharts(){[fChart,lChart,aChart,slChart,saChart].forEach(function(c){if(c)c.destroy();});fChart=lChart=aChart=slChart=saChart=null;}
 function calcTrendline(data){var n=data.length;if(n<2)return data.map(function(){return null;});var sumX=0,sumY=0,sumXY=0,sumX2=0;for(var i=0;i<n;i++){sumX+=i;sumY+=data[i];sumXY+=i*data[i];sumX2+=i*i;}var slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);var intercept=(sumY-slope*sumX)/n;return data.map(function(_,i){return Math.round((slope*i+intercept)*100)/100;});}
 
-// IQR outlier filter — removes spikes more than 2.5x IQR above Q3 or below Q1
+// IQR outlier filter \u2014 removes spikes more than 2.5x IQR above Q3 or below Q1
 // Applied per data series before charting so one bad scrape doesn't blow the scale
 function removeOutliers(dataArr, labelsArr) {
   if (!dataArr || dataArr.length < 4) return { data: dataArr, labels: labelsArr };
@@ -785,7 +785,7 @@ function loadAnalysis(eventId){
     if(sections.length){
       html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Floor</th><th>Sold (24h)</th><th>Last Seen</th></tr></thead><tbody>';
       sections.slice(0,20).forEach(function(s){
-        var soldCell='—';
+        var soldCell='\u2014';
         if(s.sold24!==null){
           var sc2=s.sold24>0?'color:#22c55e':'color:#ef4444';
           var ss2=s.sold24>0?'-'+s.sold24:'+'+Math.abs(s.sold24);
@@ -807,7 +807,6 @@ function loadAnalysis(eventId){
     function renderSnapHistory(filterSection){var body=document.getElementById('snapHistBody');if(!body)return;var filtered=snaps.slice().reverse().filter(function(s){if(n(s.total_listings)===10)return false;if(filterSection==='All')return true;if(filterSection==='')return!s.section;return(s.section||'')===filterSection;}).slice(0,200);body.innerHTML=filtered.map(function(s){return'<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'\u2014')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';}).join('');}
     var snapSel=document.getElementById('snapSecSel');if(snapSel){renderSnapHistory('All');snapSel.addEventListener('change',function(){renderSnapHistory(this.value);});}
   }).catch(function(err){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';});
-}
 
 function setPlatform(platform){activePlatform=platform;document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');allRows=buildRows(allEvents,allSnaps);buildTicker(allRows);drawTable();}
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
@@ -818,7 +817,7 @@ function toggleDateSort(){if(sortDateDir===null)sortDateDir='asc';else if(sortDa
 function toggleFloorSort(){if(sortFloorDir===null)sortFloorDir='desc';else if(sortFloorDir==='desc')sortFloorDir='asc';else sortFloorDir=null;sortVolDir=null;sortDateDir=null;var di=document.getElementById('dateSortIcon');if(di)di.textContent='\u21C5';var dh=document.getElementById('dateHeader');if(dh)dh.style.color='';var vi=document.getElementById('volSortIcon');if(vi)vi.textContent='\u21C5';var vh=document.getElementById('volHeader');if(vh)vh.style.color='';var icon=document.getElementById('floorSortIcon');if(icon)icon.textContent=sortFloorDir==='desc'?'\u2193':sortFloorDir==='asc'?'\u2191':'\u21C5';var hdr=document.getElementById('floorHeader');if(hdr)hdr.style.color=sortFloorDir?'#d4a843':'';drawTable();}
 function toggleVolSort(){if(sortVolDir===null)sortVolDir='desc';else if(sortVolDir==='desc')sortVolDir='asc';else sortVolDir=null;sortFloorDir=null;sortDateDir=null;var di=document.getElementById('dateSortIcon');if(di)di.textContent='\u21C5';var dh=document.getElementById('dateHeader');if(dh)dh.style.color='';var fi=document.getElementById('floorSortIcon');if(fi)fi.textContent='\u21C5';var fh=document.getElementById('floorHeader');if(fh)fh.style.color='';var icon=document.getElementById('volSortIcon');if(icon)icon.textContent=sortVolDir==='desc'?'\u2193':sortVolDir==='asc'?'\u2191':'\u21C5';var hdr=document.getElementById('volHeader');if(hdr)hdr.style.color=sortVolDir?'#d4a843':'';drawTable();}
 
-// ── ALERT DATA POINTS CONFIG ──────────────────────────────────────
+// \u2500\u2500 ALERT DATA POINTS CONFIG \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 var ALERT_FIELDS = [
   { key:'floor',     label:'Floor Price',        unit:'$',  prefix:true  },
   { key:'atp',       label:'Avg Ticket Price',   unit:'$',  prefix:true  },
@@ -845,7 +844,7 @@ function alertSummary(a) {
 function alertMiniLabel(a) {
   if(!a||!a.field||!a.condition||a.value===undefined) return '';
   var fd = ALERT_FIELDS.find(function(f){return f.key===a.field;}) || {label:a.field,unit:'',prefix:false};
-  var sym = a.condition === 'gt' ? '↑' : '↓';
+  var sym = a.condition === 'gt' ? '\u2191' : '\u2193';
   var val = fd.prefix ? '$'+a.value : a.value+(fd.unit||'');
   return sym+' '+fd.label.split(' ')[0]+' '+val;
 }
@@ -860,7 +859,7 @@ function openAlert(eventId) {
   document.getElementById('alert-event-name').textContent = rowData.name || eventId;
   document.getElementById('alert-event-id').value = eventId;
 
-  // Field selector — default to floor
+  // Field selector \u2014 default to floor
   var fieldSel = document.getElementById('alert-field-select');
   fieldSel.value = existing.field || 'floor';
   updateAlertUnit();
@@ -870,7 +869,7 @@ function openAlert(eventId) {
   document.getElementById('alert-cond-lt').classList.toggle('active', _alertCondition === 'lt');
   document.getElementById('alert-cond-gt').classList.toggle('active', _alertCondition === 'gt');
 
-  // Value — use existing alert value, or sensible default from row data
+  // Value \u2014 use existing alert value, or sensible default from row data
   var valInput = document.getElementById('alert-value-input');
   if(existing.value !== undefined) {
     valInput.value = existing.value;
@@ -886,7 +885,7 @@ function openAlert(eventId) {
     valInput.value = defaults[fieldSel.value] !== undefined ? defaults[fieldSel.value] : '';
   }
 
-  // Email — pre-fill with signed-in user email
+  // Email \u2014 pre-fill with signed-in user email
   document.getElementById('alert-email-input').value = existing.email || (vktUser ? vktUser.email : '');
 
   updateAlertSummary();
@@ -922,7 +921,7 @@ function updateAlertSummary() {
   var val = parseFloat(document.getElementById('alert-value-input').value);
   var summaryEl = document.getElementById('alert-summary');
   if(field && !isNaN(val)) {
-    summaryEl.textContent = '🔔 ' + alertSummary({field:field, condition:_alertCondition, value:val});
+    summaryEl.textContent = '&#128276; ' + alertSummary({field:field, condition:_alertCondition, value:val});
     summaryEl.classList.add('visible');
   } else {
     summaryEl.classList.remove('visible');
@@ -955,8 +954,8 @@ function deleteAlert() {
 }
 function showComingSoon(platform){var toast=document.getElementById('coming-soon-toast');document.getElementById('toast-platform-name').textContent=platform;toast.classList.add('show');setTimeout(function(){toast.classList.remove('show');},3000);}
 
-// ═══════════════════════════════════════════════════════
-// FAVORITES — stored in Supabase per user email
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// FAVORITES \u2014 stored in Supabase per user email
 // Table required (run once in Supabase SQL editor):
 //
 //   create table user_favorites (
@@ -969,13 +968,13 @@ function showComingSoon(platform){var toast=document.getElementById('coming-soon
 //   alter table user_favorites enable row level security;
 //   create policy "open" on user_favorites for all using (true) with check (true);
 //
-// ═══════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 
 var vktFavorites = new Set(); // Set of event_id strings
 var favView = 'all';          // 'all' | 'fav'
 var favToastTimer = null;
 
-// ── Supabase CRUD ────────────────────────────────────────
+// \u2500\u2500 Supabase CRUD \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function fetchFavoritesFromDB(email) {
   return fetch(SB + '/rest/v1/user_favorites?user_email=eq.' + encodeURIComponent(email) + '&select=event_id', { headers: H })
     .then(function(r) { return r.ok ? r.json() : []; })
@@ -999,7 +998,7 @@ function deleteFavoriteFromDB(email, eventId) {
     .catch(function() { return false; });
 }
 
-// ── Load favorites on login ──────────────────────────────
+// \u2500\u2500 Load favorites on login \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function loadFavorites(email) {
   // Seed from localStorage immediately so UI doesn't flash empty
   try {
@@ -1022,7 +1021,7 @@ function persistFavLocally(email) {
   try { localStorage.setItem('vkt_fav_' + email, JSON.stringify(Array.from(vktFavorites))); } catch(e) {}
 }
 
-// ── Toggle ───────────────────────────────────────────────
+// \u2500\u2500 Toggle \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function toggleFavorite(eventId, btnEl) {
   if (!vktUser) return;
   var wasFav = vktFavorites.has(eventId);
@@ -1051,7 +1050,7 @@ function toggleFavorite(eventId, btnEl) {
   }
 }
 
-// ── UI helpers ───────────────────────────────────────────
+// \u2500\u2500 UI helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 function updateFavCount() {
   var el = document.getElementById('fav-count');
   if (el) el.textContent = vktFavorites.size;
@@ -1096,23 +1095,23 @@ function init(){
   }).catch(function(err){document.getElementById('loadingBar').style.display='none';document.getElementById('tbl').innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>';});
 }
 
-// ═══════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 // AUTH + SUBSCRIPTION
-// ═══════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 var VKT_AUTH_API='https://vkt-volume-api.vercel.app';
 var GOOGLE_CLIENT_ID='224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
 
-// ─── ACCESS LIST ────────────────────────────────────────
+// \u2500\u2500\u2500 ACCESS LIST \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 // Emails in this list bypass the subscription check and
 // get immediate full access. Add one email per line.
-// Last updated: 2026-04-18 — added huzaifafreelancer7799@gmail.com
+// Last updated: 2026-04-18 \u2014 added huzaifafreelancer7799@gmail.com
 var VKT_BYPASS_EMAILS = [
   'kabirkhanna2023@gmail.com',
   'victorkaytickets@gmail.com',
   'kaysingh@victorykaytickets.com',
   'huzaifafreelancer7799@gmail.com'
 ];
-// ────────────────────────────────────────────────────────
+// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 var VKT_DEV_PARAM='vkt_dev_bypass';
 var vktToken=null;
@@ -1122,7 +1121,7 @@ function getStoredToken(){try{return localStorage.getItem('vkt_google_token');}c
 function setStoredToken(t){try{localStorage.setItem('vkt_google_token',t);}catch(e){}}
 function clearStoredToken(){try{localStorage.removeItem('vkt_google_token');}catch(e){}}
 
-// ── VKT Session (7-day, survives Google JWT expiry) ──────────────────
+// \u2500\u2500 VKT Session (7-day, survives Google JWT expiry) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 var VKT_SESSION_TTL = 7 * 24 * 3600000; // 7 days
 function getVktSession(){
   try{
@@ -1181,7 +1180,7 @@ var btnSignout=document.getElementById('btn-paywall-signout');if(btnSignout)btnS
 window.addEventListener('load',function(){
   if(new URLSearchParams(window.location.search).get(VKT_DEV_PARAM)==='true'){hideGate();init();return;}
 
-  // Check long-lived VKT session first — user should not need to re-authenticate on every page
+  // Check long-lived VKT session first \u2014 user should not need to re-authenticate on every page
   var session=getVktSession();
   if(session&&session.email){
     vktUser={email:session.email,googleId:session.googleId,status:session.status,daysRemaining:session.daysRemaining};
@@ -1198,7 +1197,7 @@ window.addEventListener('load',function(){
     return;
   }
 
-  // No session — try Google JWT
+  // No session \u2014 try Google JWT
   var stored=getStoredToken();
   if(stored){
     var payload=decodeJwt(stored);
@@ -1207,7 +1206,7 @@ window.addEventListener('load',function(){
     else if(payload&&payload.email){vktToken=stored;resolveAccess(payload.email,payload.sub);return;}
   }
 
-  // No valid auth — show sign-in gate
+  // No valid auth \u2014 show sign-in gate
   showAuthGate();
 });
 </script>
