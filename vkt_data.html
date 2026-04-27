@@ -806,7 +806,11 @@ function loadAnalysis(eventId){
     var sf=document.getElementById('secSel');if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
     function renderSnapHistory(filterSection){var body=document.getElementById('snapHistBody');if(!body)return;var filtered=snaps.slice().reverse().filter(function(s){if(n(s.total_listings)===10)return false;if(filterSection==='All')return true;if(filterSection==='')return!s.section;return(s.section||'')===filterSection;}).slice(0,200);body.innerHTML=filtered.map(function(s){return'<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'\u2014')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';}).join('');}
     var snapSel=document.getElementById('snapSecSel');if(snapSel){renderSnapHistory('All');snapSel.addEventListener('change',function(){renderSnapHistory(this.value);});}
-  }).catch(function(err){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+esc(err.message)+'</div></div>';});
+  }).catch(function(err){
+    document.getElementById('app').innerHTML =
+      '<div class="analysis-shell"><div class="msg">Error: ' + esc(err.message) + '</div></div>';
+  });
+}
 
 function setPlatform(platform){activePlatform=platform;document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');allRows=buildRows(allEvents,allSnaps);buildTicker(allRows);drawTable();}
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
