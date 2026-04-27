@@ -796,20 +796,8 @@ function loadAnalysis(eventId){
       html+='</tbody></table></div>';
     }else html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
     html+='</div></div>';
-    // Snapshot history removed — replaced by Live Odds section
-if(false){
+    if(snaps.length){var snapSections=['All'].concat(Array.from(new Set(snaps.map(function(s){return s.section||'';}))).filter(Boolean).sort());html+='<div class="detail-card" style="margin-bottom:14px"><div class="section-header"><h3>Snapshot History</h3><select class="section-select" id="snapSecSel">'+snapSections.map(function(s){return'<option value="'+esc(s)+'">'+esc(s==='All'?'All Sections':s)+'</option>';}).join('')+'</select></div><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody id="snapHistBody"></tbody></table></div></div>';}
     html+='</div>';
-    // Live Odds — Coming Soon card
-    html += '<div class="detail-card" style="margin-bottom:14px;">';
-    html += '<div class="section-header"><h3>Live Odds</h3></div>';
-    html += '<div style="padding:28px 20px;text-align:center;background:#f7f4ef;border-top:1px solid #e4e2dc;">';
-    html += '<div style="font-size:0.6rem;letter-spacing:3px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:10px;">Coming Soon</div>';
-    html += '<div style="font-size:1rem;font-weight:700;color:#111;margin-bottom:8px;">Matchup Odds</div>';
-    html += '<div style="width:28px;height:2px;background:#d4a843;margin:0 auto 12px;"></div>';
-    html += '<div style="font-size:0.82rem;color:#888;line-height:1.7;max-width:360px;margin:0 auto;">Live betting odds for this matchup surfaced alongside ticket data — so you can price around who the market thinks will advance.</div>';
-    html += '</div></div>';
-    html += '</div>';
-
     document.getElementById('app').innerHTML=html;
     destroyCharts();
     if(labels.length>1)fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');
@@ -1383,7 +1371,7 @@ window.addEventListener('load',function(){
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>3,000+ events updated 2x daily</div>
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Floor, ATP, ceiling &amp; 24h volume trends</div>
       <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>FIFA World Cup section-level data</div>
-      <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Price history charts &amp; live odds (coming soon)</div>
+      <div class="paywall-feature"><span class="paywall-feature-check">&#10003;</span>Price history charts &amp; snapshot history</div>
     </div>
     <button class="btn-subscribe" id="btn-subscribe" onclick="createCheckout()">Subscribe Now</button>
     <div class="paywall-signout" id="btn-paywall-signout">Sign out</div>
