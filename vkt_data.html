@@ -54,7 +54,7 @@
     .table-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; overflow:hidden; width:100%; }
     .table-wrap { overflow:auto; max-height:calc(100vh - 240px); width:100%; }
     table { width:100%; min-width:100%; margin:0; border-collapse:collapse; table-layout:fixed; }
-    thead th { background:#f7f6f3; border-bottom:1px solid #e4e2dc; padding:9px 12px; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; text-align:center; position:sticky; top:0; z-index:2; font-weight:700; cursor:pointer; white-space:nowrap; }
+    thead th { background:#f7f6f3; border-bottom:1px solid #e4e2dc; padding:9px 8px; font-size:9.5px; letter-spacing:.5px; text-transform:uppercase; color:#888; text-align:center; position:sticky; top:0; z-index:2; font-weight:700; cursor:pointer; white-space:nowrap; }
     thead th:hover { color:#d4a843; }
     thead th.th-right { text-align:center; }
     tbody td { padding:10px 12px; border-bottom:1px solid #f0eeea; font-size:12px; color:#111; vertical-align:middle; text-align:center; }
@@ -855,7 +855,7 @@ function loadAnalysis(eventId){
 var activeVolPeriod='24h';
 function setVolPeriod(period){
   activeVolPeriod=period;
-  var labels={'24h':['VOL Change %','QTY Change'],'7d':['VOL Change %','QTY Change'],'14d':['VOL Change %','QTY Change']};
+  var labels={'24h':['Vol Chg %','Qty Chg'],'7d':['Vol Chg %','Qty Chg'],'14d':['Vol Chg %','Qty Chg']};
   var lbl=labels[period]||labels['24h'];
   var th=document.getElementById('vol-th-label');if(th)th.textContent=lbl[0];
   var qth=document.getElementById('qty-th-label');if(qth)qth.textContent=lbl[1];
