@@ -619,7 +619,7 @@ function buildRows(events,snaps){
 
 function buildTicker(rows){var items=rows.filter(function(r){return r.listingsPct!==null;}).sort(function(a,b){return Math.abs(b.listingsPct)-Math.abs(a.listingsPct);}).slice(0,15);if(!items.length){document.getElementById('ticker-track').innerHTML='<div class="ticker-item"><span style="color:#555">Not enough 24h data yet.</span></div>';return;}var html=items.map(function(r){var p=r.listingsPct;var cls=p>0?'ticker-up':p<0?'ticker-down':'ticker-flat';var sign=p>0?'+':'';return'<div class="ticker-item"><span class="ticker-name">'+esc(r.name)+'</span><span class="ticker-listings">'+fmt(r.listings)+' listings</span><span class="'+cls+'">'+sign+p+'%</span><span class="ticker-dot">&bull;</span></div>';}).join('');document.getElementById('ticker-track').innerHTML=html+html;}
 
-function renderDashboard(){document.getElementById('app').innerHTML='<div class="toolbar"><input type="text" id="q" placeholder="Search event..."/><input type="text" id="performerQ" placeholder="Search performer..."/><input type="text" id="venueQ" placeholder="Search venue..."/><select id="catF"><option value="">All Categories</option>'+['FIFA','NFL','NBA','MLB','NHL','F1','Combat','Concert','Festival','MLS','CFB','Theater','Comedy','Other'].map(function(c){return'<option>'+c+'</option>';}).join('')+'</select><div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div><select id="dataF"><option value="">All Events</option><option value="data">Has Data</option><option value="nodata">No Data Yet</option></select><button id="resetFilters" type="button">Reset</button></div><div class="table-shell"><div class="table-card"><div class="table-wrap"><div id="tbl" class="msg">Loading...</div></div></div></div>';['q','performerQ','venueQ','catF','df','dt','dataF'].forEach(function(id){var el=document.getElementById(id);if(el){el.addEventListener('input',drawTable);el.addEventListener('change',drawTable);}});var rb=document.getElementById('resetFilters');if(rb)rb.addEventListener('click',function(){['q','performerQ','venueQ','catF','df','dt','dataF'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});drawTable();});}
+function renderDashboard(){document.getElementById('app').innerHTML='<div class="toolbar"><input type="text" id="q" placeholder="Search event..."/><input type="text" id="performerQ" placeholder="Search performer..."/><input type="text" id="venueQ" placeholder="Search venue..."/><select id="catF"><option value="">All Categories</option>'+['FIFA','NFL','NBA','MLB','NHL','F1','Combat','Concert','Festival','MLS','CFB','Theater','Comedy','Other'].map(function(c){return'<option'+(c==='FIFA'?' selected':'')+'>'+c+'</option>';}).join('')+'</select><div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div><select id="dataF"><option value="">All Events</option><option value="data">Has Data</option><option value="nodata">No Data Yet</option></select><button id="resetFilters" type="button">Reset</button></div><div class="table-shell"><div class="table-card"><div class="table-wrap"><div id="tbl" class="msg">Loading...</div></div></div></div>';['q','performerQ','venueQ','catF','df','dt','dataF'].forEach(function(id){var el=document.getElementById(id);if(el){el.addEventListener('input',drawTable);el.addEventListener('change',drawTable);}});var rb=document.getElementById('resetFilters');if(rb)rb.addEventListener('click',function(){['q','performerQ','venueQ','df','dt','dataF'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});var cf=document.getElementById('catF');if(cf)cf.value='FIFA';drawTable();});}
 
 function drawTable(){
   var q=((document.getElementById('q')||{}).value||'').trim().toLowerCase();
@@ -679,8 +679,8 @@ function drawTable(){
     '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
     '<th class="th-right">ATP</th><th class="th-right">Listings</th>'+
     '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
-    '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;"><span id="vol-th-label">24h Vol %</span> <span id="volSortIcon">&#8645;</span></th>'+
-    '<th class="th-right" id="qty-th-label">24h Qty</th>'+
+    '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;"><span id="vol-th-label">VOL Change %</span> <span id="volSortIcon">&#8645;</span></th>'+
+    '<th class="th-right" id="qty-th-label">QTY Change</th>'+
     '<th class="th-right">Alert</th>'+
     '</tr></thead><tbody>';
 
@@ -855,7 +855,7 @@ function loadAnalysis(eventId){
 var activeVolPeriod='24h';
 function setVolPeriod(period){
   activeVolPeriod=period;
-  var labels={'24h':['24h Vol %','24h Qty'],'7d':['7d Vol %','7d Qty'],'14d':['14d Vol %','14d Qty']};
+  var labels={'24h':['VOL Change %','QTY Change'],'7d':['VOL Change %','QTY Change'],'14d':['VOL Change %','QTY Change']};
   var lbl=labels[period]||labels['24h'];
   var th=document.getElementById('vol-th-label');if(th)th.textContent=lbl[0];
   var qth=document.getElementById('qty-th-label');if(qth)qth.textContent=lbl[1];
