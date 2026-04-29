@@ -578,13 +578,29 @@ function buildRows(events,snaps){
     var daysToEvent=null;
     if(ev.date){var evDate=new Date(String(ev.date)+'T12:00:00');if(!isNaN(evDate))daysToEvent=Math.max(0,Math.ceil((evDate-new Date())/86400000));}
     var sellThru=null;
-    if(runs.length>=2){var oldest=n(runs[0].total_listings);var newest=n(runs[runs.length-1].total_listings);if(oldest>0)sellThru=oldest-newest;}
+    var vol7d=null;var vol14d=null;
+    if(runs.length>=2){
+      var newest=n(runs[runs.length-1].total_listings);
+      var now=Date.now();
+      var cut7=now-7*24*3600000;var cut14=now-14*24*3600000;
+      var snap7=null;var snap14=null;
+      for(var ri=0;ri<runs.length;ri++){
+        var rt=new Date(runs[ri].scraped_at).getTime();
+        if(rt<=cut7)snap7=runs[ri];
+        if(rt<=cut14)snap14=runs[ri];
+      }
+      if(!snap7&&runs.length)snap7=runs[0];
+      if(!snap14&&runs.length)snap14=runs[0];
+      if(snap7){var v7=n(snap7.total_listings);if(v7>0)vol7d=pct(newest,v7);}
+      if(snap14){var v14=n(snap14.total_listings);if(v14>0)vol14d=pct(newest,v14);}
+      var oldest=n(runs[0].total_listings);if(oldest>0)sellThru=oldest-newest;
+    }
     var floorVelocity=null;
     var floorSnaps=es.filter(function(s){return n(s.event_floor)>0;});
     if(floorSnaps.length>=2){floorVelocity=n(floorSnaps[floorSnaps.length-1].event_floor)-n(floorSnaps[0].event_floor);}
     var demandScore=null;
     if(daysToEvent!==null&&curListings>0){var d=0;if(daysToEvent<=3)d+=40;else if(daysToEvent<=7)d+=30;else if(daysToEvent<=14)d+=20;else if(daysToEvent<=30)d+=10;else d+=5;if(sellThru!==null){if(sellThru>20)d+=30;else if(sellThru>10)d+=20;else if(sellThru>0)d+=10;else if(sellThru<0)d-=10;}if(floorVelocity!==null){if(floorVelocity>50)d+=20;else if(floorVelocity>20)d+=12;else if(floorVelocity>0)d+=6;else if(floorVelocity<-20)d-=10;}if(listingsPct!==null){if(listingsPct<-10)d+=10;else if(listingsPct>20)d-=5;}demandScore=Math.min(99,Math.max(1,d));}
-    return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?n(latest.event_floor):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,demandScore:demandScore,floorVelocity:floorVelocity};
+    return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?n(latest.event_floor):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,vol7d:vol7d,vol14d:vol14d,demandScore:demandScore,floorVelocity:floorVelocity};
   });
 }
 
@@ -650,8 +666,9 @@ function drawTable(){
     '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
     '<th class="th-right">ATP</th><th class="th-right">Listings</th>'+
     '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
-    '<th class="th-right" id="sellthruHeader" onclick="toggleSellThruSort()" style="cursor:pointer;user-select:none;">Sold &#9660; <span id="sellthruSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;">24h Vol <span id="volSortIcon">&#8645;</span></th>'+
+    '<th class="th-right">7d Vol</th>'+
+    '<th class="th-right">14d Vol</th>'+
     '<th class="th-right">Alert</th>'+
     '</tr></thead><tbody>';
 
@@ -665,7 +682,7 @@ function drawTable(){
     var demandHtml='\u2014';
     if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';demandHtml='<span class="demand-score '+dc2+'">'+r.demandScore+'</span>';}
     var sellHtml='\u2014';
-    if(r.sellThru!==null){var sc=r.sellThru>0?'sellthru-up':'sellthru-down';var ss=r.sellThru>0?'-'+r.sellThru:'+'+Math.abs(r.sellThru);sellHtml='<span class="'+sc+'">'+ss+'</span>';}
+    // sellThru removed from display
     var existingAlert=vktAlerts[r.id]||null;
     var alertActive=existingAlert?' active':'';
     var miniLabel=existingAlert?alertMiniLabel(existingAlert):'';
@@ -687,8 +704,9 @@ function drawTable(){
       '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
-      '<td class="td-right" style="'+dim+'">'+(r.hasData?sellHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+(r.vol7d!==null?(r.vol7d>0?'<span class="chg-up">+'+r.vol7d+'%</span>':'<span class="chg-down">'+r.vol7d+'%</span>'):'<span style="color:#555">\u2014</span>')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+(r.vol14d!==null?(r.vol14d>0?'<span class="chg-up">+'+r.vol14d+'%</span>':'<span class="chg-down">'+r.vol14d+'%</span>'):'<span style="color:#555">\u2014</span>')+'</td>'+
       '<td class="td-right">'+alertHtml+'</td>'+
       '</tr>';
   });
@@ -732,9 +750,18 @@ function loadAnalysis(eventId){
     if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
     var eventSnaps=snaps.filter(function(s){return!s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var first=eventSnaps[0]||snaps[0];var last=eventSnaps[eventSnaps.length-1]||snaps[snaps.length-1];
-    var floorDelta=first&&last?n(last.event_floor)-n(first.event_floor):0;var listDelta=first&&last?n(last.total_listings)-n(first.total_listings):0;
+    // 24h deltas for stat cards
+    var now24=Date.now()-24*3600000;
+    var snap24=null;
+    for(var si2=0;si2<eventSnaps.length;si2++){
+      if(new Date(eventSnaps[si2].scraped_at).getTime()<=now24)snap24=eventSnaps[si2];
+      else break;
+    }
+    if(!snap24&&eventSnaps.length>1)snap24=eventSnaps[0];
+    var floorDelta=snap24&&last?n(last.event_floor)-n(snap24.event_floor):0;
+    var listDelta=snap24&&last?n(last.total_listings)-n(snap24.total_listings):0;
     var atpSnaps=snaps.filter(function(s){return n(s.section_avg)>0;});var avgAtp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
-    var listingsPct=first&&last?pct(n(last.total_listings),n(first.total_listings)):null;
+    var listingsPct=snap24&&last?pct(n(last.total_listings),n(snap24.total_listings)):null;
     // Build section data with latest snapshot per section
     var bySectionAll={};
     snaps.forEach(function(s){
@@ -783,12 +810,13 @@ function loadAnalysis(eventId){
     }
     html+='<div class="detail-grid"><div class="detail-card"><h3>Event Summary</h3><div class="detail-list"><div><strong>Date</strong><span>'+esc(fmtDate(ev.date))+'</span></div><div><strong>Venue</strong><span>'+esc(ev.venue||'\u2014')+'</span></div>'+(first?'<div><strong>First Scraped</strong><span>'+esc(fmtDT(first.scraped_at))+'</span></div>':'')+(last?'<div><strong>Last Updated</strong><span>'+esc(fmtDT(last.scraped_at))+'</span></div>':'')+(first&&last?'<div><strong>Floor Change</strong><span class="'+dEl(floorDelta)+'">'+dTxt(floorDelta,true)+'</span></div><div><strong>Listings Change</strong><span class="'+dEl(listDelta)+'">'+dTxt(listDelta,false)+'</span></div>':'')+'<div><strong>Total Snapshots</strong><span>'+fmt(snaps.length)+'</span></div><div><strong>Event ID</strong><span class="mono" style="font-size:11px;color:#888">'+esc(ev.id)+'</span></div></div></div><div class="detail-card"><h3>Top Sections by Listings</h3>';
     if(sections.length){
-      html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Floor</th><th>Sold (24h)</th><th>Last Seen</th></tr></thead><tbody>';
+      html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Floor</th><th>24h VOL</th><th>Last Seen</th></tr></thead><tbody>';
       sections.slice(0,20).forEach(function(s){
         var soldCell='\u2014';
         if(s.sold24!==null){
+          var vol24pct=s.sold24!==0&&s.listings>0?Math.round((s.sold24/s.listings)*100):0;
           var sc2=s.sold24>0?'color:#22c55e':'color:#ef4444';
-          var ss2=s.sold24>0?'-'+s.sold24:'+'+Math.abs(s.sold24);
+          var ss2=(s.sold24>0?'-':'+')+(Math.abs(vol24pct))+'%';
           soldCell='<span style="font-weight:700;font-family:monospace;'+sc2+'">'+ss2+'</span>';
         }
         html+='<tr><td>'+esc(s.section)+'</td><td>'+fmt(s.listings)+'</td><td class="gold">'+cur(s.floor)+'</td><td>'+soldCell+'</td><td>'+esc(fmtDT(s.scraped_at))+'</td></tr>';
@@ -1231,8 +1259,10 @@ window.addEventListener('load',function(){
     <div class="info-row"><div class="info-col-name">ATP</div><div class="info-col-desc"><strong>Average Ticket Price</strong> — the mean across all active listings. Useful for pricing for margin.</div></div>
     <div class="info-row"><div class="info-col-name">Listings</div><div class="info-col-desc">Total active listings right now. High = more competition. Low = rising prices likely.</div></div>
     <div class="info-row"><div class="info-col-name">Demand</div><div class="info-col-desc">VKT's proprietary <strong>Demand Score</strong> (1–99). From days to event, sell-through, floor trend, and volume momentum. <strong style="color:#22c55e;">60+</strong> = high, <strong style="color:#d4a843;">35–59</strong> = moderate, <strong style="color:#ef4444;">below 35</strong> = low.</div></div>
-    <div class="info-row"><div class="info-col-name">Sold &#9660;</div><div class="info-col-desc"><strong>24-hour sell-through</strong> — how many listings disappeared in the last 24 hours. <strong style="color:#22c55e;">Negative</strong> = tickets sold (supply dropping). Positive = supply growing.</div></div>
-    <div class="info-row"><div class="info-col-name">24h Vol</div><div class="info-col-desc"><strong>24-hour volume change</strong>. <strong style="color:#22c55e;">Green</strong> = listings dropping (selling fast). <strong style="color:#ef4444;">Red</strong> = listings growing.</div></div>
+    
+    <div class="info-row"><div class="info-col-name">24h Vol</div><div class="info-col-desc"><strong>24-hour listing volume change</strong>. <strong style="color:#22c55e;">Green/negative</strong> = listings dropped (tickets selling). <strong style="color:#ef4444;">Red/positive</strong> = listings grew.</div></div>
+    <div class="info-row"><div class="info-col-name">7d Vol</div><div class="info-col-desc"><strong>7-day listing volume change</strong>. Percentage change in total listings over the last 7 days.</div></div>
+    <div class="info-row"><div class="info-col-name">14d Vol</div><div class="info-col-desc"><strong>14-day listing volume change</strong>. Percentage change in total listings over the last 14 days.</div></div>
     <div class="info-row"><div class="info-col-name">Alert &#128276;</div><div class="info-col-desc">Set a <strong>custom alert</strong> on any data point — Floor, ATP, Listings, Demand Score, 24h Vol %, or Days to Event. Choose <strong>&gt;</strong> (rises above) or <strong>&lt;</strong> (drops below) a number or percentage. Your alerts are saved in your browser and shown as a mini label on the bell icon.</div></div>
   </div>
 </div>
@@ -1267,6 +1297,8 @@ window.addEventListener('load',function(){
         <option value="listings">Total Listings</option>
         <option value="demand">Demand Score</option>
         <option value="vol24h">24h Vol Change (%)</option>
+                <option value="vol7d">7d Vol Change (%)</option>
+                <option value="vol14d">14d Vol Change (%)</option>
         <option value="days">Days to Event</option>
       </select>
       <!-- Greater than / Less than -->
