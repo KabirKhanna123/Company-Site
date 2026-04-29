@@ -144,7 +144,7 @@
       .plt-btn { font-size:10px; padding:5px 10px; }
 
       /* Fav bar */
-      #fav-bar { padding:0 1rem; }
+      #fav-bar { display:flex; align-items:center; padding:0 1rem; }
 
       /* Toolbar — stack into 2-column grid on mobile */
       .toolbar {
@@ -358,7 +358,7 @@
     .info-btn:hover { border-color:#d4a843; color:#d4a843; }
 
     /* ── FAVORITES ── */
-    #fav-bar { background:#fff; border-bottom:1px solid #e4e2dc; padding:0 1.5rem; display:flex; align-items:center; gap:0; }
+    #fav-bar { display:flex; align-items:center; background:#fff; border-bottom:1px solid #e4e2dc; padding:0 1.5rem; display:flex; align-items:center; gap:0; }
     .fav-tab { padding:12px 20px; font-size:11px; font-weight:700; letter-spacing:0.5px; border:none; background:none; cursor:pointer; color:#aaa; border-bottom:2px solid transparent; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
     .fav-tab:hover { color:#555; }
     .fav-tab.active { color:#d4a843; border-bottom-color:#d4a843; }
@@ -524,6 +524,14 @@
 <div id="fav-bar">
   <button class="fav-tab active" id="fav-tab-all" onclick="setFavView('all')">All Events</button>
   <button class="fav-tab" id="fav-tab-fav" onclick="setFavView('fav')">&#9733; Favorites <span class="fav-count" id="fav-count">0</span></button>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Vol Period</span>
+    <select id="vol-period-select" onchange="setVolPeriod(this.value)" style="padding:5px 10px;background:#fff;border:1px solid #ddd;border-radius:999px;font-size:11px;font-weight:700;color:#333;cursor:pointer;outline:none;font-family:inherit;">
+      <option value="24h">24 Hours</option>
+      <option value="7d">7 Days</option>
+      <option value="14d">14 Days</option>
+    </select>
+  </div>
 </div>
 
 <div id="loadingBar" class="loading-bar"></div>
@@ -578,7 +586,7 @@ function buildRows(events,snaps){
     var daysToEvent=null;
     if(ev.date){var evDate=new Date(String(ev.date)+'T12:00:00');if(!isNaN(evDate))daysToEvent=Math.max(0,Math.ceil((evDate-new Date())/86400000));}
     var sellThru=null;
-    var vol7d=null;var vol14d=null;
+    var vol7d=null;var vol14d=null;var vol7dQty=null;var vol14dQty=null;
     if(runs.length>=2){
       var newest=n(runs[runs.length-1].total_listings);
       var now=Date.now();
@@ -591,8 +599,13 @@ function buildRows(events,snaps){
       }
       if(!snap7&&runs.length)snap7=runs[0];
       if(!snap14&&runs.length)snap14=runs[0];
-      if(snap7){var v7=n(snap7.total_listings);if(v7>0)vol7d=pct(newest,v7);}
-      if(snap14){var v14=n(snap14.total_listings);if(v14>0)vol14d=pct(newest,v14);}
+      if(snap7){var v7=n(snap7.total_listings);if(v7>0){vol7d=pct(newest,v7);vol7dQty=newest-v7;}}
+      if(snap14){var v14=n(snap14.total_listings);if(v14>0){vol14d=pct(newest,v14);vol14dQty=newest-v14;}}
+      // 24h qty change
+      var prevSnap24=null;var now24cut=Date.now()-24*3600000;
+      for(var rj=0;rj<runs.length;rj++){if(new Date(runs[rj].scraped_at).getTime()<=now24cut)prevSnap24=runs[rj];else break;}
+      if(!prevSnap24&&runs.length>1)prevSnap24=runs[0];
+      var vol24Qty=prevSnap24?newest-n(prevSnap24.total_listings):null;
       var oldest=n(runs[0].total_listings);if(oldest>0)sellThru=oldest-newest;
     }
     var floorVelocity=null;
@@ -600,7 +613,7 @@ function buildRows(events,snaps){
     if(floorSnaps.length>=2){floorVelocity=n(floorSnaps[floorSnaps.length-1].event_floor)-n(floorSnaps[0].event_floor);}
     var demandScore=null;
     if(daysToEvent!==null&&curListings>0){var d=0;if(daysToEvent<=3)d+=40;else if(daysToEvent<=7)d+=30;else if(daysToEvent<=14)d+=20;else if(daysToEvent<=30)d+=10;else d+=5;if(sellThru!==null){if(sellThru>20)d+=30;else if(sellThru>10)d+=20;else if(sellThru>0)d+=10;else if(sellThru<0)d-=10;}if(floorVelocity!==null){if(floorVelocity>50)d+=20;else if(floorVelocity>20)d+=12;else if(floorVelocity>0)d+=6;else if(floorVelocity<-20)d-=10;}if(listingsPct!==null){if(listingsPct<-10)d+=10;else if(listingsPct>20)d-=5;}demandScore=Math.min(99,Math.max(1,d));}
-    return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?n(latest.event_floor):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,vol7d:vol7d,vol14d:vol14d,demandScore:demandScore,floorVelocity:floorVelocity};
+    return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?n(latest.event_floor):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,vol7d:vol7d,vol14d:vol14d,vol7dQty:vol7dQty,vol14dQty:vol14dQty,vol24Qty:vol24Qty,demandScore:demandScore,floorVelocity:floorVelocity};
   });
 }
 
@@ -666,16 +679,16 @@ function drawTable(){
     '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
     '<th class="th-right">ATP</th><th class="th-right">Listings</th>'+
     '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
-    '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;">24h Vol <span id="volSortIcon">&#8645;</span></th>'+
-    '<th class="th-right">7d Vol</th>'+
-    '<th class="th-right">14d Vol</th>'+
+    '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;"><span id="vol-th-label">24h Vol %</span> <span id="volSortIcon">&#8645;</span></th>'+
+    '<th class="th-right" id="qty-th-label">24h Qty</th>'+
     '<th class="th-right">Alert</th>'+
     '</tr></thead><tbody>';
 
   rows.forEach(function(r){
     var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
     var pctStr='\u2014',pctCls='chg-flat';
-    if(r.listingsPct!==null){pctStr=(r.listingsPct>0?'+':'')+r.listingsPct+'%';pctCls=r.listingsPct>0?'chg-up':r.listingsPct<0?'chg-down':'chg-flat';}
+    var activePct=activeVolPeriod==='7d'?r.vol7d:activeVolPeriod==='14d'?r.vol14d:r.listingsPct;
+    if(activePct!==null&&activePct!==undefined){pctStr=(activePct>0?'+':'')+activePct+'%';pctCls=activePct>0?'chg-up':activePct<0?'chg-down':'chg-flat';}
     var dim=r.hasData?'':'opacity:0.35;';
     var daysBadge='\u2014';
     if(r.daysToEvent!==null){var dc=r.daysToEvent<=7?'days-hot':r.daysToEvent<=30?'days-soon':'days-normal';daysBadge='<span class="days-badge '+dc+'">'+r.daysToEvent+'d</span>';}
@@ -705,8 +718,7 @@ function drawTable(){
       '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
-      '<td class="td-right" style="'+dim+'">'+(r.vol7d!==null?(r.vol7d>0?'<span class="chg-up">+'+r.vol7d+'%</span>':'<span class="chg-down">'+r.vol7d+'%</span>'):'<span style="color:#555">\u2014</span>')+'</td>'+
-      '<td class="td-right" style="'+dim+'">'+(r.vol14d!==null?(r.vol14d>0?'<span class="chg-up">+'+r.vol14d+'%</span>':'<span class="chg-down">'+r.vol14d+'%</span>'):'<span style="color:#555">\u2014</span>')+'</td>'+
+      '<td class="td-right" style="'+dim+'">'+getQtyCell(r)+'</td>'+
       '<td class="td-right">'+alertHtml+'</td>'+
       '</tr>';
   });
@@ -840,6 +852,21 @@ function loadAnalysis(eventId){
   });
 }
 
+var activeVolPeriod='24h';
+function setVolPeriod(period){
+  activeVolPeriod=period;
+  var labels={'24h':['24h Vol %','24h Qty'],'7d':['7d Vol %','7d Qty'],'14d':['14d Vol %','14d Qty']};
+  var lbl=labels[period]||labels['24h'];
+  var th=document.getElementById('vol-th-label');if(th)th.textContent=lbl[0];
+  var qth=document.getElementById('qty-th-label');if(qth)qth.textContent=lbl[1];
+  drawTable();
+}
+function getQtyCell(r){
+  var qty=activeVolPeriod==='7d'?r.vol7dQty:activeVolPeriod==='14d'?r.vol14dQty:r.vol24Qty;
+  if(qty===null||qty===undefined)return '<span style="color:#555">—</span>';
+  var clr=qty<0?'#22c55e':'#ef4444';
+  return '<span style="font-weight:700;font-family:monospace;color:'+clr+'">'+(qty>0?'+':'')+qty+'</span>';
+}
 function setPlatform(platform){activePlatform=platform;document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');allRows=buildRows(allEvents,allSnaps);buildTicker(allRows);drawTable();}
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
 function toggleDaysSort(){resetAllSorts();if(sortDaysDir===null)sortDaysDir='asc';else if(sortDaysDir==='asc')sortDaysDir='desc';else sortDaysDir=null;var icon=document.getElementById('daysSortIcon');if(icon)icon.textContent=sortDaysDir===null?'\u21C5':sortDaysDir==='asc'?'\u2191':'\u2193';var hdr=document.getElementById('daysHeader');if(hdr)hdr.style.color=sortDaysDir?'#d4a843':'';drawTable();}
@@ -1260,9 +1287,12 @@ window.addEventListener('load',function(){
     <div class="info-row"><div class="info-col-name">Listings</div><div class="info-col-desc">Total active listings right now. High = more competition. Low = rising prices likely.</div></div>
     <div class="info-row"><div class="info-col-name">Demand</div><div class="info-col-desc">VKT's proprietary <strong>Demand Score</strong> (1–99). From days to event, sell-through, floor trend, and volume momentum. <strong style="color:#22c55e;">60+</strong> = high, <strong style="color:#d4a843;">35–59</strong> = moderate, <strong style="color:#ef4444;">below 35</strong> = low.</div></div>
     
-    <div class="info-row"><div class="info-col-name">24h Vol</div><div class="info-col-desc"><strong>24-hour listing volume change</strong>. <strong style="color:#22c55e;">Green/negative</strong> = listings dropped (tickets selling). <strong style="color:#ef4444;">Red/positive</strong> = listings grew.</div></div>
-    <div class="info-row"><div class="info-col-name">7d Vol</div><div class="info-col-desc"><strong>7-day listing volume change</strong>. Percentage change in total listings over the last 7 days.</div></div>
-    <div class="info-row"><div class="info-col-name">14d Vol</div><div class="info-col-desc"><strong>14-day listing volume change</strong>. Percentage change in total listings over the last 14 days.</div></div>
+    <div class="info-row"><div class="info-col-name">24h Vol %</div><div class="info-col-desc"><strong>24-hour % change</strong> in listings. Green = dropping (selling). Red = growing.</div></div>
+    <div class="info-row"><div class="info-col-name">24h Qty</div><div class="info-col-desc"><strong>24-hour listing count change</strong>. Raw number of listings added or removed. Green = fewer listings (sold).</div></div>
+    <div class="info-row"><div class="info-col-name">7d Vol %</div><div class="info-col-desc"><strong>7-day % change</strong> in total listings.</div></div>
+    <div class="info-row"><div class="info-col-name">7d Qty</div><div class="info-col-desc"><strong>7-day listing count change</strong>. Raw difference in listings over 7 days.</div></div>
+    <div class="info-row"><div class="info-col-name">14d Vol %</div><div class="info-col-desc"><strong>14-day % change</strong> in total listings.</div></div>
+    <div class="info-row"><div class="info-col-name">14d Qty</div><div class="info-col-desc"><strong>14-day listing count change</strong>. Raw difference in listings over 14 days.</div></div>
     <div class="info-row"><div class="info-col-name">Alert &#128276;</div><div class="info-col-desc">Set a <strong>custom alert</strong> on any data point — Floor, ATP, Listings, Demand Score, 24h Vol %, or Days to Event. Choose <strong>&gt;</strong> (rises above) or <strong>&lt;</strong> (drops below) a number or percentage. Your alerts are saved in your browser and shown as a mini label on the bell icon.</div></div>
   </div>
 </div>
