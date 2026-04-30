@@ -866,9 +866,23 @@ function redrawSecTable(period){
       pctCell='<span style="font-weight:700;font-family:monospace;'+clr+'">'+sign+pct+'%</span>';
       qtyCell='<span style="font-weight:700;font-family:monospace;'+clr+'">'+sign+Math.abs(qty)+'</span>';
     }
-    return '<tr><td>'+esc(s.section)+'</td><td>'+fmt(s.listings)+'</td><td class="gold">'+cur(s.floor)+'</td><td>'+pctCell+'</td><td>'+qtyCell+'</td></tr>';
+    return '<tr>'
+      +'<td>'+esc(s.section)+'</td>'
+      +'<td>'+fmt(s.listings)+'</td>'
+      +'<td class="gold">'+cur(s.floor)+'</td>'
+      +'<td>'+pctCell+'</td>'
+      +'<td>'+qtyCell+'</td>'
+      +'<td style="color:#888;font-size:11px;">'+esc(fmtDT(s.scraped_at))+'</td>'
+      +'</tr>';
   }).join('');
-  wrap.innerHTML='<table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Floor</th><th>Vol Chg %</th><th>Qty Chg</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  wrap.innerHTML='<table class="mini-table"><thead><tr>'
+    +'<th>Section</th>'
+    +'<th>Listings</th>'
+    +'<th>Floor</th>'
+    +'<th>Vol Chg %</th>'
+    +'<th>Qty Chg</th>'
+    +'<th>Last Seen</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table>';
 }
 function setVolPeriod(period){
   activeVolPeriod=period;
