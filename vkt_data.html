@@ -524,7 +524,7 @@
 <div id="fav-bar">
   <button class="fav-tab active" id="fav-tab-all" onclick="setFavView('all')">All Events</button>
   <button class="fav-tab" id="fav-tab-fav" onclick="setFavView('fav')">&#9733; Favorites <span class="fav-count" id="fav-count">0</span></button>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+  <div id="vol-period-wrap" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
     <span style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Vol Period</span>
     <select id="vol-period-select" onchange="setVolPeriod(this.value)" style="padding:5px 10px;background:#fff;border:1px solid #ddd;border-radius:999px;font-size:11px;font-weight:700;color:#333;cursor:pointer;outline:none;font-family:inherit;">
       <option value="24h">24 Hours</option>
@@ -532,6 +532,7 @@
       <option value="14d">14 Days</option>
     </select>
   </div>
+
 </div>
 
 <div id="loadingBar" class="loading-bar"></div>
@@ -622,6 +623,9 @@ function buildTicker(rows){var items=rows.filter(function(r){return r.listingsPc
 function renderDashboard(){document.getElementById('app').innerHTML='<div class="toolbar"><input type="text" id="q" placeholder="Search event..."/><input type="text" id="performerQ" placeholder="Search performer..."/><input type="text" id="venueQ" placeholder="Search venue..."/><select id="catF"><option value="">All Categories</option>'+['FIFA','NFL','NBA','MLB','NHL','F1','Combat','Concert','Festival','MLS','CFB','Theater','Comedy','Other'].map(function(c){return'<option'+(c==='FIFA'?' selected':'')+'>'+c+'</option>';}).join('')+'</select><div class="date-group">Date <input type="date" id="df"/> to <input type="date" id="dt"/></div><select id="dataF"><option value="">All Events</option><option value="data">Has Data</option><option value="nodata">No Data Yet</option></select><button id="resetFilters" type="button">Reset</button></div><div class="table-shell"><div class="table-card"><div class="table-wrap"><div id="tbl" class="msg">Loading...</div></div></div></div>';['q','performerQ','venueQ','catF','df','dt','dataF'].forEach(function(id){var el=document.getElementById(id);if(el){el.addEventListener('input',drawTable);el.addEventListener('change',drawTable);}});var rb=document.getElementById('resetFilters');if(rb)rb.addEventListener('click',function(){['q','performerQ','venueQ','df','dt','dataF'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});var cf=document.getElementById('catF');if(cf)cf.value='FIFA';drawTable();});}
 
 function drawTable(){
+  // Show vol period selector on main table view
+  var vps = document.getElementById('vol-period-wrap');
+  if(vps) vps.style.display='flex';
   var q=((document.getElementById('q')||{}).value||'').trim().toLowerCase();
   var performerQ=((document.getElementById('performerQ')||{}).value||'').trim().toLowerCase();
   var venueQ=((document.getElementById('venueQ')||{}).value||'').trim().toLowerCase();
@@ -755,6 +759,9 @@ function aggregateDaily(snaps){var byDay={};snaps.forEach(function(s){var day=s.
 function drawSectionCharts(secName,snaps){if(slChart){slChart.destroy();slChart=null;}if(saChart){saChart.destroy();saChart=null;}var ss=snaps.filter(function(s){return(s.section||'')===secName && n(s.total_listings)!==10;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});var note=document.getElementById('secNote');if(!ss.length){if(note)note.textContent='No data for this section.';return;}if(note)note.textContent='';var dailySecList=aggregateDaily(ss).filter(function(s){return n(s.section_listings)>0;});var dailySecFloor=aggregateDaily(ss).filter(function(s){return n(s.section_floor)>0;});if(dailySecList.length>1)slChart=mkChart('slChart',secName+' Listings',dailySecList.map(function(s){return n(s.section_listings);}),dailySecList.map(function(s){return fmtDT(s.scraped_at);}),'rgb(139,92,246)');if(dailySecFloor.length>1)saChart=mkChart('saChart',secName+' Floor Price',dailySecFloor.map(function(s){return n(s.section_floor);}),dailySecFloor.map(function(s){return fmtDT(s.scraped_at);}),'rgb(212,168,67)');}
 
 function loadAnalysis(eventId){
+  // Hide vol period selector on event detail view
+  var vps = document.getElementById('vol-period-wrap');
+  if(vps) vps.style.display='none';
   destroyCharts();
   document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
   Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')]).then(function(res){
