@@ -787,22 +787,27 @@ function loadAnalysis(eventId){
       var s=bySection[sec];
       // Calculate 24h sold for this section
       var secRuns=(bySectionAll[sec]||[]).slice().sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
-      var secSold24=null;
+      var secSold24=null,secSold7d=null,secSold14d=null;
       if(secRuns.length>=2){
-        var now24s=Date.now()-24*3600000;
-        var old24=null;
+        var nowMs=Date.now();
+        var cut24=nowMs-24*3600000,cut7=nowMs-7*24*3600000,cut14=nowMs-14*24*3600000;
+        var old24=null,old7=null,old14=null;
         for(var si=0;si<secRuns.length;si++){
-          if(new Date(secRuns[si].scraped_at).getTime()<=now24s)old24=secRuns[si];
+          var rt=new Date(secRuns[si].scraped_at).getTime();
+          if(rt<=cut24)old24=secRuns[si];
+          if(rt<=cut7)old7=secRuns[si];
+          if(rt<=cut14)old14=secRuns[si];
           else break;
         }
         if(!old24)old24=secRuns[0];
-        if(old24){
-          var oldL=n(old24.section_listings);
-          var newL=n(secRuns[secRuns.length-1].section_listings);
-          if(oldL>0)secSold24=oldL-newL;
-        }
+        if(!old7)old7=secRuns[0];
+        if(!old14)old14=secRuns[0];
+        var newL=n(secRuns[secRuns.length-1].section_listings);
+        if(old24){var oL24=n(old24.section_listings);if(oL24>0)secSold24=oL24-newL;}
+        if(old7){var oL7=n(old7.section_listings);if(oL7>0)secSold7d=oL7-newL;}
+        if(old14){var oL14=n(old14.section_listings);if(oL14>0)secSold14d=oL14-newL;}
       }
-      return{section:sec,listings:n(s.section_listings),floor:n(s.section_floor)||n(s.event_floor),avg:n(s.section_avg),sold24:secSold24,scraped_at:s.scraped_at};
+      return{section:sec,listings:n(s.section_listings),floor:n(s.section_floor)||n(s.event_floor),avg:n(s.section_avg),sold24:secSold24,sold7d:secSold7d,sold14d:secSold14d,scraped_at:s.scraped_at};
     }).sort(function(a,b){return b.listings-a.listings;});
     var secNames=Array.from(new Set(snaps.map(function(s){return s.section||'';}).filter(Boolean))).sort();
     var dEl=function(v){return v>0?'delta-up':v<0?'delta-down':'delta-flat';};var dTxt=function(v,money){if(!v||isNaN(v))return '\u2014';var sign=v>0?'+':'-';var abs=Math.abs(v);return money?sign+'$'+Math.round(abs).toLocaleString():sign+Math.round(abs).toLocaleString();};
@@ -822,18 +827,9 @@ function loadAnalysis(eventId){
     }
     html+='<div class="detail-grid"><div class="detail-card"><h3>Event Summary</h3><div class="detail-list"><div><strong>Date</strong><span>'+esc(fmtDate(ev.date))+'</span></div><div><strong>Venue</strong><span>'+esc(ev.venue||'\u2014')+'</span></div>'+(first?'<div><strong>First Scraped</strong><span>'+esc(fmtDT(first.scraped_at))+'</span></div>':'')+(last?'<div><strong>Last Updated</strong><span>'+esc(fmtDT(last.scraped_at))+'</span></div>':'')+(first&&last?'<div><strong>Floor Change</strong><span class="'+dEl(floorDelta)+'">'+dTxt(floorDelta,true)+'</span></div><div><strong>Listings Change</strong><span class="'+dEl(listDelta)+'">'+dTxt(listDelta,false)+'</span></div>':'')+'<div><strong>Total Snapshots</strong><span>'+fmt(snaps.length)+'</span></div><div><strong>Event ID</strong><span class="mono" style="font-size:11px;color:#888">'+esc(ev.id)+'</span></div></div></div><div class="detail-card"><h3>Top Sections by Listings</h3>';
     if(sections.length){
-      html+='<div class="mini-wrap"><table class="mini-table"><thead><tr><th>Section</th><th>Listings</th><th>Floor</th><th>24h VOL</th><th>Last Seen</th></tr></thead><tbody>';
-      sections.slice(0,20).forEach(function(s){
-        var soldCell='\u2014';
-        if(s.sold24!==null){
-          var vol24pct=s.sold24!==0&&s.listings>0?Math.round((s.sold24/s.listings)*100):0;
-          var sc2=s.sold24>0?'color:#22c55e':'color:#ef4444';
-          var ss2=(s.sold24>0?'-':'+')+(Math.abs(vol24pct))+'%';
-          soldCell='<span style="font-weight:700;font-family:monospace;'+sc2+'">'+ss2+'</span>';
-        }
-        html+='<tr><td>'+esc(s.section)+'</td><td>'+fmt(s.listings)+'</td><td class="gold">'+cur(s.floor)+'</td><td>'+soldCell+'</td><td>'+esc(fmtDT(s.scraped_at))+'</td></tr>';
-      });
-      html+='</tbody></table></div>';
+      html+='<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Period</span><select id="sec-period-sel" onchange="redrawSecTable(this.value)" style="padding:4px 10px;background:#fff;border:1px solid #ddd;border-radius:999px;font-size:11px;font-weight:700;color:#333;cursor:pointer;outline:none;font-family:inherit;"><option value="24h">24 Hours</option><option value="7d">7 Days</option><option value="14d">14 Days</option></select></div>';
+      html+='<div class="mini-wrap" id="sec-table-wrap"></div>';
+      html+='<script>var _secData='+JSON.stringify(sections.slice(0,20))+';function redrawSecTable(p){var rows=_secData.map(function(s){var qty=p==="7d"?s.sold7d:p==="14d"?s.sold14d:s.sold24;var pctCell="\u2014",qtyCell="\u2014";if(qty!==null&&qty!==undefined&&s.listings>0){var pct=Math.round((qty/s.listings)*100);var clr=qty>0?"color:#22c55e":"color:#ef4444";pctCell="<span style=\"font-weight:700;font-family:monospace;"+clr+"\">"+( qty>0?"-":"+")+(Math.abs(pct))+"%</span>";qtyCell="<span style=\"font-weight:700;font-family:monospace;"+clr+"\">"+( qty>0?"-":"+")+(Math.abs(qty))+"</span>";}return"<tr><td>"+s.section+"</td><td>"+s.listings+"</td><td class=\"gold\">$"+s.floor+"</td><td>"+pctCell+"</td><td>"+qtyCell+"</td></tr>";}).join("");document.getElementById("sec-table-wrap").innerHTML="<table class=\"mini-table\"><thead><tr><th>Section</th><th>Listings</th><th>Floor</th><th>Vol Chg %</th><th>Qty Chg</th></tr></thead><tbody>"+rows+"</tbody></table>";}redrawSecTable("24h");<\/script>';
     }else html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
     html+='</div></div>';
     if(snaps.length){var snapSections=['All'].concat(Array.from(new Set(snaps.map(function(s){return s.section||'';}))).filter(Boolean).sort());html+='<div class="detail-card" style="margin-bottom:14px"><div class="section-header"><h3>Snapshot History</h3><select class="section-select" id="snapSecSel">'+snapSections.map(function(s){return'<option value="'+esc(s)+'">'+esc(s==='All'?'All Sections':s)+'</option>';}).join('')+'</select></div><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody id="snapHistBody"></tbody></table></div></div>';}
