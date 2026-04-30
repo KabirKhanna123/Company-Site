@@ -855,8 +855,10 @@ var activeVolPeriod='24h';
 
 function redrawSecTable(period){
   var wrap=document.getElementById('sec-table-wrap');
-  if(!wrap||!window._vktSecData)return;
-  var rows=window._vktSecData.map(function(s){
+  if(!wrap||!window._vktSecData){console.log('[VKT] redrawSecTable: no wrap or data',!!wrap,!!window._vktSecData);return;}
+  var data=window._vktSecData;
+  console.log('[VKT] redrawSecTable period='+period+' rows='+data.length+(data[0]?' sold24='+data[0].sold24+' sold7d='+data[0].sold7d+' sold14d='+data[0].sold14d:''));
+  var rows=data.map(function(s){
     var qty=period==='7d'?s.sold7d:period==='14d'?s.sold14d:s.sold24;
     var pctCell='—',qtyCell='—';
     if(qty!==null&&qty!==undefined&&s.listings>0){
@@ -866,22 +868,25 @@ function redrawSecTable(period){
       pctCell='<span style="font-weight:700;font-family:monospace;'+clr+'">'+sign+pct+'%</span>';
       qtyCell='<span style="font-weight:700;font-family:monospace;'+clr+'">'+sign+Math.abs(qty)+'</span>';
     }
+    // Inline safe string — avoid relying on closure-scoped helpers
+    var secSafe=String(s.section||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var listings=s.listings||0;
+    var floor=s.floor?'$'+Math.round(s.floor).toLocaleString():'—';
+    // Format date
+    var dateStr='—';
+    if(s.scraped_at){try{var d=new Date(s.scraped_at);dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+', '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}catch(e){}}
     return '<tr>'
-      +'<td>'+esc(s.section)+'</td>'
-      +'<td>'+fmt(s.listings)+'</td>'
-      +'<td class="gold">'+cur(s.floor)+'</td>'
+      +'<td>'+secSafe+'</td>'
+      +'<td>'+listings+'</td>'
+      +'<td class="gold">'+floor+'</td>'
       +'<td>'+pctCell+'</td>'
       +'<td>'+qtyCell+'</td>'
-      +'<td style="color:#888;font-size:11px;">'+esc(fmtDT(s.scraped_at))+'</td>'
+      +'<td style="color:#888;font-size:11px;">'+dateStr+'</td>'
       +'</tr>';
   }).join('');
   wrap.innerHTML='<table class="mini-table"><thead><tr>'
-    +'<th>Section</th>'
-    +'<th>Listings</th>'
-    +'<th>Floor</th>'
-    +'<th>Vol Chg %</th>'
-    +'<th>Qty Chg</th>'
-    +'<th>Last Seen</th>'
+    +'<th>Section</th><th>Listings</th><th>Floor</th>'
+    +'<th>Vol Chg %</th><th>Qty Chg</th><th>Last Seen</th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table>';
 }
 function setVolPeriod(period){
