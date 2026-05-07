@@ -519,13 +519,15 @@
 <div class="platform-bar">
   <span>Platform</span>
   <button class="plt-btn active sh" id="plt-sh" onclick="setPlatform('StubHub')" title="StubHub">
-    <svg height="20" viewBox="0 0 120 28" xmlns="http://www.w3.org/2000/svg"><text y="21" font-family="Arial Black,Arial" font-weight="900" font-size="20" fill="#1a3a6b">stub</text><text x="52" y="21" font-family="Arial Black,Arial" font-weight="900" font-size="20" fill="#d4a843">hub</text></svg>
+    <img src="https://i0.wp.com/newsroom.stubhub.com/wp-content/uploads/2025/08/StubHub-Logo-Indigo-e1754938999129.jpg?fit=300%2C141&ssl=1" alt="StubHub" style="height:22px;" onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:12px;font-weight:900;color:#1a3a6b>stub<span style=color:#d4a843>hub</span></span>'">
   </button>
   <button class="plt-btn vs" id="plt-vs" onclick="setPlatform('VividSeats')" title="Vivid Seats">
-    <svg height="20" viewBox="0 0 130 28" xmlns="http://www.w3.org/2000/svg"><text y="21" font-family="Arial Black,Arial" font-weight="900" font-size="14" fill="#6b2fa0">VIVID SEATS</text></svg>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Vivid_Seats_logo.svg/640px-Vivid_Seats_logo.svg.png" alt="Vivid Seats" style="height:18px;" onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:12px;font-weight:900;color:#04092C>vivid seats</span>'">
   </button>
   <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')" title="SeatGeek — Coming Soon">
-    <svg height="20" viewBox="0 0 110 28" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="14" r="11" fill="#da2828"/><text x="12" y="19" font-family="Arial" font-weight="bold" font-size="12" fill="#fff" text-anchor="middle">S</text><text x="28" y="21" font-family="Arial Black,Arial" font-weight="900" font-size="14" fill="#da2828">SeatGeek</text></svg>
+    <img src="https://play-lh.googleusercontent.com/rDMsfzq4RwA6Kf4OZIMnoC9338Bvm4kO9FjMzCYPYbM-mz6MdOWmOJGG2KGwBMmeTJw=w240-h480" alt="SeatGeek" style="height:22px;width:22px;border-radius:6px;" onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=font-size:12px;font-weight:900;color:#da2828>SeatGeek</span>'">
+    <span style="font-size:11px;font-weight:700;color:#da2828;margin-left:4px;">SeatGeek</span>
+    <span style="font-size:9px;color:#aaa;margin-left:3px;">Soon</span>
   </button>
 </div>
 
@@ -917,7 +919,56 @@ function getQtyCell(r){
   var clr=qty<0?'#22c55e':'#ef4444';
   return '<span style="font-weight:700;font-family:monospace;color:'+clr+'">'+(qty>0?'+':'')+qty+'</span>';
 }
-function setPlatform(platform){activePlatform=platform;document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');allRows=buildRows(allEvents,allSnaps);buildTicker(allRows);drawTable();}
+function setPlatformButtons(platform){document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');}
+
+function setPlatform(platform){
+  activePlatform=platform;
+  setPlatformButtons(platform);
+  if(platform==='VividSeats'){
+    loadVSData();
+  } else {
+    allRows=buildRows(allEvents,allSnaps);
+    buildTicker(allRows);
+    drawTable();
+  }
+}
+
+function loadVSData(){
+  document.getElementById('loadingBar').style.display='block';
+  // Query VS snapshots directly — no dependency on events table IDs
+  getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,event_avg,event_ceiling,event_date,venue,scraped_at,platform',2000)
+  .then(function(vsSnaps){
+    if(!vsSnaps||!vsSnaps.length){
+      document.getElementById('loadingBar').style.display='none';
+      document.getElementById('tbl').innerHTML='<div class="msg">No Vivid Seats data yet — run the VS scraper first.</div>';
+      return;
+    }
+    // Build synthetic events from snapshot data grouped by event_id
+    var evMap={};
+    vsSnaps.forEach(function(s){
+      if(!evMap[s.event_id]){
+        evMap[s.event_id]={id:s.event_id,name:'VS Event '+s.event_id,date:s.event_date,venue:s.venue};
+      }
+    });
+    // Try to match VS event IDs with names from events table
+    allEvents.forEach(function(e){
+      if(evMap[e.id]){evMap[e.id].name=e.name;}
+    });
+    var vsEvents=Object.values(evMap);
+    // Also get full VS snaps for buildRows (need section_avg too)
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,section_avg,section,scraped_at,platform',2000)
+    .then(function(vsSnapsAll){
+      document.getElementById('loadingBar').style.display='none';
+      allRows=buildRows(vsEvents, vsSnapsAll||[]);
+      buildTicker(allRows);
+      drawTable();
+    });
+  })
+  .catch(function(err){
+    document.getElementById('loadingBar').style.display='none';
+    document.getElementById('tbl').innerHTML='<div class="msg">Error loading VS data: '+esc(err.message)+'</div>';
+  });
+}
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
 function toggleDaysSort(){resetAllSorts();if(sortDaysDir===null)sortDaysDir='asc';else if(sortDaysDir==='asc')sortDaysDir='desc';else sortDaysDir=null;var icon=document.getElementById('daysSortIcon');if(icon)icon.textContent=sortDaysDir===null?'\u21C5':sortDaysDir==='asc'?'\u2191':'\u2193';var hdr=document.getElementById('daysHeader');if(hdr)hdr.style.color=sortDaysDir?'#d4a843':'';drawTable();}
 function toggleDemandSort(){resetAllSorts();if(sortDemandDir===null)sortDemandDir='desc';else if(sortDemandDir==='desc')sortDemandDir='asc';else sortDemandDir=null;var icon=document.getElementById('demandSortIcon');if(icon)icon.textContent=sortDemandDir===null?'\u21C5':sortDemandDir==='desc'?'\u2193':'\u2191';var hdr=document.getElementById('demandHeader');if(hdr)hdr.style.color=sortDemandDir?'#d4a843':'';drawTable();}
