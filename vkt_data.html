@@ -77,13 +77,14 @@
     .chg-flat { color:#aaa; font-family:monospace; text-align:center; }
     .msg { padding:3rem; text-align:center; color:#aaa; }
     .platform-bar { background:#fff; border-bottom:1px solid #e4e2dc; padding:10px 1.5rem; display:flex; align-items:center; gap:8px; }
-    .platform-bar span { font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-right:4px; }
-    .plt-btn { padding:6px 14px; border-radius:999px; border:1px solid #ddd; background:#fff; font-size:11px; font-weight:700; cursor:pointer; color:#888; letter-spacing:0.5px; transition:all 0.15s; }
-    .plt-btn:hover { border-color:#d4a843; color:#d4a843; }
-    .plt-btn.active { background:#111; border-color:#111; color:#fff; }
-    .plt-btn.active.sh { background:#1a3a6b; border-color:#1a3a6b; }
-    .plt-btn.active.sg { background:#da2828; border-color:#da2828; }
-    .plt-btn.active.vs { background:#6b1a6b; border-color:#6b1a6b; }
+    .platform-bar span { font-size:10px; color:#bbb; text-transform:uppercase; letter-spacing:1px; margin-right:4px; }
+    .plt-btn { padding:6px 12px; border-radius:10px; border:2px solid #e4e2dc; background:#fff; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; opacity:0.45; filter:grayscale(1); }
+    .plt-btn:hover { opacity:0.8; filter:grayscale(0); border-color:#ddd; }
+    .plt-btn.active { opacity:1; filter:grayscale(0); border-color:#ddd; box-shadow:0 2px 8px rgba(0,0,0,0.10); }
+    .plt-btn.active.sh { border-color:#1a3a6b; }
+    .plt-btn.active.sg { border-color:#da2828; }
+    .plt-btn.active.vs { border-color:#6b2fa0; }
+    .plt-btn img { height:22px; display:block; }
     .analysis-shell { padding:12px; max-width:none; width:100%; margin:0; background:#f7f6f3; }
     .analysis-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; }
     .analysis-title { font-size:26px; font-weight:700; color:#111; line-height:1.2; text-align:left; }
@@ -141,7 +142,8 @@
 
       /* Platform bar */
       .platform-bar { padding:8px 1rem; gap:6px; flex-wrap:wrap; }
-      .plt-btn { font-size:10px; padding:5px 10px; }
+      .plt-btn { padding:5px 10px; }
+      .plt-btn svg { height:16px; }
 
       /* Fav bar */
       #fav-bar { display:flex; align-items:center; padding:0 1rem; }
@@ -516,9 +518,15 @@
 
 <div class="platform-bar">
   <span>Platform</span>
-  <button class="plt-btn active sh" id="plt-sh" onclick="setPlatform('StubHub')">StubHub</button>
-  <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')">SeatGeek <span style="font-size:9px;opacity:0.7;">Soon</span></button>
-  <button class="plt-btn vs" id="plt-vs" onclick="showComingSoon('VividSeats')">VividSeats <span style="font-size:9px;opacity:0.7;">Soon</span></button>
+  <button class="plt-btn active sh" id="plt-sh" onclick="setPlatform('StubHub')" title="StubHub">
+    <svg height="20" viewBox="0 0 120 28" xmlns="http://www.w3.org/2000/svg"><text y="21" font-family="Arial Black,Arial" font-weight="900" font-size="20" fill="#1a3a6b">stub</text><text x="52" y="21" font-family="Arial Black,Arial" font-weight="900" font-size="20" fill="#d4a843">hub</text></svg>
+  </button>
+  <button class="plt-btn vs" id="plt-vs" onclick="setPlatform('VividSeats')" title="Vivid Seats">
+    <svg height="20" viewBox="0 0 130 28" xmlns="http://www.w3.org/2000/svg"><text y="21" font-family="Arial Black,Arial" font-weight="900" font-size="14" fill="#6b2fa0">VIVID SEATS</text></svg>
+  </button>
+  <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')" title="SeatGeek — Coming Soon">
+    <svg height="20" viewBox="0 0 110 28" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="14" r="11" fill="#da2828"/><text x="12" y="19" font-family="Arial" font-weight="bold" font-size="12" fill="#fff" text-anchor="middle">S</text><text x="28" y="21" font-family="Arial Black,Arial" font-weight="900" font-size="14" fill="#da2828">SeatGeek</text></svg>
+  </button>
 </div>
 
 <div id="fav-bar">
