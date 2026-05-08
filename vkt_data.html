@@ -934,46 +934,45 @@ function setPlatform(platform){
 }
 
 function loadVSData(){
-  document.getElementById('loadingBar').style.display='block';
-  // Query VS snapshots directly — no dependency on events table IDs
-  getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,event_avg,event_ceiling,event_date,venue,scraped_at,platform&limit=500',2000)
-  .then(function(vsSnaps){
-    if(!vsSnaps||!vsSnaps.length){
-      document.getElementById('loadingBar').style.display='none';
-      document.getElementById('tbl').innerHTML='<div class="msg">No Vivid Seats data yet — run the VS scraper first.</div>';
+  var loadBar=document.getElementById('loadingBar');
+  var tbl=document.getElementById('tbl');
+  loadBar.style.display='block';
+  tbl.innerHTML='';
+
+  // Pull ALL VS snapshots — filter in JS to avoid null/empty string ambiguity
+  getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,event_ceiling,section,event_date,venue,scraped_at',1000)
+  .then(function(all){
+    loadBar.style.display='none';
+    console.log('[VS] Total snapshots returned:', all ? all.length : 0);
+    if(!all||!all.length){
+      tbl.innerHTML='<div class="msg">No Vivid Seats data yet — run the VS scraper first.</div>';
       return;
     }
-    // Build synthetic events from snapshot data grouped by event_id
+
+    // Filter to event-level only (no section rows)
+    var vsSnaps=all.filter(function(s){ return !s.section || s.section==='' || s.section===null; });
+    console.log('[VS] Event-level snaps:', vsSnaps.length);
+
+    // Build event map from snapshots
     var evMap={};
     vsSnaps.forEach(function(s){
       if(!evMap[s.event_id]){
-        // Use event_date and venue from snapshot to build synthetic event
-        evMap[s.event_id]={
-          id:s.event_id,
-          name:s.venue?(s.event_date?s.event_date.slice(0,10)+' — '+s.venue:'VS Event '+s.event_id):'VS Event '+s.event_id,
-          date:s.event_date,
-          venue:s.venue
-        };
+        var label=s.venue||('VS Event '+s.event_id);
+        evMap[s.event_id]={id:s.event_id,name:label,date:s.event_date,venue:s.venue};
       }
     });
-    // Try to match VS event IDs with names from events table
-    allEvents.forEach(function(e){
-      if(evMap[e.id]){evMap[e.id].name=e.name;evMap[e.id].venue=e.venue||evMap[e.id].venue;}
-    });
-    console.log('[VS] Events found:', Object.keys(evMap).length, Object.keys(evMap).slice(0,3));
+
     var vsEvents=Object.values(evMap);
-    // Also get full VS snaps for buildRows (need section_avg too)
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,section_avg,section,scraped_at,platform&limit=2000',2000)
-    .then(function(vsSnapsAll){
-      document.getElementById('loadingBar').style.display='none';
-      allRows=buildRows(vsEvents, vsSnapsAll||[]);
-      buildTicker(allRows);
-      drawTable();
-    });
+    console.log('[VS] Unique events:', vsEvents.length);
+
+    allRows=buildRows(vsEvents, all);
+    buildTicker(allRows);
+    drawTable();
   })
   .catch(function(err){
-    document.getElementById('loadingBar').style.display='none';
-    document.getElementById('tbl').innerHTML='<div class="msg">Error loading VS data: '+esc(err.message)+'</div>';
+    loadBar.style.display='none';
+    console.error('[VS] Error:', err);
+    tbl.innerHTML='<div class="msg">Error loading Vivid Seats data: '+esc(err.message)+'</div>';
   });
 }
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
