@@ -1409,6 +1409,90 @@ function init(){
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 // AUTH + SUBSCRIPTION
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ── HERO + LISTING FUNCTIONS ──
+function setHeroRange(days, btn) {
+  if (!window._heroSnaps) return;
+  document.querySelectorAll('.hero-chart-tab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var all = window._heroSnaps.all || [];
+  var filtered = days > 0 ? all.filter(function(s){ return new Date(s.scraped_at).getTime() >= Date.now()-days*24*3600000; }) : all;
+  if (!filtered.length) filtered = all;
+  var fl = filtered.map(function(s){ return n(s.event_floor); });
+  var lb = filtered.map(function(s){ return fmtDT(s.scraped_at); });
+  var cleaned = removeOutliers(fl, lb); fl = cleaned.data; lb = cleaned.labels;
+  if (window._heroChart) { try { window._heroChart.destroy(); } catch(e){} window._heroChart = null; }
+  var ctx = document.getElementById('heroFloorChart');
+  if (!ctx || fl.length < 2) return;
+  var trend = calcTrendline(fl);
+  var xLabels = lb.map(function(l,i){ return (i===0||i===lb.length-1)?l:''; });
+  window._heroChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels:xLabels, datasets:[
+      { label:'Floor', data:fl, borderColor:'rgb(212,168,67)', backgroundColor:'rgba(212,168,67,0.08)', borderWidth:2.5, tension:0.3, fill:true, pointRadius:2, pointHoverRadius:5, pointBackgroundColor:'rgb(212,168,67)', order:1 },
+      { label:'Trend', data:trend, borderColor:'rgba(180,180,180,0.7)', backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,4], tension:0, fill:false, pointRadius:0, order:2 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{title:function(items){return lb[items[0].dataIndex]||'';},label:function(item){return item.datasetIndex===0?'Floor: $'+Math.round(item.raw).toLocaleString():'';} }}},
+      scales:{
+        x:{ticks:{font:{size:10},maxRotation:0,autoSkip:false,callback:function(val,i){return xLabels[i]||'';}},grid:{display:false}},
+        y:{ticks:{font:{size:10},callback:function(v){return '$'+Math.round(v).toLocaleString();}},grid:{color:'#f0eeea'}}
+      }
+    }
+  });
+}
+function renderListingSections(active, sold, soldSet, latestScrape){
+  var wrap=document.getElementById('listingsWrap'); if(!wrap)return;
+  var qc={1:0,2:0,3:0,4:0,5:0};
+  active.forEach(function(l){var q=l.quantity||1;if(q>=5)qc[5]++;else qc[q]=(qc[q]||0)+1;});
+  var totalTix=active.reduce(function(s,l){return s+(l.quantity||1);},0);
+  var ps=active.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
+  var scrStr=latestScrape?' &middot; Last scraped '+new Date(latestScrape).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+  var tot=active.length||1;
+  var h='<div class="listings-section">';
+  h+='<div style="font-size:16px;font-weight:700;color:#111;margin-bottom:14px;padding-top:4px;border-top:1px solid #e4e2dc;">Listing Intelligence <span style="font-size:12px;color:#aaa;font-weight:400;">'+active.length+' active listings'+scrStr+'</span></div>';
+  h+='<div class="listing-stats">';
+  h+='<div class="listing-stat"><div class="listing-stat-label">Active Listings</div><div class="listing-stat-val">'+active.length.toLocaleString()+'</div><div class="listing-stat-sub">'+totalTix.toLocaleString()+' total tickets</div></div>';
+  h+='<div class="listing-stat"><div class="listing-stat-label">Singles (1x)</div><div class="listing-stat-val gold">'+qc[1]+'</div><div class="listing-stat-sub">'+Math.round(qc[1]/tot*100)+'%</div></div>';
+  h+='<div class="listing-stat"><div class="listing-stat-label">Pairs (2x)</div><div class="listing-stat-val" style="color:#2563eb">'+qc[2]+'</div><div class="listing-stat-sub">'+Math.round(qc[2]/tot*100)+'%</div></div>';
+  h+='<div class="listing-stat"><div class="listing-stat-label">Triples (3x)</div><div class="listing-stat-val" style="color:#7c3aed">'+qc[3]+'</div><div class="listing-stat-sub">'+Math.round(qc[3]/tot*100)+'%</div></div>';
+  h+='<div class="listing-stat"><div class="listing-stat-label">Quads+ (4x+)</div><div class="listing-stat-val" style="color:#ca8a04">'+(qc[4]+qc[5])+'</div><div class="listing-stat-sub">'+Math.round((qc[4]+qc[5])/tot*100)+'%</div></div>';
+  h+='<div class="listing-stat"><div class="listing-stat-label">Sales Detected</div><div class="listing-stat-val red">'+sold.length+'</div><div class="listing-stat-sub">since prev scrape</div></div>';
+  h+='</div>';
+  h+='<div class="charts-grid" style="margin-bottom:14px;"><div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div><div class="chart-card"><h3>Price Distribution</h3><div class="chart-wrap"><canvas id="listPriceChart"></canvas></div></div></div>';
+  var prR=[{l:'Under $500',mn:0,mx:500},{l:'$500-$1k',mn:500,mx:1000},{l:'$1k-$1.5k',mn:1000,mx:1500},{l:'$1.5k-$2.5k',mn:1500,mx:2500},{l:'$2.5k+',mn:2500,mx:Infinity}];
+  h+='<div class="chart-card" style="margin-bottom:14px;"><h3>Price Range Breakdown</h3><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">';
+  prR.forEach(function(r){var cnt=ps.filter(function(p){return p>=r.mn&&p<r.mx;}).length;var pct=ps.length?Math.round(cnt/ps.length*100):0;h+='<div style="text-align:center;padding:12px;background:#f7f6f3;border-radius:8px;"><div style="font-size:10px;color:#888;margin-bottom:6px;">'+r.l+'</div><div style="font-size:20px;font-weight:700;color:#111;">'+cnt+'</div><div style="font-size:11px;color:#aaa;">'+pct+'%</div></div>';});
+  h+='</div></div>';
+  h+='<div class="detail-card" style="margin-bottom:14px;"><div class="section-header"><h3>All Listings</h3></div>';
+  h+='<div class="listings-controls"><input class="listings-search" id="listingSearch" type="text" placeholder="Search section or row..." oninput="filterListingsTable()"><button class="pack-filter active" onclick="setPackFilter(0,this)">All</button><button class="pack-filter" onclick="setPackFilter(1,this)">1x</button><button class="pack-filter" onclick="setPackFilter(2,this)">2x</button><button class="pack-filter" onclick="setPackFilter(3,this)">3x</button><button class="pack-filter" onclick="setPackFilter(4,this)">4x+</button><span class="listings-count" id="listingsCount">'+active.length+' listings</span></div>';
+  h+='<div class="mini-wrap" style="max-height:460px;"><table class="mini-table"><thead><tr><th onclick="sortListingsTable(\'section\')" style="cursor:pointer">Section</th><th onclick="sortListingsTable(\'row\')" style="cursor:pointer">Row</th><th onclick="sortListingsTable(\'quantity\')" style="cursor:pointer">Qty</th><th onclick="sortListingsTable(\'price\')" style="cursor:pointer">Price</th><th onclick="sortListingsTable(\'dom\')" style="cursor:pointer">Days on Mkt</th><th>First Seen</th><th>Status</th><th>Listing ID</th></tr></thead><tbody id="listingsTbody"></tbody></table></div></div>';
+  h+='</div>';
+  wrap.innerHTML=h;
+  window._vktListings=active.concat(sold); window._vktListingSort={col:'price',dir:1}; window._vktListingQtyFilter=0;
+  renderVktListingsTable();
+  var qm={};active.forEach(function(l){var q=l.quantity||1;var k=q>=5?'5+':q+'x';qm[k]=(qm[k]||0)+1;});
+  var qk=Object.keys(qm).sort(function(a,b){return parseInt(a)-parseInt(b);});
+  var qcols={'1x':'rgba(34,197,94,0.7)','2x':'rgba(37,99,235,0.7)','3x':'rgba(124,58,237,0.7)','4x':'rgba(202,138,4,0.7)','5+':'rgba(220,38,38,0.7)'};
+  var qCtx=document.getElementById('listQtyChart');
+  if(qCtx&&qk.length)new Chart(qCtx,{type:'doughnut',data:{labels:qk,datasets:[{data:qk.map(function(k){return qm[k];}),backgroundColor:qk.map(function(k){return qcols[k]||'rgba(150,150,150,0.7)';}),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
+  var prices=active.map(function(l){return l.price;}).filter(Boolean);
+  if(prices.length){var mn=Math.min.apply(null,prices),mx=Math.max.apply(null,prices),bSz=Math.ceil((mx-mn)/20)||100;var bk={};prices.forEach(function(p){var b=Math.round(Math.floor((p-mn)/bSz)*bSz+mn);bk[b]=(bk[b]||0)+1;});var bKs=Object.keys(bk).map(Number).sort(function(a,b){return a-b;});var pCtx=document.getElementById('listPriceChart');if(pCtx)new Chart(pCtx,{type:'bar',data:{labels:bKs.map(function(k){return'$'+Math.round(k).toLocaleString();}),datasets:[{data:bKs.map(function(k){return bk[k];}),backgroundColor:'rgba(212,168,67,0.5)',borderColor:'rgba(212,168,67,1)',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});}
+}
+function renderVktListingsTable(){
+  var tbody=document.getElementById('listingsTbody'); if(!tbody||!window._vktListings)return;
+  var q=((document.getElementById('listingSearch')||{}).value||'').toLowerCase();
+  var qf=window._vktListingQtyFilter||0;
+  var data=window._vktListings.filter(function(l){return(!q||(l.section||'').toLowerCase().includes(q)||(l.row||'').toLowerCase().includes(q))&&(qf===0||(qf===4?(l.quantity||1)>=4:(l.quantity||1)===qf));});
+  var s=window._vktListingSort||{col:'price',dir:1};
+  data.sort(function(a,b){var av=s.col==='section'?a.section||'':s.col==='row'?a.row||'':a[s.col]||0;var bv=s.col==='section'?b.section||'':s.col==='row'?b.row||'':b[s.col]||0;if(typeof av==='string')return av.localeCompare(bv)*s.dir;return(av-bv)*s.dir;});
+  var countEl=document.getElementById('listingsCount'); if(countEl)countEl.textContent=data.length.toLocaleString()+' listings';
+  var pc=function(q2){return q2===1?'pack-1':q2===2?'pack-2':q2===3?'pack-3':q2===4?'pack-4':'pack-x';};
+  tbody.innerHTML=data.slice(0,500).map(function(l){var q2=l.quantity||1;var ds=l.dom===0?'<span class="dom-new">New today</span>':l.dom>=14?'<span class="dom-stale">'+l.dom+'d</span>':'<span class="dom-text">'+l.dom+'d</span>';var fs=l.first_seen?new Date(l.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'--';return'<tr style="'+(l.sold?'opacity:0.45':'')+'"><td>'+esc(l.section||'--')+'</td><td>'+esc(l.row||'--')+'</td><td><span class="pack-badge '+pc(q2)+'">'+q2+'x</span></td><td class="gold" style="font-family:monospace;">$'+Math.round(l.price||0).toLocaleString()+'</td><td>'+ds+'</td><td style="color:#aaa;font-size:11px;">'+fs+'</td><td>'+(l.sold?'<span class="status-sold">Sold</span>':'<span class="status-active">Active</span>')+'</td><td><span style="font-size:10px;color:#bbb;font-family:monospace;">'+(l.listing_id?l.listing_id.slice(-8):'--')+'</span></td></tr>';}).join('');
+}
+function filterListingsTable(){renderVktListingsTable();}
+function setPackFilter(q,btn){window._vktListingQtyFilter=q;document.querySelectorAll('.pack-filter').forEach(function(b){b.classList.remove('active');});if(btn)btn.classList.add('active');renderVktListingsTable();}
+function sortListingsTable(col){var s=window._vktListingSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._vktListingSort=s;renderVktListingsTable();}
+
 var VKT_AUTH_API='https://vkt-volume-api.vercel.app';
 var GOOGLE_CLIENT_ID='224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
 
