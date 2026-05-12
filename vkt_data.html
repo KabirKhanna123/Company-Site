@@ -1440,58 +1440,244 @@ function setHeroRange(days, btn) {
     }
   });
 }
-function renderListingSections(active, sold, soldSet, latestScrape){
-  var wrap=document.getElementById('listingsWrap'); if(!wrap)return;
-  var qc={1:0,2:0,3:0,4:0,5:0};
-  active.forEach(function(l){var q=l.quantity||1;if(q>=5)qc[5]++;else qc[q]=(qc[q]||0)+1;});
-  var totalTix=active.reduce(function(s,l){return s+(l.quantity||1);},0);
-  var ps=active.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
-  var scrStr=latestScrape?' &middot; Last scraped '+new Date(latestScrape).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
-  var tot=active.length||1;
-  var h='<div class="listings-section">';
-  h+='<div style="font-size:16px;font-weight:700;color:#111;margin-bottom:14px;padding-top:4px;border-top:1px solid #e4e2dc;">Listing Intelligence <span style="font-size:12px;color:#aaa;font-weight:400;">'+active.length+' active listings'+scrStr+'</span></div>';
-  h+='<div class="listing-stats">';
-  h+='<div class="listing-stat"><div class="listing-stat-label">Active Listings</div><div class="listing-stat-val">'+active.length.toLocaleString()+'</div><div class="listing-stat-sub">'+totalTix.toLocaleString()+' total tickets</div></div>';
-  h+='<div class="listing-stat"><div class="listing-stat-label">Singles (1x)</div><div class="listing-stat-val gold">'+qc[1]+'</div><div class="listing-stat-sub">'+Math.round(qc[1]/tot*100)+'%</div></div>';
-  h+='<div class="listing-stat"><div class="listing-stat-label">Pairs (2x)</div><div class="listing-stat-val" style="color:#2563eb">'+qc[2]+'</div><div class="listing-stat-sub">'+Math.round(qc[2]/tot*100)+'%</div></div>';
-  h+='<div class="listing-stat"><div class="listing-stat-label">Triples (3x)</div><div class="listing-stat-val" style="color:#7c3aed">'+qc[3]+'</div><div class="listing-stat-sub">'+Math.round(qc[3]/tot*100)+'%</div></div>';
-  h+='<div class="listing-stat"><div class="listing-stat-label">Quads+ (4x+)</div><div class="listing-stat-val" style="color:#ca8a04">'+(qc[4]+qc[5])+'</div><div class="listing-stat-sub">'+Math.round((qc[4]+qc[5])/tot*100)+'%</div></div>';
-  h+='<div class="listing-stat"><div class="listing-stat-label">Sales Detected</div><div class="listing-stat-val red">'+sold.length+'</div><div class="listing-stat-sub">since prev scrape</div></div>';
-  h+='</div>';
-  h+='<div class="charts-grid" style="margin-bottom:14px;"><div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div><div class="chart-card"><h3>Price Distribution</h3><div class="chart-wrap"><canvas id="listPriceChart"></canvas></div></div></div>';
-  var prR=[{l:'Under $500',mn:0,mx:500},{l:'$500-$1k',mn:500,mx:1000},{l:'$1k-$1.5k',mn:1000,mx:1500},{l:'$1.5k-$2.5k',mn:1500,mx:2500},{l:'$2.5k+',mn:2500,mx:Infinity}];
-  h+='<div class="chart-card" style="margin-bottom:14px;"><h3>Price Range Breakdown</h3><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">';
-  prR.forEach(function(r){var cnt=ps.filter(function(p){return p>=r.mn&&p<r.mx;}).length;var pct=ps.length?Math.round(cnt/ps.length*100):0;h+='<div style="text-align:center;padding:12px;background:#f7f6f3;border-radius:8px;"><div style="font-size:10px;color:#888;margin-bottom:6px;">'+r.l+'</div><div style="font-size:20px;font-weight:700;color:#111;">'+cnt+'</div><div style="font-size:11px;color:#aaa;">'+pct+'%</div></div>';});
-  h+='</div></div>';
-  h+='<div class="detail-card" style="margin-bottom:14px;"><div class="section-header"><h3>All Listings</h3></div>';
-  h+='<div class="listings-controls"><input class="listings-search" id="listingSearch" type="text" placeholder="Search section or row..." oninput="filterListingsTable()"><button class="pack-filter active" onclick="setPackFilter(0,this)">All</button><button class="pack-filter" onclick="setPackFilter(1,this)">1x</button><button class="pack-filter" onclick="setPackFilter(2,this)">2x</button><button class="pack-filter" onclick="setPackFilter(3,this)">3x</button><button class="pack-filter" onclick="setPackFilter(4,this)">4x+</button><span class="listings-count" id="listingsCount">'+active.length+' listings</span></div>';
-  h+='<div class="mini-wrap" style="max-height:460px;"><table class="mini-table"><thead><tr><th onclick="sortListingsTable(\'section\')" style="cursor:pointer">Section</th><th onclick="sortListingsTable(\'row\')" style="cursor:pointer">Row</th><th onclick="sortListingsTable(\'quantity\')" style="cursor:pointer">Qty</th><th onclick="sortListingsTable(\'price\')" style="cursor:pointer">Price</th><th onclick="sortListingsTable(\'dom\')" style="cursor:pointer">Days on Mkt</th><th>First Seen</th><th>Status</th><th>Listing ID</th></tr></thead><tbody id="listingsTbody"></tbody></table></div></div>';
-  h+='</div>';
-  wrap.innerHTML=h;
-  window._vktListings=active.concat(sold); window._vktListingSort={col:'price',dir:1}; window._vktListingQtyFilter=0;
-  renderVktListingsTable();
-  var qm={};active.forEach(function(l){var q=l.quantity||1;var k=q>=5?'5+':q+'x';qm[k]=(qm[k]||0)+1;});
-  var qk=Object.keys(qm).sort(function(a,b){return parseInt(a)-parseInt(b);});
-  var qcols={'1x':'rgba(34,197,94,0.7)','2x':'rgba(37,99,235,0.7)','3x':'rgba(124,58,237,0.7)','4x':'rgba(202,138,4,0.7)','5+':'rgba(220,38,38,0.7)'};
-  var qCtx=document.getElementById('listQtyChart');
-  if(qCtx&&qk.length)new Chart(qCtx,{type:'doughnut',data:{labels:qk,datasets:[{data:qk.map(function(k){return qm[k];}),backgroundColor:qk.map(function(k){return qcols[k]||'rgba(150,150,150,0.7)';}),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
-  var prices=active.map(function(l){return l.price;}).filter(Boolean);
-  if(prices.length){var mn=Math.min.apply(null,prices),mx=Math.max.apply(null,prices),bSz=Math.ceil((mx-mn)/20)||100;var bk={};prices.forEach(function(p){var b=Math.round(Math.floor((p-mn)/bSz)*bSz+mn);bk[b]=(bk[b]||0)+1;});var bKs=Object.keys(bk).map(Number).sort(function(a,b){return a-b;});var pCtx=document.getElementById('listPriceChart');if(pCtx)new Chart(pCtx,{type:'bar',data:{labels:bKs.map(function(k){return'$'+Math.round(k).toLocaleString();}),datasets:[{data:bKs.map(function(k){return bk[k];}),backgroundColor:'rgba(212,168,67,0.5)',borderColor:'rgba(212,168,67,1)',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});}
+function getZone(sec) {
+  var s = String(sec||'').replace(/^Section\s*/i,'').trim();
+  if (/^(C|CLB)/i.test(s)) return 'Club';
+  var n = parseInt(s, 10);
+  if (isNaN(n)) return 'Other';
+  if (n >= 100 && n <= 199) return 'Lower';
+  if (n >= 200 && n <= 299) return 'Mid';
+  if (n >= 300 && n <= 399) return 'Upper';
+  if (n >= 400 && n <= 499) return 'Field';
+  if (n >= 500 && n <= 599) return 'Upper';
+  return 'Other';
 }
-function renderVktListingsTable(){
-  var tbody=document.getElementById('listingsTbody'); if(!tbody||!window._vktListings)return;
-  var q=((document.getElementById('listingSearch')||{}).value||'').toLowerCase();
-  var qf=window._vktListingQtyFilter||0;
-  var data=window._vktListings.filter(function(l){return(!q||(l.section||'').toLowerCase().includes(q)||(l.row||'').toLowerCase().includes(q))&&(qf===0||(qf===4?(l.quantity||1)>=4:(l.quantity||1)===qf));});
-  var s=window._vktListingSort||{col:'price',dir:1};
-  data.sort(function(a,b){var av=s.col==='section'?a.section||'':s.col==='row'?a.row||'':a[s.col]||0;var bv=s.col==='section'?b.section||'':s.col==='row'?b.row||'':b[s.col]||0;if(typeof av==='string')return av.localeCompare(bv)*s.dir;return(av-bv)*s.dir;});
-  var countEl=document.getElementById('listingsCount'); if(countEl)countEl.textContent=data.length.toLocaleString()+' listings';
-  var pc=function(q2){return q2===1?'pack-1':q2===2?'pack-2':q2===3?'pack-3':q2===4?'pack-4':'pack-x';};
-  tbody.innerHTML=data.slice(0,500).map(function(l){var q2=l.quantity||1;var ds=l.dom===0?'<span class="dom-new">New today</span>':l.dom>=14?'<span class="dom-stale">'+l.dom+'d</span>':'<span class="dom-text">'+l.dom+'d</span>';var fs=l.first_seen?new Date(l.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'--';return'<tr style="'+(l.sold?'opacity:0.45':'')+'"><td>'+esc(l.section||'--')+'</td><td>'+esc(l.row||'--')+'</td><td><span class="pack-badge '+pc(q2)+'">'+q2+'x</span></td><td class="gold" style="font-family:monospace;">$'+Math.round(l.price||0).toLocaleString()+'</td><td>'+ds+'</td><td style="color:#aaa;font-size:11px;">'+fs+'</td><td>'+(l.sold?'<span class="status-sold">Sold</span>':'<span class="status-active">Active</span>')+'</td><td><span style="font-size:10px;color:#bbb;font-family:monospace;">'+(l.listing_id?l.listing_id.slice(-8):'--')+'</span></td></tr>';}).join('');
+var ZONE_COLORS = { Club:'#8a6a18', Lower:'#1a5c2e', Mid:'#1a3a6b', Upper:'#5b1a6b', Field:'#6b2a1a', Other:'#555' };
+var ZONE_BG    = { Club:'#fdf3dc', Lower:'#f0fdf4', Mid:'#eff6ff', Upper:'#faf5ff', Field:'#fff1ef', Other:'#f5f5f5' };
+
+function renderListingSections(active, sold, soldSet, latestScrape) {
+  var wrap = document.getElementById('listingsWrap'); if (!wrap) return;
+  // Augment with zone
+  var all = active.concat(sold).map(function(l){ return Object.assign({}, l, {zone: getZone(l.section)}); });
+  var activeAll = all.filter(function(l){ return !l.sold; });
+  var soldAll   = all.filter(function(l){ return  l.sold; });
+
+  // Stats from full active set
+  var totalTix = activeAll.reduce(function(s,l){return s+(l.quantity||1);},0);
+  var avgPr = activeAll.length ? Math.round(activeAll.reduce(function(s,l){return s+l.price;},0)/activeAll.length) : 0;
+  var floorPr = activeAll.length ? Math.min.apply(null, activeAll.map(function(l){return l.price;})) : 0;
+  var scrStr = latestScrape ? ' &middot; ' + new Date(latestScrape).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+
+  // Unique zones, sections, rows for filters
+  var zones    = Array.from(new Set(all.map(function(l){return l.zone;}))).filter(Boolean).sort();
+  var sections = Array.from(new Set(all.map(function(l){return l.section||'';}))).filter(Boolean).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});
+  var rows     = Array.from(new Set(all.map(function(l){return l.row||'';}))).filter(Boolean).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});
+
+  // Charts data
+  var qm = {}; activeAll.forEach(function(l){var k=(l.quantity||1)+'x'; qm[k]=(qm[k]||0)+1;});
+  var qk = Object.keys(qm).sort(function(a,b){return parseInt(a)-parseInt(b);});
+  var qcols = {'1x':'rgba(34,197,94,0.7)','2x':'rgba(37,99,235,0.7)','3x':'rgba(124,58,237,0.7)','4x':'rgba(202,138,4,0.7)'};
+  var prices = activeAll.map(function(l){return l.price;}).filter(Boolean);
+  var priceRanges = [{l:'Under $500',mn:0,mx:500},{l:'$500-$1k',mn:500,mx:1000},{l:'$1k-$1.5k',mn:1000,mx:1500},{l:'$1.5k-$2.5k',mn:1500,mx:2500},{l:'$2.5k+',mn:2500,mx:Infinity}];
+
+  var h = '<div class="listings-section">';
+  // Section header
+  h += '<div style="display:flex;align-items:baseline;justify-content:space-between;padding-top:4px;border-top:1px solid #e4e2dc;margin-bottom:16px;">';
+  h += '<div style="font-size:16px;font-weight:700;color:#111;">Listing Intelligence</div>';
+  h += '<div style="font-size:11px;color:#aaa;">'+activeAll.length+' active'+scrStr+'</div></div>';
+
+  // ── TOP STATS ROW ──
+  h += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;" id="liveStatsRow">';
+  h += _lsStat('Active Listings', activeAll.length.toLocaleString(), totalTix.toLocaleString()+' tickets', '');
+  h += _lsStat('Floor Price', '$'+Math.round(floorPr).toLocaleString(), 'cheapest listing', 'gold');
+  h += _lsStat('Avg Price', '$'+avgPr.toLocaleString(), 'across all active', '');
+  // Pack size breakdown
+  var q1=0,q2=0,q3=0,q4=0;
+  activeAll.forEach(function(l){var q=l.quantity||1;if(q===1)q1++;else if(q===2)q2++;else if(q===3)q3++;else q4++;});
+  h += _lsStat('Singles / Pairs', q1+' / '+q2, (Math.round(q1/activeAll.length*100)||0)+'% singles', '');
+  h += _lsStat('Triples / Quads+', q3+' / '+q4, (Math.round(q4/activeAll.length*100)||0)+'% quads+', '');
+  h += _lsStat('Sales Detected', soldAll.length.toString(), 'since prev scrape', soldAll.length>0?'red':'');
+  h += '</div>';
+
+  // ── CHARTS ROW ──
+  h += '<div class="charts-grid" style="margin-bottom:16px;">';
+  h += '<div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div>';
+  h += '<div class="chart-card"><h3>Price Distribution</h3><div class="chart-wrap"><canvas id="listPriceChart"></canvas></div></div>';
+  h += '</div>';
+
+  // ── PRICE RANGE BREAKDOWN ──
+  h += '<div class="chart-card" style="margin-bottom:16px;"><div style="font-size:13px;font-weight:700;color:#111;margin-bottom:12px;">Price Range Breakdown</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">';
+  priceRanges.forEach(function(r){
+    var cnt=prices.filter(function(p){return p>=r.mn&&p<r.mx;}).length;
+    var pct=prices.length?Math.round(cnt/prices.length*100):0;
+    var barW=prices.length?Math.round(cnt/prices.length*100):0;
+    h+='<div style="padding:12px;background:#f7f6f3;border-radius:8px;">';
+    h+='<div style="font-size:10px;color:#888;margin-bottom:6px;">'+r.l+'</div>';
+    h+='<div style="font-size:20px;font-weight:700;color:#111;">'+cnt+'</div>';
+    h+='<div style="font-size:11px;color:#aaa;margin-bottom:8px;">'+pct+'%</div>';
+    h+='<div style="height:3px;background:#e4e2dc;border-radius:2px;"><div style="height:100%;width:'+barW+'%;background:#d4a843;border-radius:2px;"></div></div>';
+    h+='</div>';
+  });
+  h += '</div></div>';
+
+  // ── LISTINGS TABLE CARD ──
+  h += '<div class="detail-card" style="margin-bottom:14px;">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  h += '<div style="font-size:13px;font-weight:700;color:#111;">All Listings</div>';
+  h += '<div style="font-size:11px;color:#aaa;" id="listingsCount">'+activeAll.length+' listings</div>';
+  h += '</div>';
+
+  // Filter bar
+  h += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0eeea;">';
+  // Zone filter
+  h += '<select id="ls-zone" onchange="applyListingFilters()" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;color:#111;outline:none;font-family:inherit;">';
+  h += '<option value="">All Zones</option>';
+  zones.forEach(function(z){h+='<option value="'+z+'">'+z+'</option>';});
+  h += '</select>';
+  // Section filter
+  h += '<select id="ls-sec" onchange="applyListingFilters()" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;color:#111;outline:none;font-family:inherit;">';
+  h += '<option value="">All Sections</option>';
+  sections.forEach(function(s){h+='<option value="'+s+'">'+s.replace(/^Section\s*/i,'Sec ')+'</option>';});
+  h += '</select>';
+  // Row filter
+  h += '<select id="ls-row" onchange="applyListingFilters()" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;color:#111;outline:none;font-family:inherit;">';
+  h += '<option value="">All Rows</option>';
+  rows.forEach(function(r){h+='<option value="'+r+'">Row '+r+'</option>';});
+  h += '</select>';
+  // Qty filter
+  h += '<select id="ls-qty" onchange="applyListingFilters()" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;color:#111;outline:none;font-family:inherit;">';
+  h += '<option value="0">All Qty</option><option value="1">1x Singles</option><option value="2">2x Pairs</option><option value="3">3x Triples</option><option value="4">4x+ Groups</option>';
+  h += '</select>';
+  // Search
+  h += '<input id="ls-search" type="text" placeholder="Search..." oninput="applyListingFilters()" style="padding:7px 11px;border:1px solid #ddd;border-radius:6px;font-size:12px;outline:none;width:140px;font-family:inherit;">';
+  // Show N
+  h += '<select id="ls-perpage" onchange="applyListingFilters()" style="padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;color:#111;outline:none;font-family:inherit;">';
+  h += '<option value="25">Show 25</option><option value="50">Show 50</option><option value="100" selected>Show 100</option><option value="250">Show 250</option>';
+  h += '</select>';
+  // Clear
+  h += '<button onclick="clearListingFilters()" style="padding:7px 12px;border:1px solid #ddd;border-radius:6px;font-size:12px;cursor:pointer;color:#888;background:#fff;font-family:inherit;">Clear</button>';
+  h += '</div>';
+
+  // Table
+  h += '<div class="mini-wrap" style="max-height:520px;">';
+  h += '<table class="mini-table" id="ls-table">';
+  h += '<thead><tr>';
+  var cols = [{k:'zone',l:'Zone'},{k:'section',l:'Section'},{k:'row',l:'Row'},{k:'quantity',l:'Qty'},{k:'price',l:'Price'},{k:'dom',l:'Days on Mkt'},{k:'first_seen',l:'First Seen'},{k:'sold',l:'Status'}];
+  cols.forEach(function(c){h+='<th onclick="lsSort(\''+c.k+'\')" style="cursor:pointer;user-select:none;">'+c.l+' <span id="ls-sort-'+c.k+'" style="color:#d4a843;"></span></th>';});
+  h += '</tr></thead><tbody id="ls-tbody"></tbody></table></div>';
+
+  // Pagination
+  h += '<div id="ls-pagination" style="display:flex;gap:6px;align-items:center;margin-top:10px;"></div>';
+  h += '</div></div>'; // close detail-card, listings-section
+
+  wrap.innerHTML = h;
+
+  // Store data globally
+  window._lsData = all;
+  window._lsSort = {col:'price', dir:1};
+  window._lsPage = 1;
+
+  // Render charts
+  var qCtx = document.getElementById('listQtyChart');
+  if (qCtx && qk.length) new Chart(qCtx,{type:'doughnut',data:{labels:qk,datasets:[{data:qk.map(function(k){return qm[k];}),backgroundColor:qk.map(function(k){return qcols[k]||'rgba(150,150,150,0.7)';}),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
+  if (prices.length) {
+    var mn=Math.min.apply(null,prices),mx=Math.max.apply(null,prices),bSz=Math.ceil((mx-mn)/20)||100;
+    var bk={};prices.forEach(function(p){var b=Math.round(Math.floor((p-mn)/bSz)*bSz+mn);bk[b]=(bk[b]||0)+1;});
+    var bKs=Object.keys(bk).map(Number).sort(function(a,b){return a-b;});
+    var pCtx=document.getElementById('listPriceChart');
+    if(pCtx)new Chart(pCtx,{type:'bar',data:{labels:bKs.map(function(k){return'$'+Math.round(k).toLocaleString();}),datasets:[{data:bKs.map(function(k){return bk[k];}),backgroundColor:'rgba(212,168,67,0.5)',borderColor:'rgba(212,168,67,1)',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
+  }
+  applyListingFilters();
 }
-function filterListingsTable(){renderVktListingsTable();}
-function setPackFilter(q,btn){window._vktListingQtyFilter=q;document.querySelectorAll('.pack-filter').forEach(function(b){b.classList.remove('active');});if(btn)btn.classList.add('active');renderVktListingsTable();}
-function sortListingsTable(col){var s=window._vktListingSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._vktListingSort=s;renderVktListingsTable();}
+
+function _lsStat(label, val, sub, cls) {
+  return '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value" style="font-size:22px;'+(cls==='gold'?'color:#d4a843;':cls==='red'?'color:#ef4444;':'')+'">' + val + '</div><div class="stat-delta" style="color:#aaa;font-size:11px;">'+sub+'</div></div>';
+}
+
+function applyListingFilters() {
+  if (!window._lsData) return;
+  var zone   = (document.getElementById('ls-zone')||{}).value||'';
+  var sec    = (document.getElementById('ls-sec')||{}).value||'';
+  var row    = (document.getElementById('ls-row')||{}).value||'';
+  var qty    = parseInt((document.getElementById('ls-qty')||{}).value||'0',10);
+  var search = ((document.getElementById('ls-search')||{}).value||'').toLowerCase();
+  var perPage= parseInt((document.getElementById('ls-perpage')||{}).value||'100',10);
+
+  var data = window._lsData.filter(function(l) {
+    if (zone && l.zone !== zone) return false;
+    if (sec  && l.section !== sec) return false;
+    if (row  && l.row !== row) return false;
+    if (qty===1 && (l.quantity||1)!==1) return false;
+    if (qty===2 && (l.quantity||1)!==2) return false;
+    if (qty===3 && (l.quantity||1)!==3) return false;
+    if (qty===4 && (l.quantity||1)<4)   return false;
+    if (search && !(l.section||'').toLowerCase().includes(search) && !(l.row||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  var s = window._lsSort;
+  data.sort(function(a,b){
+    var av=s.col==='zone'?a.zone||'':s.col==='section'?a.section||'':s.col==='row'?a.row||'':s.col==='first_seen'?a.first_seen||'':a[s.col]||0;
+    var bv=s.col==='zone'?b.zone||'':s.col==='section'?b.section||'':s.col==='row'?b.row||'':s.col==='first_seen'?b.first_seen||'':b[s.col]||0;
+    if (typeof av==='string') return av.localeCompare(bv,undefined,{numeric:true})*s.dir;
+    return (av-bv)*s.dir;
+  });
+
+  // Update live stats
+  var active = data.filter(function(l){return !l.sold;});
+  var tix = active.reduce(function(sm,l){return sm+(l.quantity||1);},0);
+  var avg = active.length ? Math.round(active.reduce(function(sm,l){return sm+l.price;},0)/active.length) : 0;
+  var fl  = active.length ? Math.min.apply(null,active.map(function(l){return l.price;})) : 0;
+  var sr = document.getElementById('liveStatsRow');
+  if (sr) {
+    sr.children[0].querySelector('.stat-value').textContent = active.length.toLocaleString();
+    sr.children[0].querySelector('.stat-delta').textContent = tix.toLocaleString()+' tickets';
+    sr.children[1].querySelector('.stat-value').textContent = fl ? '$'+Math.round(fl).toLocaleString() : '--';
+    sr.children[2].querySelector('.stat-value').textContent = avg ? '$'+avg.toLocaleString() : '--';
+  }
+
+  var countEl = document.getElementById('listingsCount');
+  if (countEl) countEl.textContent = data.length.toLocaleString()+' listings';
+
+  // Paginate
+  var page = window._lsPage || 1;
+  var totalPages = Math.max(1, Math.ceil(data.length/perPage));
+  if (page > totalPages) { page = 1; window._lsPage = 1; }
+  var slice = data.slice((page-1)*perPage, page*perPage);
+
+  var tbody = document.getElementById('ls-tbody'); if(!tbody) return;
+  tbody.innerHTML = slice.map(function(l) {
+    var q2 = l.quantity||1;
+    var z  = l.zone||'Other';
+    var zColor = ZONE_COLORS[z]||'#555';
+    var zBg    = ZONE_BG[z]||'#f5f5f5';
+    var zTag   = '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:'+zBg+';color:'+zColor+';">'+z+'</span>';
+    var qTag   = '<span class="pack-badge '+(q2===1?'pack-1':q2===2?'pack-2':q2===3?'pack-3':q2===4?'pack-4':'pack-x')+'">'+q2+'x</span>';
+    var domStr = l.dom===0?'<span class="dom-new">New</span>':l.dom>=14?'<span class="dom-stale">'+l.dom+'d</span>':'<span class="dom-text">'+l.dom+'d</span>';
+    var fs     = l.first_seen ? new Date(l.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '--';
+    var status = l.sold ? '<span class="status-sold">Sold</span>' : '<span class="status-active">Active</span>';
+    return '<tr style="'+(l.sold?'opacity:0.4':'')+'"><td>'+zTag+'</td><td>'+esc(l.section||'--')+'</td><td>'+esc(l.row||'--')+'</td><td>'+qTag+'</td><td class="gold mono">$'+Math.round(l.price||0).toLocaleString()+'</td><td>'+domStr+'</td><td style="color:#aaa;font-size:11px;">'+fs+'</td><td>'+status+'</td></tr>';
+  }).join('');
+
+  // Pagination controls
+  var pag = document.getElementById('ls-pagination'); if(!pag) return;
+  if (totalPages <= 1) { pag.innerHTML=''; return; }
+  var btns = '';
+  if (page>1) btns += '<button onclick="lsGoPage('+(page-1)+')" style="'+_pagBtn()+'">&#8592;</button>';
+  var s2=Math.max(1,page-2), e2=Math.min(totalPages,page+2);
+  if (s2>1) btns += '<button onclick="lsGoPage(1)" style="'+_pagBtn()+'">1</button>'+(s2>2?'<span style="padding:0 4px;color:#aaa;">...</span>':'');
+  for(var pi=s2;pi<=e2;pi++) btns += '<button onclick="lsGoPage('+pi+')" style="'+_pagBtn(pi===page)+'">'+pi+'</button>';
+  if (e2<totalPages) btns += (e2<totalPages-1?'<span style="padding:0 4px;color:#aaa;">...</span>':'')+'<button onclick="lsGoPage('+totalPages+')" style="'+_pagBtn()+'">'+totalPages+'</button>';
+  if (page<totalPages) btns += '<button onclick="lsGoPage('+(page+1)+')" style="'+_pagBtn()+'">&#8594;</button>';
+  btns += '<span style="font-size:11px;color:#aaa;margin-left:8px;">'+data.length.toLocaleString()+' listings &middot; page '+page+' of '+totalPages+'</span>';
+  pag.innerHTML = btns;
+}
+function _pagBtn(active){return 'padding:5px 10px;border:1px solid '+(active?'#d4a843':'#ddd')+';border-radius:5px;background:'+(active?'#d4a843':'#fff')+';color:'+(active?'#111':'#555')+';font-size:11px;cursor:pointer;font-family:inherit;';}
+function lsGoPage(p){window._lsPage=p;applyListingFilters();}
+function lsSort(col){var s=window._lsSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._lsSort=s;document.querySelectorAll('[id^="ls-sort-"]').forEach(function(el){el.textContent='';});var icon=document.getElementById('ls-sort-'+col);if(icon)icon.textContent=s.dir===1?'↑':'↓';window._lsPage=1;applyListingFilters();}
+function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'':'';});window._lsPage=1;applyListingFilters();}
+
 
 var VKT_AUTH_API='https://vkt-volume-api.vercel.app';
 var GOOGLE_CLIENT_ID='224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
