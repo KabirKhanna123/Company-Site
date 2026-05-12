@@ -803,23 +803,8 @@ function loadAnalysis(eventId){
   if(vps) vps.style.display='none';
   destroyCharts();
   document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
-  Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform'),getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc&limit=5000',1000)]).then(function(res){
-    var ev=(res[0]||[])[0];var snaps=res[1]||[];var rawListings=res[2]||[];
-    // Process listings: build history map, find first_seen, detect sales
-    var listingHistory={};
-    rawListings.forEach(function(l){
-      if(!l.listing_id)return;
-      if(!listingHistory[l.listing_id]){listingHistory[l.listing_id]={...l,first_seen:l.scraped_at,last_seen:l.scraped_at};}
-      else{if(l.scraped_at<listingHistory[l.listing_id].first_seen)listingHistory[l.listing_id].first_seen=l.scraped_at;if(l.scraped_at>listingHistory[l.listing_id].last_seen){listingHistory[l.listing_id].last_seen=l.scraped_at;Object.assign(listingHistory[l.listing_id],l);}}
-    });
-    var scrapeTimesArr=Array.from(new Set(rawListings.map(function(l){return l.scraped_at;}))).sort().reverse();
-    var latestScrape=scrapeTimesArr[0]||null;
-    var prevScrape=scrapeTimesArr[1]||null;
-    var latestIds=new Set(rawListings.filter(function(l){return l.scraped_at===latestScrape;}).map(function(l){return l.listing_id;}).filter(Boolean));
-    var prevIds=prevScrape?new Set(rawListings.filter(function(l){return l.scraped_at===prevScrape;}).map(function(l){return l.listing_id;}).filter(Boolean)):new Set();
-    var soldIds=new Set(Array.from(prevIds).filter(function(id){return!latestIds.has(id);}));
-    var activeListings=Object.values(listingHistory).filter(function(l){return latestIds.has(l.listing_id);}).map(function(l){var domDays=latestScrape?Math.floor((new Date(latestScrape)-new Date(l.first_seen))/86400000):0;return Object.assign({},l,{dom:domDays,sold:false});});
-    var soldListingsArr=Object.values(listingHistory).filter(function(l){return soldIds.has(l.listing_id);}).map(function(l){return Object.assign({},l,{dom:0,sold:true});});
+  Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')]).then(function(res){
+    var ev=(res[0]||[])[0];var snaps=res[1]||[];var activeListings=[];var soldListingsArr=[];var soldIds=new Set();
     if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
     var eventSnaps=snaps.filter(function(s){return!s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var first=eventSnaps[0]||snaps[0];var last=eventSnaps[eventSnaps.length-1]||snaps[snaps.length-1];
@@ -894,79 +879,43 @@ function loadAnalysis(eventId){
     }else html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
     html+='</div></div>';
     if(snaps.length){var snapSections=['All'].concat(Array.from(new Set(snaps.map(function(s){return s.section||'';}))).filter(Boolean).sort());html+='<div class="detail-card" style="margin-bottom:14px"><div class="section-header"><h3>Snapshot History</h3><select class="section-select" id="snapSecSel">'+snapSections.map(function(s){return'<option value="'+esc(s)+'">'+esc(s==='All'?'All Sections':s)+'</option>';}).join('')+'</select></div><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody id="snapHistBody"></tbody></table></div></div>';}
-    // ── LISTINGS INTELLIGENCE SECTIONS ──
-    if(activeListings.length||soldListingsArr.length){
-      var qtyCounts={1:0,2:0,3:0,4:0,5:0};
-      activeListings.forEach(function(l){var q=l.quantity||1;if(q>=5)qtyCounts[5]++;else qtyCounts[q]=((qtyCounts[q]||0)+1);});
-      var totalTickets=activeListings.reduce(function(s,l){return s+(l.quantity||1);},0);
-      var avgDom=activeListings.length?Math.round(activeListings.reduce(function(s,l){return s+(l.dom||0);},0)/activeListings.length):0;
-      var pricesSorted=activeListings.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
-      var floorL=pricesSorted[0]||0;
-      var avgPriceL=pricesSorted.length?Math.round(pricesSorted.reduce(function(s,v){return s+v;},0)/pricesSorted.length):0;
-
-      html+='<div class="listings-section">';
-      html+='<div style="font-size:16px;font-weight:700;color:#111;margin-bottom:14px;padding-top:4px;border-top:1px solid #e4e2dc;">📋 Listing Intelligence <span style="font-size:12px;color:#aaa;font-weight:400;">'+activeListings.length+' active listings'+(latestScrape?' · Last scraped '+new Date(latestScrape).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'')+'</span></div>';
-
-      // Quick stats
-      html+='<div class="listing-stats">';
-      html+='<div class="listing-stat"><div class="listing-stat-label">Active Listings</div><div class="listing-stat-val">'+activeListings.length.toLocaleString()+'</div><div class="listing-stat-sub">'+totalTickets.toLocaleString()+' total tickets</div></div>';
-      html+='<div class="listing-stat"><div class="listing-stat-label">Singles (1x)</div><div class="listing-stat-val gold">'+qtyCounts[1]+'</div><div class="listing-stat-sub">'+Math.round(qtyCounts[1]/activeListings.length*100)+'% of listings</div></div>';
-      html+='<div class="listing-stat"><div class="listing-stat-label">Pairs (2x)</div><div class="listing-stat-val" style="color:#2563eb">'+qtyCounts[2]+'</div><div class="listing-stat-sub">'+Math.round(qtyCounts[2]/activeListings.length*100)+'% of listings</div></div>';
-      html+='<div class="listing-stat"><div class="listing-stat-label">Triples (3x)</div><div class="listing-stat-val" style="color:#7c3aed">'+qtyCounts[3]+'</div><div class="listing-stat-sub">'+Math.round(qtyCounts[3]/activeListings.length*100)+'% of listings</div></div>';
-      html+='<div class="listing-stat"><div class="listing-stat-label">Quads+ (4x+)</div><div class="listing-stat-val" style="color:#ca8a04">'+(qtyCounts[4]+qtyCounts[5])+'</div><div class="listing-stat-sub">'+Math.round((qtyCounts[4]+qtyCounts[5])/activeListings.length*100)+'% of listings</div></div>';
-      html+='<div class="listing-stat"><div class="listing-stat-label">Sales Detected</div><div class="listing-stat-val red">'+soldIds.size+'</div><div class="listing-stat-sub">'+(prevScrape?'since prev scrape':'no prev scrape')+'</div></div>';
-      html+='</div>';
-
-      // Charts row
-      html+='<div class="charts-grid" style="margin-bottom:14px;">';
-      html+='<div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div>';
-      html+='<div class="chart-card"><h3>Price Distribution</h3><div class="chart-wrap"><canvas id="listPriceChart"></canvas></div></div>';
-      html+='</div>';
-
-      // Price ranges
-      var prRanges=[{l:'Under $500',mn:0,mx:500},{l:'$500–$1,000',mn:500,mx:1000},{l:'$1,000–$1,500',mn:1000,mx:1500},{l:'$1,500–$2,500',mn:1500,mx:2500},{l:'$2,500+',mn:2500,mx:Infinity}];
-      html+='<div class="chart-card" style="margin-bottom:14px;"><h3>Price Range Breakdown</h3><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">';
-      prRanges.forEach(function(r){
-        var cnt=pricesSorted.filter(function(p){return p>=r.mn&&p<r.mx;}).length;
-        var pct2=pricesSorted.length?Math.round(cnt/pricesSorted.length*100):0;
-        html+='<div style="text-align:center;padding:12px;background:#f7f6f3;border-radius:8px;">'
-          +'<div style="font-size:10px;color:#888;margin-bottom:6px;">'+r.l+'</div>'
-          +'<div style="font-size:20px;font-weight:700;color:#111;">'+cnt+'</div>'
-          +'<div style="font-size:11px;color:#aaa;">'+pct2+'%</div>'
-          +'</div>';
-      });
-      html+='</div></div>';
-
-      // Listings table
-      html+='<div class="detail-card" style="margin-bottom:14px;">';
-      html+='<div class="section-header"><h3>All Listings</h3></div>';
-      html+='<div class="listings-controls">';
-      html+='<input class="listings-search" id="listingSearch" type="text" placeholder="Search section or row..." oninput="filterListingsTable()">';
-      html+='<button class="pack-filter active" data-qty="0" onclick="setPackFilter(0,this)">All</button>';
-      html+='<button class="pack-filter" data-qty="1" onclick="setPackFilter(1,this)">1x</button>';
-      html+='<button class="pack-filter" data-qty="2" onclick="setPackFilter(2,this)">2x</button>';
-      html+='<button class="pack-filter" data-qty="3" onclick="setPackFilter(3,this)">3x</button>';
-      html+='<button class="pack-filter" data-qty="4" onclick="setPackFilter(4,this)">4x+</button>';
-      html+='<span class="listings-count" id="listingsCount">'+activeListings.length+' listings</span>';
-      html+='</div>';
-      html+='<div class="mini-wrap" style="max-height:460px;"><table class="mini-table" id="listingsTable">';
-      html+='<thead><tr><th onclick="sortListingsTable('section')" style="cursor:pointer">Section ⇅</th><th onclick="sortListingsTable('row')" style="cursor:pointer">Row ⇅</th><th onclick="sortListingsTable('quantity')" style="cursor:pointer">Qty ⇅</th><th onclick="sortListingsTable('price')" style="cursor:pointer">Price ⇅</th><th onclick="sortListingsTable('dom')" style="cursor:pointer">Days on Mkt ⇅</th><th>First Seen</th><th>Status</th><th>Listing ID</th></tr></thead>';
-      html+='<tbody id="listingsTbody"></tbody></table></div></div>';
-
-      html+='</div>'; // listings-section
-
-      // Store data globally for table rendering
-      var allListingsForTable=activeListings.concat(soldListingsArr);
-      window._vktListings=allListingsForTable;
-      window._vktListingSort={col:'price',dir:1};
-      window._vktListingQtyFilter=0;
-    }
+    // ── LISTINGS PLACEHOLDER (filled after async fetch) ──
+    html+='<div id="listingsWrap" style="margin-top:14px;"><div id="listingsLoader" class="msg" style="padding:1.5rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;"><div style="display:flex;align-items:center;gap:10px;justify-content:center;"><div class="loading-bar" style="width:120px;border-radius:4px;"></div><span style="font-size:12px;color:#aaa;">Loading listing data...</span></div></div></div>';
 
     html+='</div>';
     document.getElementById('app').innerHTML=html;
     destroyCharts();
     // Init section table now that DOM is ready
     if(window._vktSecData)redrawSecTable('24h');
+
+    // ── FETCH LISTINGS SEPARATELY (non-blocking) ──
+    (function fetchListings(){
+      var listLoader=document.getElementById('listingsLoader');
+      if(listLoader)listLoader.style.display='block';
+      getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000)
+      .then(function(rawListings){
+        rawListings=rawListings||[];
+        // Build history map
+        var lh={};
+        rawListings.forEach(function(l){
+          if(!l.listing_id)return;
+          if(!lh[l.listing_id]){lh[l.listing_id]=Object.assign({},l,{first_seen:l.scraped_at,last_seen:l.scraped_at});}
+          else{if(l.scraped_at<lh[l.listing_id].first_seen)lh[l.listing_id].first_seen=l.scraped_at;if(l.scraped_at>lh[l.listing_id].last_seen){lh[l.listing_id].last_seen=l.scraped_at;Object.assign(lh[l.listing_id],l);}}
+        });
+        var times=Array.from(new Set(rawListings.map(function(l){return l.scraped_at;}))).sort().reverse();
+        var latest=times[0]||null;var prev=times[1]||null;
+        var latestSet=new Set(rawListings.filter(function(l){return l.scraped_at===latest;}).map(function(l){return l.listing_id;}).filter(Boolean));
+        var prevSet=prev?new Set(rawListings.filter(function(l){return l.scraped_at===prev;}).map(function(l){return l.listing_id;}).filter(Boolean)):new Set();
+        var soldSet=new Set(Array.from(prevSet).filter(function(id){return!latestSet.has(id);}));
+        var active=Object.values(lh).filter(function(l){return latestSet.has(l.listing_id);}).map(function(l){return Object.assign({},l,{dom:latest?Math.floor((new Date(latest)-new Date(l.first_seen))/86400000):0,sold:false});});
+        var sold=Object.values(lh).filter(function(l){return soldSet.has(l.listing_id);}).map(function(l){return Object.assign({},l,{dom:0,sold:true});});
+        renderListingSections(active, sold, soldSet, latest);
+      })
+      .catch(function(e){
+        var wrap=document.getElementById('listingsWrap');
+        if(wrap)wrap.innerHTML='<div class="msg" style="padding:1rem;color:#aaa;">Could not load listing data: '+esc(e.message)+'</div>';
+      });
+    })();
     if(labels.length>1)fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');
     if(listLabels.length>1)lChart=mkChart('lChart','Listings',listData,listLabels,'rgb(59,130,246)');
     if(atpLabels.length>1)aChart=mkChart('aChart','ATP',atpData,atpLabels,'rgb(16,185,129)');
@@ -974,31 +923,7 @@ function loadAnalysis(eventId){
     function renderSnapHistory(filterSection){var body=document.getElementById('snapHistBody');if(!body)return;var filtered=snaps.slice().reverse().filter(function(s){if(n(s.total_listings)===10)return false;if(filterSection==='All')return true;if(filterSection==='')return!s.section;return(s.section||'')===filterSection;}).slice(0,200);body.innerHTML=filtered.map(function(s){return'<tr><td>'+esc(fmtDT(s.scraped_at))+'</td><td>'+esc(s.section||'\u2014')+'</td><td class="gold">'+esc(cur(s.event_floor))+'</td><td>'+esc(fmt(s.total_listings))+'</td><td>'+esc(fmt(s.section_listings))+'</td><td>'+esc(cur(s.section_avg))+'</td></tr>';}).join('');}
     var snapSel=document.getElementById('snapSecSel');if(snapSel){renderSnapHistory('All');snapSel.addEventListener('change',function(){renderSnapHistory(this.value);});}
 
-    // ── LISTING CHARTS ──
-    if(window._vktListings&&window._vktListings.length){
-      var qtyMap={};
-      activeListings.forEach(function(l){var q=l.quantity||1;var k=q>=5?'5+':String(q)+'x';qtyMap[k]=(qtyMap[k]||0)+1;});
-      var qKeys=Object.keys(qtyMap).sort(function(a,b){return parseInt(a)-parseInt(b);});
-      var qColors={'1x':'rgba(34,197,94,0.7)','2x':'rgba(37,99,235,0.7)','3x':'rgba(124,58,237,0.7)','4x':'rgba(202,138,4,0.7)','5+':'rgba(220,38,38,0.7)'};
-      var listQtyCtx=document.getElementById('listQtyChart');
-      if(listQtyCtx) new Chart(listQtyCtx,{type:'doughnut',data:{labels:qKeys,datasets:[{data:qKeys.map(function(k){return qtyMap[k];}),backgroundColor:qKeys.map(function(k){return qColors[k]||'rgba(150,150,150,0.7)';}),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
 
-      // Price distribution histogram
-      var prices=activeListings.map(function(l){return l.price;}).filter(Boolean);
-      if(prices.length){
-        var mn=Math.min.apply(null,prices),mx=Math.max.apply(null,prices);
-        var bSize=Math.ceil((mx-mn)/20)||100;
-        var buckets={};
-        for(var p=mn;p<=mx+bSize;p+=bSize)buckets[Math.round(p/bSize)*bSize]=0;
-        prices.forEach(function(p){var b=Math.floor((p-mn)/bSize)*bSize+mn;buckets[Math.round(b/bSize)*bSize]=(buckets[Math.round(b/bSize)*bSize]||0)+1;});
-        var bKeys2=Object.keys(buckets).map(Number).sort(function(a,b){return a-b;});
-        var listPriceCtx=document.getElementById('listPriceChart');
-        if(listPriceCtx) new Chart(listPriceCtx,{type:'bar',data:{labels:bKeys2.map(function(k){return '$'+Math.round(k).toLocaleString();}),datasets:[{data:bKeys2.map(function(k){return buckets[k];}),backgroundColor:'rgba(212,168,67,0.5)',borderColor:'rgba(212,168,67,1)',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
-      }
-
-      // Render listings table
-      renderVktListingsTable();
-    }
   }).catch(function(err){
     document.getElementById('app').innerHTML =
       '<div class="analysis-shell"><div class="msg">Error: ' + esc(err.message) + '</div></div>';
