@@ -124,6 +124,27 @@
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
 
     /* ── MOBILE ─────────────────────────────────────────────────────── */
+
+    /* SeatData-style hero dashboard */
+    .hero-dash { display:grid; grid-template-columns:260px 1fr; gap:14px; margin-bottom:20px; align-items:start; }
+    .hero-getin { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:20px; }
+    .hero-getin-label { font-size:10px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+    .hero-getin-price { font-size:52px; font-weight:700; color:#d4a843; font-family:monospace; line-height:1; margin-bottom:6px; }
+    .hero-getin-delta { font-size:13px; font-weight:700; margin-bottom:4px; }
+    .hero-getin-meta { font-size:11px; color:#aaa; margin-top:8px; padding-top:8px; border-top:1px solid #f0eeea; }
+    .hero-milestones { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+    .hero-ms { background:#f7f6f3; border-radius:8px; padding:12px; }
+    .hero-ms-label { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:.8px; margin-bottom:4px; }
+    .hero-ms-val { font-size:18px; font-weight:700; color:#111; font-family:monospace; }
+    .hero-ms-sub { font-size:10px; color:#aaa; margin-top:2px; }
+    .hero-chart-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:18px; }
+    .hero-chart-tabs { display:flex; gap:6px; margin-bottom:14px; align-items:center; }
+    .hero-chart-tab { padding:5px 14px; border:1px solid #ddd; border-radius:999px; font-size:11px; font-weight:700; cursor:pointer; background:#fff; color:#888; font-family:inherit; }
+    .hero-chart-tab.active { background:#d4a843; border-color:#d4a843; color:#111; }
+    .hero-chart-wrap { position:relative; height:200px; }
+    .hero-demand { margin-top:10px; padding:10px 14px; background:#f7f6f3; border-radius:8px; font-size:12px; color:#555; line-height:1.5; }
+    .hero-demand strong { color:#111; }
+    @media(max-width:900px){ .hero-dash{grid-template-columns:1fr;} }
     @media(max-width:700px){
 
       /* Nav */
@@ -337,6 +358,7 @@
     .pack-filter.active { background:#d4a843; border-color:#d4a843; color:#111; font-weight:700; }
     .listings-count { font-size:11px; color:#aaa; margin-left:auto; }
     @media(max-width:1100px){.listing-stats{grid-template-columns:repeat(3,1fr)}}
+
     @media(max-width:700px){.listing-stats{grid-template-columns:repeat(2,1fr)}}
 
     #alert-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9990; align-items:center; justify-content:center; }
@@ -865,7 +887,65 @@ function loadAnalysis(eventId){
       var platformSnaps={};['StubHub','SeatGeek','VividSeats'].forEach(function(plt){var ps=snaps.filter(function(s){return(s.platform||'StubHub')===plt&&(!s.section||s.section==='');});if(ps.length){var latest=ps[ps.length-1];platformSnaps[plt]={floor:n(latest.event_floor),listings:n(latest.total_listings)};}});
       var hasPlatformData=Object.keys(platformSnaps).length>1;
       if(hasPlatformData){var floors=Object.values(platformSnaps).map(function(p){return p.floor;}).filter(function(f){return f>0;});var bestFloor=floors.length?Math.max.apply(null,floors):0;html+='<div class="platform-compare">';['StubHub','SeatGeek','VividSeats'].forEach(function(plt){var pd=platformSnaps[plt];var isBest=pd&&pd.floor===bestFloor&&bestFloor>0;html+='<div class="platform-card'+(isBest?' best':'')+'"><div class="platform-card-name">'+(isBest?'&#10003; ':'')+plt+'</div><div class="platform-card-floor">'+(pd?cur(pd.floor):'\u2014')+'</div><div class="platform-card-sub">'+(pd&&pd.listings?fmt(pd.listings)+' listings':'No data')+'</div></div>';});html+='</div>';}
-      html+='<div class="stats-grid">'+sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true)+sc('Current Listings',fmt(last?n(last.total_listings):0),listDelta,false)+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card"><div class="stat-label">24h Vol Change</div><div class="stat-value '+(listingsPct!==null?(listingsPct>0?'delta-up':listingsPct<0?'delta-down':'delta-flat'):'')+'">'+esc(listingsPct!==null?(listingsPct>0?'+':'')+listingsPct+'%':'\u2014')+'</div></div></div>';
+      
+    // ── HERO DASHBOARD (SeatData style) ──
+    // Compute milestones from dailySnaps
+    var heroFloors=dailySnaps.map(function(s){return n(s.event_floor);}).filter(function(v){return v>0;});
+    var heroListings=dailyListSnaps.map(function(s){return n(s.total_listings);}).filter(function(v){return v>0;});
+    var atLow=heroFloors.length?Math.min.apply(null,heroFloors):0;
+    var atHigh=heroFloors.length?Math.max.apply(null,heroFloors):0;
+    var curFloor=last?n(last.event_floor):0;
+    var curVsHigh=atHigh>0?Math.round((curFloor-atHigh)/atHigh*100):null;
+    // Biggest 1-day swing
+    var bigSwing=0;
+    for(var si3=1;si3<dailySnaps.length;si3++){var sw=Math.abs(n(dailySnaps[si3].event_floor)-n(dailySnaps[si3-1].event_floor));if(sw>bigSwing)bigSwing=sw;}
+    // 7-day delta
+    var snap7d=null,now7=Date.now()-7*24*3600000;
+    for(var si4=0;si4<dailySnaps.length;si4++){if(new Date(dailySnaps[si4].scraped_at).getTime()<=now7)snap7d=dailySnaps[si4];}
+    var delta7=snap7d&&curFloor?pct(curFloor,n(snap7d.event_floor)):null;
+    var delta7cls=delta7===null?'':delta7>0?'delta-up':delta7<0?'delta-down':'delta-flat';
+    var delta7str=delta7===null?'—':(delta7>0?'+':'')+delta7+'% from last week';
+    // Demand label based on sell-through
+    var demandLabel='';
+    if(allRows.length){var row=allRows.find(function(r){return r.id==eventId;});if(row&&row.demandScore!==null){var ds=row.demandScore;demandLabel=ds>=60?'High demand. Listings are moving fast.':ds>=35?'Moderate demand. Market is steady.':'Low demand. Prices may soften closer to the event.';}}
+    // Hero chart tabs: store data globally
+    window._heroSnaps={all:dailySnaps,labels:labels,floorData:floorData,listLabels:listLabels,listData:listData};
+    window._heroChart=null;
+    window._heroListChart=null;
+    var heroHtml='<div class="hero-dash">';
+    // Left panel
+    heroHtml+='<div>';
+    heroHtml+='<div class="hero-getin">';
+    heroHtml+='<div class="hero-getin-label">Current Floor Price</div>';
+    heroHtml+='<div class="hero-getin-price">'+(curFloor?'$'+Math.round(curFloor).toLocaleString():'—')+'</div>';
+    heroHtml+='<div class="hero-getin-delta '+delta7cls+'">'+esc(delta7str)+'</div>';
+    if(avgAtp>0)heroHtml+='<div style="font-size:12px;color:#888;">Avg ticket price: <strong style="color:#111;">'+cur(avgAtp)+'</strong></div>';
+    heroHtml+='<div class="hero-getin-meta">';
+    if(last)heroHtml+='Updated '+fmtDT(last.scraped_at);
+    heroHtml+='</div></div>';
+    // Milestones
+    heroHtml+='<div class="hero-milestones">';
+    heroHtml+='<div class="hero-ms"><div class="hero-ms-label">All-Time Low</div><div class="hero-ms-val">'+(atLow?'$'+Math.round(atLow).toLocaleString():'—')+'</div></div>';
+    heroHtml+='<div class="hero-ms"><div class="hero-ms-label">All-Time High</div><div class="hero-ms-val">'+(atHigh?'$'+Math.round(atHigh).toLocaleString():'—')+'</div></div>';
+    heroHtml+='<div class="hero-ms"><div class="hero-ms-label">Biggest 1-Day Swing</div><div class="hero-ms-val">'+(bigSwing?'$'+Math.round(bigSwing).toLocaleString():'—')+'</div></div>';
+    heroHtml+='<div class="hero-ms"><div class="hero-ms-label">Current vs Peak</div><div class="hero-ms-val '+(curVsHigh!==null?(curVsHigh<0?'delta-up':'delta-down'):'')+'">'+esc(curVsHigh!==null?(curVsHigh>0?'+':'')+curVsHigh+'%':'—')+'</div></div>';
+    heroHtml+='</div></div>';
+    // Right: chart
+    heroHtml+='<div class="hero-chart-card">';
+    heroHtml+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
+    heroHtml+='<div style="font-size:13px;font-weight:700;color:#111;">Floor Price History</div>';
+    heroHtml+='<div class="hero-chart-tabs">';
+    heroHtml+='<button class="hero-chart-tab" onclick="setHeroRange(7,this)">7D</button>';
+    heroHtml+='<button class="hero-chart-tab active" onclick="setHeroRange(30,this)">30D</button>';
+    heroHtml+='<button class="hero-chart-tab" onclick="setHeroRange(0,this)">All</button>';
+    heroHtml+='</div></div>';
+    heroHtml+='<div class="hero-chart-wrap"><canvas id="heroFloorChart"></canvas></div>';
+    if(demandLabel)heroHtml+='<div class="hero-demand"><strong>Demand:</strong> '+esc(demandLabel)+'</div>';
+    heroHtml+='</div>';
+    heroHtml+='</div>';
+    html+=heroHtml;
+
+    html+='<div class="stats-grid">'+sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true)+sc('Current Listings',fmt(last?n(last.total_listings):0),listDelta,false)+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card"><div class="stat-label">24h Vol Change</div><div class="stat-value '+(listingsPct!==null?(listingsPct>0?'delta-up':listingsPct<0?'delta-down':'delta-flat'):'')+'">'+esc(listingsPct!==null?(listingsPct>0?'+':'')+listingsPct+'%':'\u2014')+'</div></div></div>';
       html+='<div class="charts-grid"><div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div><div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div><div class="chart-card full"><h3>ATP Over Time</h3><div class="chart-wrap"><canvas id="aChart"></canvas></div></div><div class="chart-card full"><div class="section-header"><h3>Section Deep Dive</h3>';
       if(secNames.length)html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
       html+='</div>';if(secNames.length){html+='<div class="section-charts"><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Listings</div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Floor</div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div><div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';}else html+='<div class="msg" style="padding:2rem;">No section data yet.</div>';html+='</div></div>';
@@ -917,6 +997,8 @@ function loadAnalysis(eventId){
       });
     })();
     if(labels.length>1)fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');
+    // Init hero floor chart (default 30 days)
+    setHeroRange(30, document.querySelector('.hero-chart-tab.active'));
     if(listLabels.length>1)lChart=mkChart('lChart','Listings',listData,listLabels,'rgb(59,130,246)');
     if(atpLabels.length>1)aChart=mkChart('aChart','ATP',atpData,atpLabels,'rgb(16,185,129)');
     var sf=document.getElementById('secSel');if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
