@@ -116,8 +116,8 @@
     .detail-list span { font-weight:600; color:#111; }
     .mini-wrap { overflow:auto; max-height:380px; border:1px solid #f0eeea; border-radius:8px; }
     .mini-table { width:100%; border-collapse:collapse; font-size:12px; }
-    .mini-table th { background:#f7f6f3; padding:8px 10px; text-align:left; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; border-bottom:1px solid #e4e2dc; white-space:nowrap; }
-    .mini-table td { padding:8px 10px; border-bottom:1px solid #f5f3ef; color:#111; white-space:nowrap; }
+    .mini-table th { background:#f7f6f3; padding:8px 10px; text-align:center; font-size:10px; letter-spacing:.8px; text-transform:uppercase; color:#888; border-bottom:1px solid #e4e2dc; white-space:nowrap; }
+    .mini-table td { padding:8px 10px; border-bottom:1px solid #f5f3ef; color:#111; white-space:nowrap; text-align:center; }
     .mini-table tr:last-child td { border:none; }
     .loading-bar { height:3px; background:linear-gradient(90deg,#d4a843,#f0c866,#d4a843); background-size:200% 100%; animation:loading 1.5s linear infinite; }
     @keyframes loading { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
@@ -1627,7 +1627,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   h += '<table class="mini-table" id="ls-table">';
   h += '<thead><tr>';
   var cols = [{k:'zone',l:'Zone'},{k:'section',l:'Section'},{k:'row',l:'Row'},{k:'quantity',l:'Qty'},{k:'price',l:'Price'},{k:'dom',l:'Days on Mkt'},{k:'first_seen',l:'First Seen'},{k:'sold',l:'Status'}];
-  cols.forEach(function(c){h+='<th onclick="lsSort(\''+c.k+'\')" style="cursor:pointer;user-select:none;">'+c.l+' <span id="ls-sort-'+c.k+'" style="color:#d4a843;"></span></th>';});
+  cols.forEach(function(c){h+='<th onclick="lsSort(\''+c.k+'\')" id="ls-th-'+c.k+'" style="cursor:pointer;user-select:none;text-align:center;white-space:nowrap;">'+c.l+' <span id="ls-sort-'+c.k+'" style="color:#d4a843;font-size:9px;"></span></th>';});
   h += '</tr></thead><tbody id="ls-tbody"></tbody></table></div>';
 
   // Pagination
@@ -1737,7 +1737,7 @@ function applyListingFilters() {
 }
 function _pagBtn(active){return 'padding:5px 10px;border:1px solid '+(active?'#d4a843':'#ddd')+';border-radius:5px;background:'+(active?'#d4a843':'#fff')+';color:'+(active?'#111':'#555')+';font-size:11px;cursor:pointer;font-family:inherit;';}
 function lsGoPage(p){window._lsPage=p;applyListingFilters();}
-function lsSort(col){var s=window._lsSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._lsSort=s;document.querySelectorAll('[id^="ls-sort-"]').forEach(function(el){el.textContent='';});var icon=document.getElementById('ls-sort-'+col);if(icon)icon.textContent=s.dir===1?'↑':'↓';window._lsPage=1;applyListingFilters();}
+function lsSort(col){var s=window._lsSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._lsSort=s;document.querySelectorAll('[id^="ls-sort-"]').forEach(function(el){el.textContent='';});document.querySelectorAll('[id^="ls-th-"]').forEach(function(el){el.style.color='';});var icon=document.getElementById('ls-sort-'+col);if(icon)icon.textContent=s.dir===1?'↑':'↓';var th=document.getElementById('ls-th-'+col);if(th)th.style.color='#d4a843';window._lsPage=1;applyListingFilters();}
 function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'':'';});window._lsPage=1;applyListingFilters();}
 
 
