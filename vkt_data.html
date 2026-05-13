@@ -1564,7 +1564,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   // ── CHARTS ROW ──
   h += '<div class="charts-grid" style="margin-bottom:16px;">';
   h += '<div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div>';
-  h += '<div class="chart-card"><h3>Section Price Heat Map</h3><div id="stadiumHeatmap" style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;"></div></div>';
+  h += '<div class="chart-card"><h3>Section Heat Map <span style="font-size:10px;font-weight:400;color:#aaa;margin-left:6px;">hover for details</span></h3><div id="stadiumHeatmap" style="position:relative;height:300px;width:100%;overflow:hidden;"></div></div>';
   h += '</div>';
 
   // ── PRICE RANGE BREAKDOWN ──
@@ -1744,152 +1744,195 @@ function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'
 /* ══════════════════════════════════════════════════════════════════
    STADIUM HEATMAP
 ══════════════════════════════════════════════════════════════════ */
+function getVenueMapUrl(eventName, venue) {
+  var v = ((venue||'') + ' ' + (eventName||'')).toLowerCase();
+  if (/sofi|los.angel|inglewood/i.test(v))    return 'https://www.2026worldcupsim.com/los-angeles.png';
+  if (/metlife|new.york|new.jersey|rutherford/i.test(v)) return 'https://www.2026worldcupsim.com/new-york.png';
+  if (/at.?t.stadium|dallas|arlington/i.test(v))        return 'https://www.2026worldcupsim.com/dallas.png';
+  if (/hard.rock|miami/i.test(v))             return 'https://www.2026worldcupsim.com/miami.png';
+  if (/lincoln|philadelphia/i.test(v))        return 'https://www.2026worldcupsim.com/philadelphia.png';
+  if (/arrowhead|kansas.city/i.test(v))       return 'https://www.2026worldcupsim.com/kansas-city.png';
+  if (/mercedes|atlanta/i.test(v))            return 'https://www.2026worldcupsim.com/atlanta.png';
+  if (/lumen|seattle/i.test(v))               return 'https://www.2026worldcupsim.com/seattle-world-cup-seatmap.png';
+  if (/nrg|houston/i.test(v))                 return 'https://www.2026worldcupsim.com/houston.png';
+  if (/levi|san.francisco|santa.clara/i.test(v)) return 'https://www.2026worldcupsim.com/san-francisco.png';
+  if (/gillette|boston|foxborough/i.test(v))  return 'https://www.2026worldcupsim.com/boston.png';
+  if (/azteca|mexico.city/i.test(v))          return 'https://www.2026worldcupsim.com/mexico-city.png';
+  if (/akron|guadalajara/i.test(v))           return 'https://www.2026worldcupsim.com/guadalajara.png';
+  if (/bbva|monterrey/i.test(v))              return 'https://www.2026worldcupsim.com/monterrey.png';
+  if (/bmo|toronto/i.test(v))                 return 'https://www.2026worldcupsim.com/toronto.png';
+  if (/bc.place|vancouver/i.test(v))          return 'https://www.2026worldcupsim.com/vancouver.png';
+  return null;
+}
+
 function drawStadiumHeatmap(listings) {
   var wrap = document.getElementById('stadiumHeatmap');
-  if (!wrap || !listings || !listings.length) return;
+  if (!wrap) return;
 
-  // Build section price map: section -> avg price
+  // Build section -> count map
   var secMap = {};
   listings.forEach(function(l) {
     var s = (l.section||'').trim();
     if (!s) return;
-    if (!secMap[s]) secMap[s] = {total:0, count:0, min:Infinity};
-    secMap[s].total += l.price;
+    if (!secMap[s]) secMap[s] = {count:0, floor:Infinity, total:0};
     secMap[s].count++;
-    if (l.price < secMap[s].min) secMap[s].min = l.price;
+    secMap[s].total += l.price;
+    if (l.price < secMap[s].floor) secMap[s].floor = l.price;
   });
   Object.keys(secMap).forEach(function(s){ secMap[s].avg = Math.round(secMap[s].total/secMap[s].count); });
 
-  // Classify section into tier + position
-  function classifySection(sec) {
-    var s = sec.replace(/^Section\s*/i,'').trim();
-    // Club/VIP
-    if (/^(C|CLB|VIP|CLUB|M|SUITE|BOX|SWTER|NETER)/i.test(s)) return {tier:'club', num: parseInt(s.replace(/\D/g,''))||0};
-    var num = parseInt(s, 10);
-    if (isNaN(num)) return {tier:'other', num:0};
-    if (num >= 1 && num <= 9)   return {tier:'field', num:num};
-    if (num >= 100 && num <= 199) return {tier:'lower', num:num-100};
-    if (num >= 200 && num <= 299) return {tier:'mid',   num:num-200};
-    if (num >= 300 && num <= 399) return {tier:'upper', num:num-300};
-    if (num >= 400 && num <= 599) return {tier:'upper', num:num-400};
-    return {tier:'other', num:0};
+  // Build category totals
+  var catMap = {1:{count:0,floor:Infinity,total:0,secs:[]}, 2:{count:0,floor:Infinity,total:0,secs:[]}, 3:{count:0,floor:Infinity,total:0,secs:[]}, 4:{count:0,floor:Infinity,total:0,secs:[]}};
+  listings.forEach(function(l){
+    // Try to get category from section name pattern
+    var sec = (l.section||'').toLowerCase();
+    var cat = 0;
+    if (/category\s*1|cat\s*1/i.test(sec)) cat=1;
+    else if (/category\s*2|cat\s*2/i.test(sec)) cat=2;
+    else if (/category\s*3|cat\s*3/i.test(sec)) cat=3;
+    else if (/category\s*4|cat\s*4/i.test(sec)) cat=4;
+    // fallback: classify by section number
+    if (!cat) {
+      var num = parseInt((l.section||'').replace(/\D/g,''));
+      if (!isNaN(num)) {
+        if (num>=100&&num<=159) cat=1;
+        else if (num>=160&&num<=199||num>=200&&num<=249) cat=2;
+        else if (num>=250&&num<=299||num>=300&&num<=359) cat=3;
+        else if (num>=360||num>=400) cat=4;
+        else cat=2;
+      } else { cat=3; }
+    }
+    if (catMap[cat]) {
+      catMap[cat].count++;
+      catMap[cat].total += l.price;
+      if (l.price < catMap[cat].floor) catMap[cat].floor = l.price;
+      if (catMap[cat].secs.indexOf(l.section)<0) catMap[cat].secs.push(l.section);
+    }
+  });
+  Object.keys(catMap).forEach(function(c){
+    catMap[c].avg = catMap[c].count>0 ? Math.round(catMap[c].total/catMap[c].count) : 0;
+  });
+
+  var maxCount = Math.max.apply(null, Object.values(catMap).map(function(c){return c.count;})) || 1;
+
+  function countToOpacity(count) {
+    if (!count) return 0;
+    var t = count / maxCount;
+    return 0.15 + t * 0.55; // range 0.15-0.70
   }
 
-  // Get all prices for color scale
-  var allAvgs = Object.values(secMap).map(function(v){return v.avg;});
-  var minPrice = Math.min.apply(null, allAvgs);
-  var maxPrice = Math.max.apply(null, allAvgs);
+  // Get venue map image
+  var titleEl = document.querySelector('.analysis-title');
+  var subEl = document.querySelector('.analysis-sub');
+  var eventName = titleEl ? titleEl.textContent : '';
+  var venue = subEl ? subEl.textContent : '';
+  var mapUrl = getVenueMapUrl(eventName, venue);
 
-  function priceToColor(price, alpha) {
-    if (maxPrice === minPrice) return 'rgba(212,168,67,'+alpha+')';
-    var t = (price - minPrice) / (maxPrice - minPrice); // 0=cheap, 1=expensive
-    // green -> yellow -> red
-    var r,g,b;
-    if (t < 0.5) { r=Math.round(t*2*212); g=Math.round(168+t*2*(200-168)); b=Math.round(67*(1-t*2)); }
-    else { r=Math.round(212+(t-0.5)*2*(220-212)); g=Math.round(200*(1-(t-0.5)*2)); b=0; }
-    return 'rgba('+r+','+g+','+b+','+alpha+')';
+  var W = wrap.offsetWidth || 400;
+  var H = 300;
+  wrap.style.height = H + 'px';
+  wrap.style.position = 'relative';
+  wrap.style.overflow = 'hidden';
+  wrap.style.borderRadius = '6px';
+  wrap.style.background = '#0a0f1a';
+
+  if (!mapUrl) {
+    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:13px;">No venue map available</div>';
+    return;
   }
 
-  // Build SVG
-  var W = wrap.offsetWidth || 360, H = 220;
-  var cx = W/2, cy = H/2;
-  var rx = W*0.46, ry = H*0.44; // outer stadium oval
-
-  // Tier radii (as fraction of outer)
-  var tiers = {
-    upper: {inner:0.72, outer:1.0},
-    mid:   {inner:0.52, outer:0.72},
-    lower: {inner:0.34, outer:0.52},
-    club:  {inner:0.20, outer:0.34},
-    field: {inner:0.0,  outer:0.20}
+  // Category overlay colors (FIFA standard)
+  var catColors = {
+    1: 'rgba(0, 150, 80, ',    // green
+    2: 'rgba(80, 140, 220, ',  // blue
+    3: 'rgba(230, 160, 20, ',  // amber
+    4: 'rgba(220, 60, 60, '    // red
   };
 
-  // Group sections by tier
-  var tierSecs = {upper:[],mid:[],lower:[],club:[],field:[]};
-  Object.keys(secMap).forEach(function(sec) {
-    var c = classifySection(sec);
-    if (tierSecs[c.tier]) tierSecs[c.tier].push({sec:sec, num:c.num, avg:secMap[sec].avg, min:secMap[sec].min});
+  // Build the HTML: image + SVG overlay + tooltip
+  // The SVG uses viewBox matching typical FIFA map proportions
+  // Category zones are approximate elliptical regions over the map
+  // These are tuned for the standard FIFA map layout (rectangular pitch, 4 category rings)
+  var html = '<div style="position:relative;width:100%;height:'+H+'px;">';
+
+  // Background image - grayscale to let colors show clearly
+  html += '<img src="'+mapUrl+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;filter:grayscale(40%) brightness(0.7);pointer-events:none;" crossorigin="anonymous"/>';
+
+  // SVG overlay with category zone ellipses
+  html += '<svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" style="position:absolute;top:0;left:0;" xmlns="http://www.w3.org/2000/svg">';
+
+  // Category zone coordinates (center of pitch at ~200,150 for a 400x300 viewbox)
+  // These approximate the typical FIFA map layout
+  var zones = [
+    // Cat 1: inner sideline ring (closest to pitch)
+    { cat:1, type:'ring', cx:200, cy:150, rx1:60, ry1:45, rx2:110, ry2:80 },
+    // Cat 2: middle ring
+    { cat:2, type:'ring', cx:200, cy:150, rx1:110, ry1:80, rx2:160, ry2:115 },
+    // Cat 3: outer ring
+    { cat:3, type:'ring', cx:200, cy:150, rx1:160, ry1:115, rx2:195, ry2:135 },
+    // Cat 4: outermost corners
+    { cat:4, type:'ring', cx:200, cy:150, rx1:195, ry1:135, rx2:220, ry2:148 },
+  ];
+
+  zones.forEach(function(z) {
+    var c = catMap[z.cat];
+    var opacity = countToOpacity(c.count);
+    var color = catColors[z.cat] || 'rgba(150,150,150,';
+    var fill = color + opacity + ')';
+
+    // Draw as a donut ring using fill-rule:evenodd
+    var d = 'M '+(z.cx+z.rx2)+','+z.cy
+      +' A '+z.rx2+','+z.ry2+' 0 1 0 '+(z.cx+z.rx2-0.01)+','+z.cy
+      +' M '+(z.cx+z.rx1)+','+z.cy
+      +' A '+z.rx1+','+z.ry1+' 0 1 1 '+(z.cx+z.rx1-0.01)+','+z.cy;
+
+    html += '<path d="'+d+'" fill="'+fill+'" fill-rule="evenodd" stroke="'+color+'0.4)" stroke-width="1"'
+      +' style="cursor:pointer;"'
+      +' onmouseenter="showHeatTip(event,'+z.cat+','+c.count+','+c.avg+','+(c.floor<Infinity?c.floor:0)+')"'
+      +' onmouseleave="hideHeatTip()"/>';
+
+    // Category label
+    if (c.count > 0) {
+      var lx = z.cx, ly = z.cy - (z.ry1+z.ry2)/2;
+      html += '<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle"'
+        +' font-size="9" font-weight="700" fill="#fff" opacity="0.9" pointer-events="none">'
+        +'Cat '+z.cat+' · '+c.count+' listings</text>';
+    }
   });
-
-  // Sort each tier by section number
-  Object.keys(tierSecs).forEach(function(t){ tierSecs[t].sort(function(a,b){return a.num-b.num;}); });
-
-  var svgParts = ['<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="font-family:Arial,sans-serif;">'];
-
-  // Draw each tier as segmented arcs
-  var hoverData = [];
-  Object.keys(tiers).forEach(function(tierName) {
-    var secs = tierSecs[tierName];
-    if (!secs.length) return;
-    var t = tiers[tierName];
-    var innerRx = rx*t.inner, innerRy = ry*t.inner;
-    var outerRx = rx*t.outer, outerRy = ry*t.outer;
-    var total = secs.length;
-    secs.forEach(function(s, i) {
-      var a1 = (i/total)*2*Math.PI - Math.PI/2;
-      var a2 = ((i+1)/total)*2*Math.PI - Math.PI/2;
-      var mid = (a1+a2)/2;
-      // Outer arc points
-      var ox1 = cx + outerRx*Math.cos(a1), oy1 = cy + outerRy*Math.sin(a1);
-      var ox2 = cx + outerRx*Math.cos(a2), oy2 = cy + outerRy*Math.sin(a2);
-      // Inner arc points
-      var ix1 = cx + innerRx*Math.cos(a1), iy1 = cy + innerRy*Math.sin(a1);
-      var ix2 = cx + innerRx*Math.cos(a2), iy2 = cy + innerRy*Math.sin(a2);
-      var large = (a2-a1 > Math.PI) ? 1 : 0;
-      var fill = priceToColor(s.avg, 0.85);
-      var stroke = priceToColor(s.avg, 1.0);
-      var d = '';
-      if (t.inner === 0) {
-        // Field — full ellipse segment from center
-        d = 'M '+cx+' '+cy+' L '+ox1+' '+oy1+' A '+outerRx+' '+outerRy+' 0 '+large+' 1 '+ox2+' '+oy2+' Z';
-      } else {
-        d = 'M '+ox1+' '+oy1
-          +' A '+outerRx+' '+outerRy+' 0 '+large+' 1 '+ox2+' '+oy2
-          +' L '+ix2+' '+iy2
-          +' A '+innerRx+' '+innerRy+' 0 '+large+' 0 '+ix1+' '+iy1
-          +' Z';
-      }
-      var tooltipId = 'ht'+i+'_'+tierName.slice(0,2);
-      svgParts.push('<path d="'+d+'" fill="'+fill+'" stroke="#fff" stroke-width="0.5" opacity="0.9"'
-        +' onmouseenter="showHeatTip(evt,\''+esc(s.sec)+'\',\'$'+s.avg.toLocaleString()+'\',\'$'+s.min.toLocaleString()+'\')"'
-        +' onmouseleave="hideHeatTip()"'
-        +' style="cursor:pointer;transition:opacity 0.1s;"'
-        +' onmousedown="this.style.opacity=\'1\'" />');
-      // Label for bigger segments
-      if (total <= 20) {
-        var lx = cx + (outerRx*t.inner + outerRx*(t.outer-t.inner)*0.5)*Math.cos(mid);
-        var ly = cy + (outerRy*t.inner + outerRy*(t.outer-t.inner)*0.5)*Math.sin(mid);
-        svgParts.push('<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle" font-size="7" fill="#fff" font-weight="600" pointer-events="none">'+esc(s.sec.replace(/^Section\s*/i,''))+'</text>');
-      }
-    });
-  });
-
-  // Pitch label
-  svgParts.push('<text x="'+cx+'" y="'+cy+'" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#888" font-weight="700" pointer-events="none">PITCH</text>');
 
   // Legend
-  var legX = 8, legY = H-36;
-  svgParts.push('<defs><linearGradient id="heatLeg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="rgba(0,168,67,0.9)"/><stop offset="50%" stop-color="rgba(212,168,67,0.9)"/><stop offset="100%" stop-color="rgba(220,50,0,0.9)"/></linearGradient></defs>');
-  svgParts.push('<rect x="'+legX+'" y="'+legY+'" width="80" height="8" rx="3" fill="url(#heatLeg)"/>');
-  svgParts.push('<text x="'+legX+'" y="'+(legY+18)+'" font-size="9" fill="#888">$'+Math.round(minPrice).toLocaleString()+'</text>');
-  svgParts.push('<text x="'+(legX+80)+'" y="'+(legY+18)+'" font-size="9" fill="#888" text-anchor="end">$'+Math.round(maxPrice).toLocaleString()+'</text>');
-  svgParts.push('<text x="'+(legX+40)+'" y="'+(legY-4)+'" font-size="9" fill="#aaa" text-anchor="middle">Avg Price</text>');
+  html += '<rect x="6" y="6" width="130" height="68" rx="4" fill="rgba(0,0,0,0.65)"/>';
+  [1,2,3,4].forEach(function(cat,i) {
+    var c = catMap[cat];
+    var col = catColors[cat]+'0.85)';
+    var y = 16 + i*14;
+    html += '<rect x="10" y="'+(y-5)+'" width="10" height="10" rx="2" fill="'+col+'"/>';
+    html += '<text x="24" y="'+y+'" font-size="9" fill="#ddd" dominant-baseline="middle">Cat '+cat+': '+c.count+' listings · $'+(c.floor<Infinity?Math.round(c.floor).toLocaleString():'—')+' floor</text>';
+  });
 
-  svgParts.push('</svg>');
+  html += '</svg>';
 
-  // Tooltip div
-  wrap.innerHTML = svgParts.join('')
-    + '<div id="heatTooltip" style="display:none;position:absolute;background:#111;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>';
+  // Tooltip
+  html += '<div id="heatTooltip" style="display:none;position:absolute;background:rgba(10,15,26,0.95);color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;pointer-events:none;white-space:nowrap;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.6);border:1px solid #333;"></div>';
+
+  html += '</div>';
+  wrap.innerHTML = html;
 }
 
-function showHeatTip(evt, sec, avg, floor) {
+function showHeatTip(evt, cat, count, avg, floor) {
   var tip = document.getElementById('heatTooltip'); if(!tip)return;
   var wrap = document.getElementById('stadiumHeatmap');
   var rect = wrap ? wrap.getBoundingClientRect() : {left:0,top:0};
-  tip.innerHTML = '<strong>'+esc(sec)+'</strong><br>Avg: '+avg+' &nbsp; Floor: '+floor;
-  tip.style.display='block';
-  tip.style.left=(evt.clientX-rect.left+10)+'px';
-  tip.style.top=(evt.clientY-rect.top-36)+'px';
+  tip.innerHTML = '<strong style="color:#d4a843;">Category '+cat+'</strong>'
+    +'<br><span style="color:#aaa;">Listings:</span> <strong>'+count+'</strong>'
+    +'<br><span style="color:#aaa;">Floor:</span> <strong>$'+(floor?Math.round(floor).toLocaleString():'—')+'</strong>'
+    +'<br><span style="color:#aaa;">Avg:</span> <strong>$'+(avg?Math.round(avg).toLocaleString():'—')+'</strong>';
+  var tipX = evt.clientX - rect.left + 14;
+  var tipY = evt.clientY - rect.top - 70;
+  if (tipX + 180 > (wrap.offsetWidth||400)) tipX -= 190;
+  tip.style.left = Math.max(4,tipX)+'px';
+  tip.style.top  = Math.max(4,tipY)+'px';
+  tip.style.display = 'block';
 }
 function hideHeatTip(){ var t=document.getElementById('heatTooltip'); if(t)t.style.display='none'; }
 
