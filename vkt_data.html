@@ -121,6 +121,34 @@
     .mini-table tr:last-child td { border:none; }
     .loading-bar { height:3px; background:linear-gradient(90deg,#d4a843,#f0c866,#d4a843); background-size:200% 100%; animation:loading 1.5s linear infinite; }
     @keyframes loading { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* AI Analytics */
+    .ai-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:20px; margin-bottom:14px; }
+    .ai-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .ai-title { font-size:14px; font-weight:700; color:#111; display:flex; align-items:center; gap:8px; }
+    .ai-badge { font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:#fdf3dc; color:#d4a843; letter-spacing:0.5px; text-transform:uppercase; }
+    .ai-refresh { padding:6px 14px; border:1px solid #ddd; border-radius:6px; font-size:11px; cursor:pointer; color:#888; background:#fff; font-family:inherit; transition:all 0.15s; }
+    .ai-refresh:hover { border-color:#d4a843; color:#d4a843; }
+    .ai-refresh:disabled { opacity:0.5; cursor:not-allowed; }
+    .ai-loading { display:flex; align-items:center; gap:10px; color:#aaa; font-size:13px; padding:20px 0; }
+    .ai-sections { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+    .ai-section { background:#f7f6f3; border-radius:8px; padding:14px; }
+    .ai-section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#888; margin-bottom:8px; }
+    .ai-section-text { font-size:13px; color:#111; line-height:1.6; }
+    .ai-verdict { padding:14px 16px; border-radius:8px; font-size:13px; line-height:1.6; margin-top:4px; }
+    .ai-verdict.buy { background:#f0fdf4; border-left:3px solid #22c55e; }
+    .ai-verdict.hold { background:#fdf3dc; border-left:3px solid #d4a843; }
+    .ai-verdict.sell { background:#fef2f2; border-left:3px solid #ef4444; }
+    .ai-verdict-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+    .ai-verdict.buy .ai-verdict-label { color:#22c55e; }
+    .ai-verdict.hold .ai-verdict-label { color:#d4a843; }
+    .ai-verdict.sell .ai-verdict-label { color:#ef4444; }
+    .ai-signal-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .ai-signal { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+    .ai-signal.positive { background:#f0fdf4; color:#16a34a; }
+    .ai-signal.negative { background:#fef2f2; color:#dc2626; }
+    .ai-signal.neutral { background:#f5f5f5; color:#555; }
+    @media(max-width:900px){ .ai-sections { grid-template-columns:1fr; } }
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
 
     /* ── MOBILE ─────────────────────────────────────────────────────── */
@@ -357,6 +385,34 @@
     .pack-filter { padding:5px 12px; border:1px solid #ddd; border-radius:999px; font-size:11px; background:#fff; cursor:pointer; color:#888; }
     .pack-filter.active { background:#d4a843; border-color:#d4a843; color:#111; font-weight:700; }
     .listings-count { font-size:11px; color:#aaa; margin-left:auto; }
+
+    /* AI Analytics */
+    .ai-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; padding:20px; margin-bottom:14px; }
+    .ai-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .ai-title { font-size:14px; font-weight:700; color:#111; display:flex; align-items:center; gap:8px; }
+    .ai-badge { font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; background:#fdf3dc; color:#d4a843; letter-spacing:0.5px; text-transform:uppercase; }
+    .ai-refresh { padding:6px 14px; border:1px solid #ddd; border-radius:6px; font-size:11px; cursor:pointer; color:#888; background:#fff; font-family:inherit; transition:all 0.15s; }
+    .ai-refresh:hover { border-color:#d4a843; color:#d4a843; }
+    .ai-refresh:disabled { opacity:0.5; cursor:not-allowed; }
+    .ai-loading { display:flex; align-items:center; gap:10px; color:#aaa; font-size:13px; padding:20px 0; }
+    .ai-sections { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+    .ai-section { background:#f7f6f3; border-radius:8px; padding:14px; }
+    .ai-section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#888; margin-bottom:8px; }
+    .ai-section-text { font-size:13px; color:#111; line-height:1.6; }
+    .ai-verdict { padding:14px 16px; border-radius:8px; font-size:13px; line-height:1.6; margin-top:4px; }
+    .ai-verdict.buy { background:#f0fdf4; border-left:3px solid #22c55e; }
+    .ai-verdict.hold { background:#fdf3dc; border-left:3px solid #d4a843; }
+    .ai-verdict.sell { background:#fef2f2; border-left:3px solid #ef4444; }
+    .ai-verdict-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+    .ai-verdict.buy .ai-verdict-label { color:#22c55e; }
+    .ai-verdict.hold .ai-verdict-label { color:#d4a843; }
+    .ai-verdict.sell .ai-verdict-label { color:#ef4444; }
+    .ai-signal-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .ai-signal { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+    .ai-signal.positive { background:#f0fdf4; color:#16a34a; }
+    .ai-signal.negative { background:#fef2f2; color:#dc2626; }
+    .ai-signal.neutral { background:#f5f5f5; color:#555; }
+    @media(max-width:900px){ .ai-sections { grid-template-columns:1fr; } }
     @media(max-width:1100px){.listing-stats{grid-template-columns:repeat(3,1fr)}}
 
     @media(max-width:700px){.listing-stats{grid-template-columns:repeat(2,1fr)}}
@@ -950,15 +1006,10 @@ function loadAnalysis(eventId){
       if(secNames.length)html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
       html+='</div>';if(secNames.length){html+='<div class="section-charts"><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Listings</div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Floor</div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div><div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';}else html+='<div class="msg" style="padding:2rem;">No section data yet.</div>';html+='</div></div>';
     }
-    html+='<div class="detail-grid"><div class="detail-card"><h3>Event Summary</h3><div class="detail-list"><div><strong>Date</strong><span>'+esc(fmtDate(ev.date))+'</span></div><div><strong>Venue</strong><span>'+esc(ev.venue||'\u2014')+'</span></div>'+(first?'<div><strong>First Scraped</strong><span>'+esc(fmtDT(first.scraped_at))+'</span></div>':'')+(last?'<div><strong>Last Updated</strong><span>'+esc(fmtDT(last.scraped_at))+'</span></div>':'')+(first&&last?'<div><strong>Floor Change</strong><span class="'+dEl(floorDelta)+'">'+dTxt(floorDelta,true)+'</span></div><div><strong>Listings Change</strong><span class="'+dEl(listDelta)+'">'+dTxt(listDelta,false)+'</span></div>':'')+'<div><strong>Total Snapshots</strong><span>'+fmt(snaps.length)+'</span></div><div><strong>Event ID</strong><span class="mono" style="font-size:11px;color:#888">'+esc(ev.id)+'</span></div></div></div><div class="detail-card"><h3>Top Sections by Listings</h3>';
-    if(sections.length){
-      // Store section data globally so redrawSecTable can access it
-      window._vktSecData=sections.slice(0,20);
-      html+='<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Period</span><select id="sec-period-sel" onchange="redrawSecTable(this.value)" style="padding:4px 10px;background:#fff;border:1px solid #ddd;border-radius:999px;font-size:11px;font-weight:700;color:#333;cursor:pointer;outline:none;font-family:inherit;"><option value="24h">24 Hours</option><option value="7d">7 Days</option><option value="14d">14 Days</option></select></div>';
-      html+='<div class="mini-wrap" id="sec-table-wrap"></div>';
-    }else html+='<div class="msg" style="padding:1.5rem;">No section data available.</div>';
-    html+='</div></div>';
-    if(snaps.length){var snapSections=['All'].concat(Array.from(new Set(snaps.map(function(s){return s.section||'';}))).filter(Boolean).sort());html+='<div class="detail-card" style="margin-bottom:14px"><div class="section-header"><h3>Snapshot History</h3><select class="section-select" id="snapSecSel">'+snapSections.map(function(s){return'<option value="'+esc(s)+'">'+esc(s==='All'?'All Sections':s)+'</option>';}).join('')+'</select></div><div class="mini-wrap"><table class="mini-table"><thead><tr><th>Time</th><th>Section</th><th>Floor</th><th>Listings</th><th>Sec Listings</th><th>Sec Avg</th></tr></thead><tbody id="snapHistBody"></tbody></table></div></div>';}
+    // Keep top sections data for AI analysis
+    if(sections.length){ window._vktSecData=sections.slice(0,20); }
+    // AI Analytics placeholder (filled after listings load)
+    html+='<div id="aiWrap" style="margin-bottom:14px;"></div>';
     // ── LISTINGS PLACEHOLDER (filled after async fetch) ──
     html+='<div id="listingsWrap" style="margin-top:14px;"><div id="listingsLoader" class="msg" style="padding:1.5rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;"><div style="display:flex;align-items:center;gap:10px;justify-content:center;"><div class="loading-bar" style="width:120px;border-radius:4px;"></div><span style="font-size:12px;color:#aaa;">Loading listing data...</span></div></div></div>';
 
@@ -1591,7 +1642,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
 
   // Render charts
   var qCtx = document.getElementById('listQtyChart');
-  if (qCtx && qk.length) new Chart(qCtx,{type:'doughnut',data:{labels:qk,datasets:[{data:qk.map(function(k){return qm[k];}),backgroundColor:qk.map(function(k){return qcols[k]||'rgba(150,150,150,0.7)';}),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11}}}}}});
+  if (qCtx && qk.length) new Chart(qCtx,{type:'bar',data:{labels:qk,datasets:[{data:qk.map(function(k){return qm[k];}),backgroundColor:qk.map(function(k){return qcols[k]||'rgba(150,150,150,0.7)';}),borderColor:qk.map(function(k){return (qcols[k]||'rgba(150,150,150,0.7)').replace('0.7','1');}),borderWidth:2,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,grid:{color:'#f0eeea'},ticks:{font:{size:10}}}}}});
   if (prices.length) {
     var mn=Math.min.apply(null,prices),mx=Math.max.apply(null,prices),bSz=Math.ceil((mx-mn)/20)||100;
     var bk={};prices.forEach(function(p){var b=Math.round(Math.floor((p-mn)/bSz)*bSz+mn);bk[b]=(bk[b]||0)+1;});
@@ -1600,6 +1651,8 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
     if(pCtx)new Chart(pCtx,{type:'bar',data:{labels:bKs.map(function(k){return'$'+Math.round(k).toLocaleString();}),datasets:[{data:bKs.map(function(k){return bk[k];}),backgroundColor:'rgba(212,168,67,0.5)',borderColor:'rgba(212,168,67,1)',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
   }
   applyListingFilters();
+  // Trigger AI analysis
+  setTimeout(function(){ runAIAnalysis(active, sold, latestScrape); }, 800);
 }
 
 function _lsStat(label, val, sub, cls) {
@@ -1689,6 +1742,83 @@ function lsGoPage(p){window._lsPage=p;applyListingFilters();}
 function lsSort(col){var s=window._lsSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._lsSort=s;document.querySelectorAll('[id^="ls-sort-"]').forEach(function(el){el.textContent='';});var icon=document.getElementById('ls-sort-'+col);if(icon)icon.textContent=s.dir===1?'↑':'↓';window._lsPage=1;applyListingFilters();}
 function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'':'';});window._lsPage=1;applyListingFilters();}
 
+
+/* ══════════════════════════════════════════════════════════════════
+   AI MARKET ANALYSIS
+══════════════════════════════════════════════════════════════════ */
+function runAIAnalysis(active, sold, latestScrape) {
+  var wrap = document.getElementById('aiWrap');
+  if (!wrap) return;
+
+  // Show loading state
+  wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; AI Market Analysis <span class="ai-badge">Powered by Claude</span></div></div><div class="ai-loading"><div class="loading-bar" style="width:100px;border-radius:4px;"></div><span>Analyzing market data...</span></div></div>';
+
+  // Build data summary for Claude
+  var prices = active.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
+  var floor = prices[0]||0;
+  var ceiling = prices[prices.length-1]||0;
+  var avg = prices.length ? Math.round(prices.reduce(function(s,v){return s+v;},0)/prices.length) : 0;
+  var q1=0,q2=0,q3=0,q4=0;
+  active.forEach(function(l){var q=l.quantity||1;if(q===1)q1++;else if(q===2)q2++;else if(q===3)q3++;else q4++;});
+  var newListings = active.filter(function(l){return l.dom===0;}).length;
+  var staleListings = active.filter(function(l){return l.dom>=14;}).length;
+  var heroSnaps = (window._heroSnaps&&window._heroSnaps.all)||[];
+  var floorHistory = heroSnaps.map(function(s){return{date:s.scraped_at.slice(0,10),floor:n(s.event_floor),listings:n(s.total_listings)};}).filter(function(x){return x.floor>0;});
+  var floorTrend = '';
+  if(floorHistory.length>=2){
+    var first=floorHistory[0].floor,last2=floorHistory[floorHistory.length-1].floor;
+    var chg=Math.round((last2-first)/first*100);
+    floorTrend='Floor has moved '+(chg>0?'+':'')+chg+'% since tracking began (from $'+Math.round(first).toLocaleString()+' to $'+Math.round(last2).toLocaleString()+').';
+  }
+  var eventName = document.querySelector('.analysis-title') ? document.querySelector('.analysis-title').textContent : 'this event';
+  var eventMeta = document.querySelector('.analysis-sub') ? document.querySelector('.analysis-sub').textContent : '';
+
+  var prompt = 'You are a ticket market analyst for a professional reseller. Analyze this StubHub listing data and provide actionable intelligence.\n\nEvent: '+eventName+'\n'+eventMeta+'\n\nCurrent Market Data:\n- Active listings: '+active.length+'\n- Floor price: $'+Math.round(floor).toLocaleString()+'\n- Ceiling price: $'+Math.round(ceiling).toLocaleString()+'\n- Average price: $'+avg.toLocaleString()+'\n- Singles (1x): '+q1+' ('+Math.round(q1/(active.length||1)*100)+'%)\n- Pairs (2x): '+q2+' ('+Math.round(q2/(active.length||1)*100)+'%)\n- Triples (3x): '+q3+'\n- Quads+ (4x+): '+q4+'\n- New listings today: '+newListings+'\n- Stale listings (14+ days): '+staleListings+'\n- Sales detected since last scrape: '+sold.length+'\n'+floorTrend+'\n\nFloor history (last '+Math.min(floorHistory.length,10)+' data points):\n'+floorHistory.slice(-10).map(function(x){return x.date+': $'+Math.round(x.floor).toLocaleString()+' ('+x.listings+' listings)';}).join('\n')+'\n\nProvide your analysis in this exact JSON format (respond with JSON only, no markdown):\n{\n  "market_movement": "2-3 sentences on how the market is moving based on floor trend and listing velocity",\n  "buy_signal": "1-2 sentences on the best time/conditions to buy tickets for this event",\n  "sell_signal": "1-2 sentences on the best time/conditions to sell tickets for this event",\n  "verdict": "BUY" | "HOLD" | "SELL",\n  "verdict_reason": "1 sentence explaining the verdict",\n  "signals": ["signal1", "signal2", "signal3"]\n}';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    var text = (data.content&&data.content[0]&&data.content[0].text)||'{}';
+    try {
+      var clean = text.replace(/```json|```/g,'').trim();
+      var ai = JSON.parse(clean);
+      var verdictCls = (ai.verdict||'').toLowerCase() === 'buy' ? 'buy' : (ai.verdict||'').toLowerCase() === 'sell' ? 'sell' : 'hold';
+      var signals = (ai.signals||[]).map(function(s,i){
+        var cls = i===0?'positive':i===1?'negative':'neutral';
+        return '<span class="ai-signal '+cls+'">'+esc(s)+'</span>';
+      }).join('');
+      wrap.innerHTML = '<div class="ai-card">'
+        +'<div class="ai-header">'
+        +'<div class="ai-title">&#129504; AI Market Analysis <span class="ai-badge">Powered by Claude</span></div>'
+        +'<button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">&#8635; Refresh</button>'
+        +'</div>'
+        +'<div class="ai-sections">'
+        +'<div class="ai-section"><div class="ai-section-label">&#128200; Market Movement</div><div class="ai-section-text">'+esc(ai.market_movement||'—')+'</div></div>'
+        +'<div class="ai-section"><div class="ai-section-label">&#128994; Buy Signal</div><div class="ai-section-text">'+esc(ai.buy_signal||'—')+'</div></div>'
+        +'<div class="ai-section"><div class="ai-section-label">&#128308; Sell Signal</div><div class="ai-section-text">'+esc(ai.sell_signal||'—')+'</div></div>'
+        +'</div>'
+        +'<div class="ai-verdict '+verdictCls+'">'
+        +'<div class="ai-verdict-label">'+(verdictCls==='buy'?'&#9679; Buy Recommendation':verdictCls==='sell'?'&#9679; Sell Recommendation':'&#9679; Hold Recommendation')+'</div>'
+        +(ai.verdict_reason||'')
+        +'</div>'
+        +(signals?'<div class="ai-signal-row">'+signals+'</div>':'')
+        +'</div>';
+    } catch(e) {
+      wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; AI Market Analysis</div></div><div style="color:#aaa;font-size:13px;padding:8px 0;">Could not parse analysis. <button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">Retry</button></div></div>';
+    }
+  })
+  .catch(function(e){
+    wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; AI Market Analysis</div></div><div style="color:#aaa;font-size:13px;padding:8px 0;">Analysis unavailable. <button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">Retry</button></div></div>';
+  });
+}
 
 var VKT_AUTH_API='https://vkt-volume-api.vercel.app';
 var GOOGLE_CLIENT_ID='224323750744-tle0rnakv04jah0t9rseuh1a6g5ts8qv.apps.googleusercontent.com';
