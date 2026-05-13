@@ -1744,80 +1744,165 @@ function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'
 
 
 /* ══════════════════════════════════════════════════════════════════
-   AI MARKET ANALYSIS
+   AI MARKET ANALYSIS — Client-side, no API needed
 ══════════════════════════════════════════════════════════════════ */
 function runAIAnalysis(active, sold, latestScrape) {
   var wrap = document.getElementById('aiWrap');
   if (!wrap) return;
 
-  // Show loading state
-  wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; AI Market Analysis <span class="ai-badge">Powered by Claude</span></div></div><div class="ai-loading"><div class="loading-bar" style="width:100px;border-radius:4px;"></div><span>Analyzing market data...</span></div></div>';
+  wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; Market Analysis <span class="ai-badge">Live Data</span></div></div><div class="ai-loading"><div class="loading-bar" style="width:100px;border-radius:4px;"></div><span>Analyzing...</span></div></div>';
 
-  // Build data summary for Claude
+  setTimeout(function() {
+    try {
+      var analysis = analyzeMarket(active, sold);
+      renderAICard(wrap, analysis);
+    } catch(e) {
+      wrap.innerHTML = '<div class="ai-card"><div style="color:#aaa;font-size:13px;">Analysis unavailable.</div></div>';
+    }
+  }, 400);
+}
+
+function analyzeMarket(active, sold) {
   var prices = active.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
-  var floor = prices[0]||0;
-  var ceiling = prices[prices.length-1]||0;
+  var total = active.length || 1;
+  var floor = prices[0] || 0;
+  var ceiling = prices[prices.length-1] || 0;
   var avg = prices.length ? Math.round(prices.reduce(function(s,v){return s+v;},0)/prices.length) : 0;
+  var median = prices[Math.floor(prices.length/2)] || 0;
+
+  // Pack size breakdown
   var q1=0,q2=0,q3=0,q4=0;
   active.forEach(function(l){var q=l.quantity||1;if(q===1)q1++;else if(q===2)q2++;else if(q===3)q3++;else q4++;});
-  var newListings = active.filter(function(l){return l.dom===0;}).length;
-  var staleListings = active.filter(function(l){return l.dom>=14;}).length;
+  var singlesPct = Math.round(q1/total*100);
+  var pairsPct   = Math.round(q2/total*100);
+
+  // Days on market
+  var newToday   = active.filter(function(l){return l.dom===0;}).length;
+  var stale14    = active.filter(function(l){return l.dom>=14;}).length;
+  var stalePct   = Math.round(stale14/total*100);
+  var avgDom     = Math.round(active.reduce(function(s,l){return s+(l.dom||0);},0)/total);
+
+  // Floor history trend
   var heroSnaps = (window._heroSnaps&&window._heroSnaps.all)||[];
-  var floorHistory = heroSnaps.map(function(s){return{date:s.scraped_at.slice(0,10),floor:n(s.event_floor),listings:n(s.total_listings)};}).filter(function(x){return x.floor>0;});
-  var floorTrend = '';
-  if(floorHistory.length>=2){
-    var first=floorHistory[0].floor,last2=floorHistory[floorHistory.length-1].floor;
-    var chg=Math.round((last2-first)/first*100);
-    floorTrend='Floor has moved '+(chg>0?'+':'')+chg+'% since tracking began (from $'+Math.round(first).toLocaleString()+' to $'+Math.round(last2).toLocaleString()+').';
+  var floorSnaps = heroSnaps.filter(function(s){return n(s.event_floor)>0;});
+  var floorTrendPct = 0, floorTrendDir = 'flat';
+  var floorHistory7d = 0;
+  if(floorSnaps.length>=2){
+    var oldest = n(floorSnaps[0].event_floor);
+    var latest2 = n(floorSnaps[floorSnaps.length-1].event_floor);
+    floorTrendPct = oldest>0 ? Math.round((latest2-oldest)/oldest*100) : 0;
+    floorTrendDir = floorTrendPct > 5 ? 'rising' : floorTrendPct < -5 ? 'falling' : 'flat';
+    // 7-day floor change
+    var cut7 = Date.now()-7*24*3600000;
+    var snap7 = null;
+    for(var i=0;i<floorSnaps.length;i++){if(new Date(floorSnaps[i].scraped_at).getTime()<=cut7)snap7=floorSnaps[i];}
+    if(snap7) floorHistory7d = Math.round((latest2-n(snap7.event_floor))/n(snap7.event_floor)*100);
   }
-  var eventName = document.querySelector('.analysis-title') ? document.querySelector('.analysis-title').textContent : 'this event';
-  var eventMeta = document.querySelector('.analysis-sub') ? document.querySelector('.analysis-sub').textContent : '';
 
-  var prompt = 'You are a ticket market analyst for a professional reseller. Analyze this StubHub listing data and provide actionable intelligence.\n\nEvent: '+eventName+'\n'+eventMeta+'\n\nCurrent Market Data:\n- Active listings: '+active.length+'\n- Floor price: $'+Math.round(floor).toLocaleString()+'\n- Ceiling price: $'+Math.round(ceiling).toLocaleString()+'\n- Average price: $'+avg.toLocaleString()+'\n- Singles (1x): '+q1+' ('+Math.round(q1/(active.length||1)*100)+'%)\n- Pairs (2x): '+q2+' ('+Math.round(q2/(active.length||1)*100)+'%)\n- Triples (3x): '+q3+'\n- Quads+ (4x+): '+q4+'\n- New listings today: '+newListings+'\n- Stale listings (14+ days): '+staleListings+'\n- Sales detected since last scrape: '+sold.length+'\n'+floorTrend+'\n\nFloor history (last '+Math.min(floorHistory.length,10)+' data points):\n'+floorHistory.slice(-10).map(function(x){return x.date+': $'+Math.round(x.floor).toLocaleString()+' ('+x.listings+' listings)';}).join('\n')+'\n\nProvide your analysis in this exact JSON format (respond with JSON only, no markdown):\n{\n  "market_movement": "2-3 sentences on how the market is moving based on floor trend and listing velocity",\n  "buy_signal": "1-2 sentences on the best time/conditions to buy tickets for this event",\n  "sell_signal": "1-2 sentences on the best time/conditions to sell tickets for this event",\n  "verdict": "BUY" | "HOLD" | "SELL",\n  "verdict_reason": "1 sentence explaining the verdict",\n  "signals": ["signal1", "signal2", "signal3"]\n}';
+  // Listing velocity (new vs stale)
+  var addingMoreThanSelling = newToday > sold.length;
+  var salesVelocityStr = sold.length === 0 ? 'no sales detected yet' :
+    sold.length <= 5 ? 'slow sales velocity ('+sold.length+' sold)' :
+    sold.length <= 20 ? 'moderate sales velocity ('+sold.length+' sold)' :
+    'strong sales velocity ('+sold.length+' sold since last scrape)';
 
-  fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    var text = (data.content&&data.content[0]&&data.content[0].text)||'{}';
-    try {
-      var clean = text.replace(/```json|```/g,'').trim();
-      var ai = JSON.parse(clean);
-      var verdictCls = (ai.verdict||'').toLowerCase() === 'buy' ? 'buy' : (ai.verdict||'').toLowerCase() === 'sell' ? 'sell' : 'hold';
-      var signals = (ai.signals||[]).map(function(s,i){
-        var cls = i===0?'positive':i===1?'negative':'neutral';
-        return '<span class="ai-signal '+cls+'">'+esc(s)+'</span>';
-      }).join('');
-      wrap.innerHTML = '<div class="ai-card">'
-        +'<div class="ai-header">'
-        +'<div class="ai-title">&#129504; AI Market Analysis <span class="ai-badge">Powered by Claude</span></div>'
-        +'<button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">&#8635; Refresh</button>'
-        +'</div>'
-        +'<div class="ai-sections">'
-        +'<div class="ai-section"><div class="ai-section-label">&#128200; Market Movement</div><div class="ai-section-text">'+esc(ai.market_movement||'—')+'</div></div>'
-        +'<div class="ai-section"><div class="ai-section-label">&#128994; Buy Signal</div><div class="ai-section-text">'+esc(ai.buy_signal||'—')+'</div></div>'
-        +'<div class="ai-section"><div class="ai-section-label">&#128308; Sell Signal</div><div class="ai-section-text">'+esc(ai.sell_signal||'—')+'</div></div>'
-        +'</div>'
-        +'<div class="ai-verdict '+verdictCls+'">'
-        +'<div class="ai-verdict-label">'+(verdictCls==='buy'?'&#9679; Buy Recommendation':verdictCls==='sell'?'&#9679; Sell Recommendation':'&#9679; Hold Recommendation')+'</div>'
-        +(ai.verdict_reason||'')
-        +'</div>'
-        +(signals?'<div class="ai-signal-row">'+signals+'</div>':'')
-        +'</div>';
-    } catch(e) {
-      wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; AI Market Analysis</div></div><div style="color:#aaa;font-size:13px;padding:8px 0;">Could not parse analysis. <button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">Retry</button></div></div>';
-    }
-  })
-  .catch(function(e){
-    wrap.innerHTML = '<div class="ai-card"><div class="ai-header"><div class="ai-title">&#129504; AI Market Analysis</div></div><div style="color:#aaa;font-size:13px;padding:8px 0;">Analysis unavailable. <button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">Retry</button></div></div>';
-  });
+  // Price concentration
+  var underMedian = prices.filter(function(p){return p < median;}).length;
+  var pricePressure = underMedian > prices.length*0.6 ? 'compressed low' : 'spread across range';
+
+  // Days to event from event meta
+  var daysToEvent = null;
+  var evRow = allRows.find(function(r){return document.title.includes(r.name)||r.name.includes((document.querySelector('.analysis-title')||{}).textContent||'');});
+  if(!evRow && allRows.length){
+    var titleEl = document.querySelector('.analysis-title');
+    if(titleEl){evRow = allRows.find(function(r){return titleEl.textContent.includes(r.name.slice(0,15));});}
+  }
+  if(evRow) daysToEvent = evRow.daysToEvent;
+
+  // ── MARKET MOVEMENT ──
+  var movement = '';
+  if(floorTrendDir==='rising') movement = 'Floor prices are up '+Math.abs(floorTrendPct)+'% since tracking began, with a '+(floorHistory7d>0?'+':'')+floorHistory7d+'% move over the last 7 days. ';
+  else if(floorTrendDir==='falling') movement = 'Floor prices have dropped '+Math.abs(floorTrendPct)+'% since tracking began, suggesting softening demand. ';
+  else movement = 'Floor prices have been relatively stable ('+floorTrendPct+'% change since tracking began). ';
+  movement += 'There are '+total.toLocaleString()+' active listings with '+salesVelocityStr+'. ';
+  if(stalePct>30) movement += stalePct+'% of listings are 14+ days old, indicating soft demand at current prices.';
+  else if(stalePct<10 && sold.length>10) movement += 'Low stale inventory and strong sales suggest healthy demand.';
+  else movement += 'Inventory is '+avgDom+' days old on average.';
+
+  // ── BUY SIGNAL ──
+  var buySignal = '';
+  if(floorTrendDir==='rising') buySignal = 'Buy now — floor is trending up '+Math.abs(floorTrendPct)+'% and likely to continue rising as the event approaches.';
+  else if(floorTrendDir==='falling') buySignal = 'Wait for the floor to stabilize. Prices are still moving down; buying too early risks overpaying.';
+  else if(daysToEvent!==null && daysToEvent<=14) buySignal = 'With '+daysToEvent+' days to the event, urgency is increasing. Buy within the next few days if you need tickets.';
+  else buySignal = 'Prices are stable — monitor daily. Buy if the floor dips below $'+Math.round(floor*0.92).toLocaleString()+' or when inventory starts dropping.';
+
+  // ── SELL SIGNAL ──
+  var sellSignal = '';
+  if(singlesPct > 50) sellSignal = 'Singles dominate ('+singlesPct+'%) — ideal market for selling individual tickets. Price just below the current floor of $'+Math.round(floor).toLocaleString()+' to move quickly.';
+  else if(pairsPct > 40) sellSignal = 'Pairs are the dominant format ('+pairsPct+'%) — list as pairs at or just below the floor ($'+Math.round(floor).toLocaleString()+') for fastest sale.';
+  else sellSignal = 'Healthy mix of pack sizes. List 1-2 tickets priced within 5% of the floor ($'+Math.round(floor*1.05).toLocaleString()+') for competitive positioning.';
+  if(daysToEvent!==null && daysToEvent<=7) sellSignal += ' Event is in '+daysToEvent+' days — price aggressively now or risk holding.';
+
+  // ── VERDICT ──
+  var score = 0;
+  if(floorTrendDir==='rising') score += 2;
+  if(floorTrendDir==='falling') score -= 2;
+  if(sold.length > 15) score += 1;
+  if(stalePct > 40) score -= 1;
+  if(newToday > total*0.1) score -= 1;
+  if(daysToEvent!==null && daysToEvent<=14) score += 1;
+  if(daysToEvent!==null && daysToEvent<=7) score += 1;
+
+  var verdict = score >= 2 ? 'BUY' : score <= -1 ? 'SELL' : 'HOLD';
+  var verdictReason = verdict==='BUY'
+    ? 'Rising floor trend and active sales velocity suggest prices will continue climbing.'
+    : verdict==='SELL'
+    ? 'Softening prices and high stale inventory suggest now is the time to exit positions.'
+    : 'Market is stable — hold and monitor for a clearer signal.';
+
+  // ── SIGNALS ──
+  var signals = [];
+  if(floorTrendDir==='rising') signals.push({text:'Floor +'+Math.abs(floorTrendPct)+'% since tracking', type:'positive'});
+  else if(floorTrendDir==='falling') signals.push({text:'Floor -'+Math.abs(floorTrendPct)+'% since tracking', type:'negative'});
+  else signals.push({text:'Floor price stable', type:'neutral'});
+
+  if(sold.length>10) signals.push({text:sold.length+' sales detected', type:'positive'});
+  else if(sold.length===0) signals.push({text:'No sales yet', type:'neutral'});
+  else signals.push({text:sold.length+' sales detected', type:'neutral'});
+
+  if(stalePct>30) signals.push({text:stalePct+'% stale inventory', type:'negative'});
+  else if(newToday>5) signals.push({text:newToday+' new listings today', type:'negative'});
+  else signals.push({text:'Low stale inventory ('+stalePct+'%)', type:'positive'});
+
+  if(daysToEvent!==null) signals.push({text:daysToEvent+'d to event', type:daysToEvent<=7?'negative':daysToEvent<=30?'neutral':'positive'});
+
+  signals.push({text:'Floor $'+Math.round(floor).toLocaleString()+' · Avg $'+avg.toLocaleString(), type:'neutral'});
+  signals.push({text:singlesPct+'% singles · '+pairsPct+'% pairs', type:'neutral'});
+
+  return { movement:movement, buySignal:buySignal, sellSignal:sellSignal, verdict:verdict, verdictReason:verdictReason, signals:signals.slice(0,5) };
+}
+
+function renderAICard(wrap, ai) {
+  var verdictCls = ai.verdict==='BUY' ? 'buy' : ai.verdict==='SELL' ? 'sell' : 'hold';
+  var signals = ai.signals.map(function(s){
+    return '<span class="ai-signal '+s.type+'">'+esc(s.text)+'</span>';
+  }).join('');
+  wrap.innerHTML = '<div class="ai-card">'
+    +'<div class="ai-header">'
+    +'<div class="ai-title">&#129504; Market Analysis <span class="ai-badge">Live Data</span></div>'
+    +'<button class="ai-refresh" onclick="runAIAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[], null)">&#8635; Refresh</button>'
+    +'</div>'
+    +'<div class="ai-sections">'
+    +'<div class="ai-section"><div class="ai-section-label">&#128200; Market Movement</div><div class="ai-section-text">'+esc(ai.movement)+'</div></div>'
+    +'<div class="ai-section"><div class="ai-section-label">&#128994; When to Buy</div><div class="ai-section-text">'+esc(ai.buySignal)+'</div></div>'
+    +'<div class="ai-section"><div class="ai-section-label">&#128308; When to Sell</div><div class="ai-section-text">'+esc(ai.sellSignal)+'</div></div>'
+    +'</div>'
+    +'<div class="ai-verdict '+verdictCls+'">'
+    +'<div class="ai-verdict-label">'+(verdictCls==='buy'?'&#9679; Buy Recommendation':verdictCls==='sell'?'&#9679; Sell Recommendation':'&#9679; Hold Recommendation')+'</div>'
+    +esc(ai.verdictReason)
+    +'</div>'
+    +'<div class="ai-signal-row">'+signals+'</div>'
+    +'</div>';
 }
 
 var VKT_AUTH_API='https://vkt-volume-api.vercel.app';
