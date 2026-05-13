@@ -970,11 +970,15 @@ function loadAnalysis(eventId){
 
     // ── FETCH LISTINGS SEPARATELY (non-blocking) ──
     (function fetchListings(){
-      var listLoader=document.getElementById('listingsLoader');
-      if(listLoader)listLoader.style.display='block';
+      var wrap=document.getElementById('listingsWrap');
+      if(wrap)wrap.innerHTML='<div style="padding:1rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;font-size:12px;color:#888;">Querying listings for event_id: <strong style=\"color:#111;\">'+eventId+'</strong>...</div>';
       getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000)
       .then(function(rawListings){
         rawListings=rawListings||[];
+        if(!rawListings.length){
+          if(wrap)wrap.innerHTML='<div style="padding:1.5rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;font-size:12px;">No listings found in DB for event_id: <strong>'+eventId+'</strong>. Check that the scraper saved with the same ID.</div>';
+          return;
+        }
         // Build history map
         var lh={};
         rawListings.forEach(function(l){
