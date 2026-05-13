@@ -1012,6 +1012,7 @@ function loadAnalysis(eventId){
     html+='<div id="aiWrap" style="margin-bottom:14px;"></div>';
     // ── LISTINGS PLACEHOLDER (filled after async fetch) ──
     html+='<div id="listingsWrap" style="margin-top:14px;"><div id="listingsLoader" class="msg" style="padding:1.5rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;"><div style="display:flex;align-items:center;gap:10px;justify-content:center;"><div class="loading-bar" style="width:120px;border-radius:4px;"></div><span style="font-size:12px;color:#aaa;">Loading listing data...</span></div></div></div>';
+    html+='<div id="listingAnalysisWrap" style="margin-top:14px;"></div>';
 
     html+='</div>';
     document.getElementById('app').innerHTML=html;
@@ -1648,6 +1649,8 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   applyListingFilters();
   // Trigger AI analysis
   setTimeout(function(){ runAIAnalysis(active, sold, latestScrape); }, 800);
+  // Trigger listing analysis
+  setTimeout(function(){ runListingAnalysis(active, sold); }, 1000);
 }
 
 function _lsStat(label, val, sub, cls) {
@@ -1746,22 +1749,22 @@ function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'
 ══════════════════════════════════════════════════════════════════ */
 function getVenueMapUrl(eventName, venue) {
   var v = ((venue||'') + ' ' + (eventName||'')).toLowerCase();
-  if (/sofi|los.angel|inglewood/i.test(v))    return 'https://www.2026worldcupsim.com/los-angeles.png';
+  if (/sofi|los.angel|inglewood/i.test(v))           return 'https://www.2026worldcupsim.com/los-angeles.png';
   if (/metlife|new.york|new.jersey|rutherford/i.test(v)) return 'https://www.2026worldcupsim.com/new-york.png';
-  if (/at.?t.stadium|dallas|arlington/i.test(v))        return 'https://www.2026worldcupsim.com/dallas.png';
-  if (/hard.rock|miami/i.test(v))             return 'https://www.2026worldcupsim.com/miami.png';
-  if (/lincoln|philadelphia/i.test(v))        return 'https://www.2026worldcupsim.com/philadelphia.png';
-  if (/arrowhead|kansas.city/i.test(v))       return 'https://www.2026worldcupsim.com/kansas-city.png';
-  if (/mercedes|atlanta/i.test(v))            return 'https://www.2026worldcupsim.com/atlanta.png';
-  if (/lumen|seattle/i.test(v))               return 'https://www.2026worldcupsim.com/seattle-world-cup-seatmap.png';
-  if (/nrg|houston/i.test(v))                 return 'https://www.2026worldcupsim.com/houston.png';
-  if (/levi|san.francisco|santa.clara/i.test(v)) return 'https://www.2026worldcupsim.com/san-francisco.png';
-  if (/gillette|boston|foxborough/i.test(v))  return 'https://www.2026worldcupsim.com/boston.png';
-  if (/azteca|mexico.city/i.test(v))          return 'https://www.2026worldcupsim.com/mexico-city.png';
-  if (/akron|guadalajara/i.test(v))           return 'https://www.2026worldcupsim.com/guadalajara.png';
-  if (/bbva|monterrey/i.test(v))              return 'https://www.2026worldcupsim.com/monterrey.png';
-  if (/bmo|toronto/i.test(v))                 return 'https://www.2026worldcupsim.com/toronto.png';
-  if (/bc.place|vancouver/i.test(v))          return 'https://www.2026worldcupsim.com/vancouver.png';
+  if (/at.?t.stadium|dallas|arlington/i.test(v))     return 'https://www.2026worldcupsim.com/dallas.png';
+  if (/hard.rock|miami/i.test(v))                    return 'https://www.2026worldcupsim.com/miami.png';
+  if (/lincoln|philadelphia/i.test(v))               return 'https://www.2026worldcupsim.com/philadelphia.png';
+  if (/arrowhead|kansas.city/i.test(v))              return 'https://www.2026worldcupsim.com/kansas-city.png';
+  if (/mercedes|atlanta/i.test(v))                   return 'https://www.2026worldcupsim.com/atlanta.png';
+  if (/lumen|seattle/i.test(v))                      return 'https://www.2026worldcupsim.com/seattle-world-cup-seatmap.png';
+  if (/nrg|houston/i.test(v))                        return 'https://www.2026worldcupsim.com/houston.png';
+  if (/levi|san.francisco|santa.clara/i.test(v))     return 'https://www.2026worldcupsim.com/san-francisco.png';
+  if (/gillette|boston|foxborough/i.test(v))         return 'https://www.2026worldcupsim.com/boston.png';
+  if (/azteca|mexico.city/i.test(v))                 return 'https://www.2026worldcupsim.com/mexico-city.png';
+  if (/akron|guadalajara/i.test(v))                  return 'https://www.2026worldcupsim.com/guadalajara.png';
+  if (/bbva|monterrey/i.test(v))                     return 'https://www.2026worldcupsim.com/monterrey.png';
+  if (/bmo|toronto/i.test(v))                        return 'https://www.2026worldcupsim.com/toronto.png';
+  if (/bc.place|vancouver/i.test(v))                 return 'https://www.2026worldcupsim.com/vancouver.png';
   return null;
 }
 
@@ -1769,172 +1772,246 @@ function drawStadiumHeatmap(listings) {
   var wrap = document.getElementById('stadiumHeatmap');
   if (!wrap) return;
 
-  // Build section -> count map
+  // Build section -> data map
   var secMap = {};
   listings.forEach(function(l) {
     var s = (l.section||'').trim();
     if (!s) return;
-    if (!secMap[s]) secMap[s] = {count:0, floor:Infinity, total:0};
+    if (!secMap[s]) secMap[s] = {count:0, floor:Infinity, total:0, q1:0, q2:0, q3:0, q4:0};
     secMap[s].count++;
     secMap[s].total += l.price;
     if (l.price < secMap[s].floor) secMap[s].floor = l.price;
+    var q = l.quantity||1;
+    if (q===1) secMap[s].q1++; else if(q===2) secMap[s].q2++; else if(q===3) secMap[s].q3++; else secMap[s].q4++;
   });
   Object.keys(secMap).forEach(function(s){ secMap[s].avg = Math.round(secMap[s].total/secMap[s].count); });
 
-  // Build category totals
-  var catMap = {1:{count:0,floor:Infinity,total:0,secs:[]}, 2:{count:0,floor:Infinity,total:0,secs:[]}, 3:{count:0,floor:Infinity,total:0,secs:[]}, 4:{count:0,floor:Infinity,total:0,secs:[]}};
-  listings.forEach(function(l){
-    // Try to get category from section name pattern
-    var sec = (l.section||'').toLowerCase();
-    var cat = 0;
-    if (/category\s*1|cat\s*1/i.test(sec)) cat=1;
-    else if (/category\s*2|cat\s*2/i.test(sec)) cat=2;
-    else if (/category\s*3|cat\s*3/i.test(sec)) cat=3;
-    else if (/category\s*4|cat\s*4/i.test(sec)) cat=4;
-    // fallback: classify by section number
-    if (!cat) {
-      var num = parseInt((l.section||'').replace(/\D/g,''));
-      if (!isNaN(num)) {
-        if (num>=100&&num<=159) cat=1;
-        else if (num>=160&&num<=199||num>=200&&num<=249) cat=2;
-        else if (num>=250&&num<=299||num>=300&&num<=359) cat=3;
-        else if (num>=360||num>=400) cat=4;
-        else cat=2;
-      } else { cat=3; }
-    }
-    if (catMap[cat]) {
-      catMap[cat].count++;
-      catMap[cat].total += l.price;
-      if (l.price < catMap[cat].floor) catMap[cat].floor = l.price;
-      if (catMap[cat].secs.indexOf(l.section)<0) catMap[cat].secs.push(l.section);
-    }
-  });
-  Object.keys(catMap).forEach(function(c){
-    catMap[c].avg = catMap[c].count>0 ? Math.round(catMap[c].total/catMap[c].count) : 0;
-  });
+  var secs = Object.keys(secMap).sort(function(a,b){return (secMap[b].count - secMap[a].count);});
+  var maxCount = secs.length ? secMap[secs[0]].count : 1;
 
-  var maxCount = Math.max.apply(null, Object.values(catMap).map(function(c){return c.count;})) || 1;
-
-  function countToOpacity(count) {
-    if (!count) return 0;
-    var t = count / maxCount;
-    return 0.15 + t * 0.55; // range 0.15-0.70
-  }
-
-  // Get venue map image
+  // Get venue map
   var titleEl = document.querySelector('.analysis-title');
-  var subEl = document.querySelector('.analysis-sub');
-  var eventName = titleEl ? titleEl.textContent : '';
-  var venue = subEl ? subEl.textContent : '';
-  var mapUrl = getVenueMapUrl(eventName, venue);
+  var subEl   = document.querySelector('.analysis-sub');
+  var mapUrl  = getVenueMapUrl(titleEl?titleEl.textContent:'', subEl?subEl.textContent:'');
 
   var W = wrap.offsetWidth || 400;
-  var H = 300;
-  wrap.style.height = H + 'px';
-  wrap.style.position = 'relative';
-  wrap.style.overflow = 'hidden';
-  wrap.style.borderRadius = '6px';
-  wrap.style.background = '#0a0f1a';
 
-  if (!mapUrl) {
-    wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:13px;">No venue map available</div>';
-    return;
+  // ── PART 1: Clean stadium image ──
+  var html = '<div style="width:100%;border-radius:8px;overflow:hidden;background:#0a0f1a;margin-bottom:14px;">';
+  if (mapUrl) {
+    html += '<img src="'+mapUrl+'" style="width:100%;height:auto;display:block;" crossorigin="anonymous" onerror="this.style.display=\'none\'">';
+  } else {
+    html += '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;">No venue map for this event</div>';
+  }
+  html += '</div>';
+
+  // ── PART 2: Section density grid ──
+  html += '<div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">';
+  html += '<div style="font-size:12px;font-weight:700;color:#111;">Section Listing Density</div>';
+  html += '<div style="font-size:10px;color:#aaa;">'+secs.length+' sections · hover for details</div>';
+  html += '</div>';
+
+  // Color scale: light = few, dark gold = most
+  function countToColor(count) {
+    var t = count / maxCount;
+    if (t < 0.15) return '#f3efe4';
+    if (t < 0.30) return '#f0d899';
+    if (t < 0.50) return '#e8bb50';
+    if (t < 0.70) return '#d4a843';
+    if (t < 0.85) return '#b8892e';
+    return '#8a6a18';
+  }
+  function countToText(count) {
+    var t = count / maxCount;
+    return t < 0.4 ? '#8a6a18' : '#fff';
   }
 
-  // Category overlay colors (FIFA standard)
-  var catColors = {
-    1: 'rgba(0, 150, 80, ',    // green
-    2: 'rgba(80, 140, 220, ',  // blue
-    3: 'rgba(230, 160, 20, ',  // amber
-    4: 'rgba(220, 60, 60, '    // red
-  };
-
-  // Build the HTML: image + SVG overlay + tooltip
-  // The SVG uses viewBox matching typical FIFA map proportions
-  // Category zones are approximate elliptical regions over the map
-  // These are tuned for the standard FIFA map layout (rectangular pitch, 4 category rings)
-  var html = '<div style="position:relative;width:100%;height:'+H+'px;">';
-
-  // Background image - grayscale to let colors show clearly
-  html += '<img src="'+mapUrl+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;filter:grayscale(40%) brightness(0.7);pointer-events:none;" crossorigin="anonymous"/>';
-
-  // SVG overlay with category zone ellipses
-  html += '<svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" style="position:absolute;top:0;left:0;" xmlns="http://www.w3.org/2000/svg">';
-
-  // Category zone coordinates (center of pitch at ~200,150 for a 400x300 viewbox)
-  // These approximate the typical FIFA map layout
-  var zones = [
-    // Cat 1: inner sideline ring (closest to pitch)
-    { cat:1, type:'ring', cx:200, cy:150, rx1:60, ry1:45, rx2:110, ry2:80 },
-    // Cat 2: middle ring
-    { cat:2, type:'ring', cx:200, cy:150, rx1:110, ry1:80, rx2:160, ry2:115 },
-    // Cat 3: outer ring
-    { cat:3, type:'ring', cx:200, cy:150, rx1:160, ry1:115, rx2:195, ry2:135 },
-    // Cat 4: outermost corners
-    { cat:4, type:'ring', cx:200, cy:150, rx1:195, ry1:135, rx2:220, ry2:148 },
-  ];
-
-  zones.forEach(function(z) {
-    var c = catMap[z.cat];
-    var opacity = countToOpacity(c.count);
-    var color = catColors[z.cat] || 'rgba(150,150,150,';
-    var fill = color + opacity + ')';
-
-    // Draw as a donut ring using fill-rule:evenodd
-    var d = 'M '+(z.cx+z.rx2)+','+z.cy
-      +' A '+z.rx2+','+z.ry2+' 0 1 0 '+(z.cx+z.rx2-0.01)+','+z.cy
-      +' M '+(z.cx+z.rx1)+','+z.cy
-      +' A '+z.rx1+','+z.ry1+' 0 1 1 '+(z.cx+z.rx1-0.01)+','+z.cy;
-
-    html += '<path d="'+d+'" fill="'+fill+'" fill-rule="evenodd" stroke="'+color+'0.4)" stroke-width="1"'
-      +' style="cursor:pointer;"'
-      +' onmouseenter="showHeatTip(event,'+z.cat+','+c.count+','+c.avg+','+(c.floor<Infinity?c.floor:0)+')"'
-      +' onmouseleave="hideHeatTip()"/>';
-
-    // Category label
-    if (c.count > 0) {
-      var lx = z.cx, ly = z.cy - (z.ry1+z.ry2)/2;
-      html += '<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle"'
-        +' font-size="9" font-weight="700" fill="#fff" opacity="0.9" pointer-events="none">'
-        +'Cat '+z.cat+' · '+c.count+' listings</text>';
-    }
+  html += '<div style="display:flex;flex-wrap:wrap;gap:3px;padding:10px;background:#f7f6f3;border-radius:8px;border:1px solid #e4e2dc;">';
+  secs.forEach(function(sec) {
+    var d = secMap[sec];
+    var bg = countToColor(d.count);
+    var tc = countToText(d.count);
+    var label = sec.replace(/^Section\s*/i,'');
+    html += '<div style="'
+      +'background:'+bg+';color:'+tc+';'
+      +'border-radius:4px;padding:3px 6px;font-size:9px;font-weight:700;cursor:default;'
+      +'position:relative;white-space:nowrap;'
+      +'" title="'+sec+': '+d.count+' listings | Floor $'+Math.round(d.floor).toLocaleString()+' | Avg $'+d.avg.toLocaleString()+'">'
+      +label
+      +'</div>';
   });
+  html += '</div>';
 
   // Legend
-  html += '<rect x="6" y="6" width="130" height="68" rx="4" fill="rgba(0,0,0,0.65)"/>';
-  [1,2,3,4].forEach(function(cat,i) {
-    var c = catMap[cat];
-    var col = catColors[cat]+'0.85)';
-    var y = 16 + i*14;
-    html += '<rect x="10" y="'+(y-5)+'" width="10" height="10" rx="2" fill="'+col+'"/>';
-    html += '<text x="24" y="'+y+'" font-size="9" fill="#ddd" dominant-baseline="middle">Cat '+cat+': '+c.count+' listings · $'+(c.floor<Infinity?Math.round(c.floor).toLocaleString():'—')+' floor</text>';
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:#888;">';
+  html += '<span>Few listings</span>';
+  ['#f3efe4','#f0d899','#e8bb50','d4a843','#b8892e','#8a6a18'].forEach(function(c){
+    html += '<div style="width:18px;height:10px;background:'+c+';border-radius:2px;"></div>';
   });
+  html += '<span>Most listings</span></div>';
 
-  html += '</svg>';
-
-  // Tooltip
-  html += '<div id="heatTooltip" style="display:none;position:absolute;background:rgba(10,15,26,0.95);color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;pointer-events:none;white-space:nowrap;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.6);border:1px solid #333;"></div>';
-
-  html += '</div>';
   wrap.innerHTML = html;
 }
 
-function showHeatTip(evt, cat, count, avg, floor) {
-  var tip = document.getElementById('heatTooltip'); if(!tip)return;
-  var wrap = document.getElementById('stadiumHeatmap');
-  var rect = wrap ? wrap.getBoundingClientRect() : {left:0,top:0};
-  tip.innerHTML = '<strong style="color:#d4a843;">Category '+cat+'</strong>'
-    +'<br><span style="color:#aaa;">Listings:</span> <strong>'+count+'</strong>'
-    +'<br><span style="color:#aaa;">Floor:</span> <strong>$'+(floor?Math.round(floor).toLocaleString():'—')+'</strong>'
-    +'<br><span style="color:#aaa;">Avg:</span> <strong>$'+(avg?Math.round(avg).toLocaleString():'—')+'</strong>';
-  var tipX = evt.clientX - rect.left + 14;
-  var tipY = evt.clientY - rect.top - 70;
-  if (tipX + 180 > (wrap.offsetWidth||400)) tipX -= 190;
-  tip.style.left = Math.max(4,tipX)+'px';
-  tip.style.top  = Math.max(4,tipY)+'px';
-  tip.style.display = 'block';
+function showHeatTip(){ }
+function hideHeatTip(){ }
+
+/* ══════════════════════════════════════════════════════════════════
+   LISTING ANALYSIS
+══════════════════════════════════════════════════════════════════ */
+function runListingAnalysis(active, sold) {
+  var wrap = document.getElementById('listingAnalysisWrap');
+  if (!wrap || !active.length) return;
+
+  var prices = active.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
+  var total = active.length;
+  var floor = prices[0]||0;
+  var ceiling = prices[prices.length-1]||0;
+  var avg = Math.round(prices.reduce(function(s,v){return s+v;},0)/prices.length);
+  var median = prices[Math.floor(prices.length/2)]||0;
+
+  // Pack size
+  var q1=0,q2=0,q3=0,q4=0;
+  active.forEach(function(l){var q=l.quantity||1;if(q===1)q1++;else if(q===2)q2++;else if(q===3)q3++;else q4++;});
+
+  // DOM buckets
+  var domNew=0,dom1_3=0,dom4_7=0,dom8_14=0,dom14p=0;
+  active.forEach(function(l){var d=l.dom||0;if(d===0)domNew++;else if(d<=3)dom1_3++;else if(d<=7)dom4_7++;else if(d<=14)dom8_14++;else dom14p++;});
+  var avgDom=Math.round(active.reduce(function(s,l){return s+(l.dom||0);},0)/total);
+
+  // Section analysis
+  var secMap={};
+  active.forEach(function(l){
+    var s=l.section||'Unknown';
+    if(!secMap[s])secMap[s]={count:0,total:0,floor:Infinity};
+    secMap[s].count++;secMap[s].total+=l.price;
+    if(l.price<secMap[s].floor)secMap[s].floor=l.price;
+  });
+  var secList=Object.keys(secMap).map(function(s){return{sec:s,count:secMap[s].count,avg:Math.round(secMap[s].total/secMap[s].count),floor:secMap[s].floor};}).sort(function(a,b){return b.count-a.count;});
+  var top5=secList.slice(0,5);
+  var bottom5=secList.slice(-5).reverse();
+
+  // Price concentration
+  var under1k=prices.filter(function(p){return p<1000;}).length;
+  var over2k=prices.filter(function(p){return p>=2000;}).length;
+  var mid=prices.filter(function(p){return p>=1000&&p<2000;}).length;
+
+  // Insights
+  var insights=[];
+
+  // Singles insight
+  var singlesPct=Math.round(q1/total*100);
+  if(singlesPct>55) insights.push({type:'info',icon:'👤',text:'Singles dominate at '+singlesPct+'% of inventory — market favors individual buyers. Pairs are scarcer and may command a premium.'});
+  else if(q2>q1) insights.push({type:'info',icon:'👥',text:'Pairs are the dominant format ('+q2+' listings, '+Math.round(q2/total*100)+'%) — ideal for couples. Singles are less common which can work in your favor.'});
+
+  // Stale inventory insight
+  var stalePct=Math.round(dom14p/total*100);
+  if(stalePct>30) insights.push({type:'warning',icon:'⏳',text:stalePct+'% of listings have been sitting 14+ days. Sellers are struggling to move at current prices — expect price cuts soon or undercut the floor.'});
+  else if(domNew>total*0.15) insights.push({type:'info',icon:'🆕',text:Math.round(domNew/total*100)+'% of listings are brand new today ('+domNew+' listings) — fresh supply entering the market, monitor for price impact.'});
+
+  // Price spread
+  var spread=Math.round((ceiling-floor)/floor*100);
+  if(spread>200) insights.push({type:'info',icon:'📊',text:'Wide price spread ($'+Math.round(floor).toLocaleString()+'–$'+Math.round(ceiling).toLocaleString()+', '+spread+'% range) — large gap between floor and premium sections. Strong opportunity at the low end.'});
+
+  // Top section concentration
+  if(top5.length&&top5[0].count>total*0.15) insights.push({type:'info',icon:'🏟️',text:'Section '+top5[0].sec.replace(/^Section\s*/i,'')+' has the most listings ('+top5[0].count+', floor $'+Math.round(top5[0].floor).toLocaleString()+'). Highest competition here — price below $'+Math.round(top5[0].floor*0.97).toLocaleString()+' to stand out.'});
+
+  // Sales vs new supply
+  if(sold.length>0&&sold.length>domNew) insights.push({type:'positive',icon:'📈',text:'More tickets sold ('+sold.length+') than new listings added ('+domNew+') since last scrape — net supply decreasing, prices likely to rise.'});
+  else if(domNew>sold.length*2) insights.push({type:'negative',icon:'📉',text:'New supply ('+domNew+' listings) outpacing sales ('+sold.length+') — inventory building up, downward price pressure likely.'});
+
+  // Avg DOM
+  if(avgDom>10) insights.push({type:'warning',icon:'🕐',text:'Average time on market is '+avgDom+' days — listings are sitting longer than expected. The market may be overpriced relative to demand at this point in time.'});
+
+  // Build HTML
+  var h='<div class="ai-card">';
+  h+='<div class="ai-header"><div class="ai-title">📋 Listing Analysis <span class="ai-badge">'+total+' listings</span></div>';
+  h+='<button class="ai-refresh" onclick="runListingAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[])" >&#8635; Refresh</button></div>';
+
+  // Stats grid
+  h+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;">';
+  var stats=[
+    {l:'Floor',v:'$'+Math.round(floor).toLocaleString(),sub:'cheapest listing'},
+    {l:'Ceiling',v:'$'+Math.round(ceiling).toLocaleString(),sub:'most expensive'},
+    {l:'Median',v:'$'+Math.round(median).toLocaleString(),sub:'midpoint price'},
+    {l:'Avg DOM',v:avgDom+'d',sub:'days on market'},
+    {l:'Sold',v:sold.length,sub:'since last scrape'},
+  ];
+  stats.forEach(function(s){h+='<div style="background:#f7f6f3;border-radius:8px;padding:12px;"><div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">'+s.l+'</div><div style="font-size:18px;font-weight:700;color:#111;">'+s.v+'</div><div style="font-size:10px;color:#aaa;margin-top:3px;">'+s.sub+'</div></div>';});
+  h+='</div>';
+
+  // Pack size + DOM breakdown
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+
+  // Pack size bar
+  h+='<div style="background:#f7f6f3;border-radius:8px;padding:14px;">';
+  h+='<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Pack Size</div>';
+  [{label:'1x Singles',count:q1,color:'#22c55e'},{label:'2x Pairs',count:q2,color:'#3b82f6'},{label:'3x Triples',count:q3,color:'#8b5cf6'},{label:'4x+ Groups',count:q4,color:'#f59e0b'}].forEach(function(p){
+    var pct=Math.round(p.count/total*100);
+    h+='<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:#555;">'+p.label+'</span><span style="font-weight:700;color:#111;">'+p.count+' <span style="color:#aaa;font-weight:400;">('+pct+'%)</span></span></div>';
+    h+='<div style="height:5px;background:#e4e2dc;border-radius:3px;"><div style="height:100%;width:'+pct+'%;background:'+p.color+';border-radius:3px;"></div></div></div>';
+  });
+  h+='</div>';
+
+  // Days on market bar
+  h+='<div style="background:#f7f6f3;border-radius:8px;padding:14px;">';
+  h+='<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Days on Market</div>';
+  [{label:'New today',count:domNew,color:'#22c55e'},{label:'1–3 days',count:dom1_3,color:'#3b82f6'},{label:'4–7 days',count:dom4_7,color:'#8b5cf6'},{label:'8–14 days',count:dom8_14,color:'#f59e0b'},{label:'14+ days',count:dom14p,color:'#ef4444'}].forEach(function(p){
+    var pct=Math.round(p.count/total*100);
+    h+='<div style="margin-bottom:6px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:#555;">'+p.label+'</span><span style="font-weight:700;color:#111;">'+p.count+' <span style="color:#aaa;font-weight:400;">('+pct+'%)</span></span></div>';
+    h+='<div style="height:5px;background:#e4e2dc;border-radius:3px;"><div style="height:100%;width:'+pct+'%;background:'+p.color+';border-radius:3px;"></div></div></div>';
+  });
+  h+='</div></div>';
+
+  // Price buckets
+  h+='<div style="background:#f7f6f3;border-radius:8px;padding:14px;margin-bottom:16px;">';
+  h+='<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Price Concentration</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
+  [{l:'Under $1,000',v:under1k,c:'#22c55e'},{l:'$1,000–$2,000',v:mid,c:'#f59e0b'},{l:'Over $2,000',v:over2k,c:'#ef4444'}].forEach(function(p){
+    h+='<div style="text-align:center;padding:10px;background:#fff;border-radius:6px;border:1px solid #e4e2dc;">';
+    h+='<div style="font-size:10px;color:#888;margin-bottom:5px;">'+p.l+'</div>';
+    h+='<div style="font-size:20px;font-weight:700;color:'+p.c+';">'+p.v+'</div>';
+    h+='<div style="font-size:10px;color:#aaa;">'+Math.round(p.v/total*100)+'%</div></div>';
+  });
+  h+='</div></div>';
+
+  // Top & bottom sections
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  h+='<div><div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Most Listings</div>';
+  top5.forEach(function(s){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#f7f6f3;border-radius:6px;margin-bottom:4px;">'
+      +'<div style="font-size:12px;font-weight:600;color:#111;">'+esc(s.sec.replace(/^Section\s*/i,'Sec '))+'</div>'
+      +'<div style="font-size:11px;color:#888;">'+s.count+' listings &nbsp; <span style="color:#d4a843;font-weight:700;">$'+Math.round(s.floor).toLocaleString()+'</span></div>'
+      +'</div>';
+  });
+  h+='</div>';
+  h+='<div><div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Fewest Listings</div>';
+  bottom5.forEach(function(s){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#f7f6f3;border-radius:6px;margin-bottom:4px;">'
+      +'<div style="font-size:12px;font-weight:600;color:#111;">'+esc(s.sec.replace(/^Section\s*/i,'Sec '))+'</div>'
+      +'<div style="font-size:11px;color:#888;">'+s.count+' listings &nbsp; <span style="color:#d4a843;font-weight:700;">$'+Math.round(s.floor).toLocaleString()+'</span></div>'
+      +'</div>';
+  });
+  h+='</div></div>';
+
+  // Insights
+  if(insights.length){
+    h+='<div style="border-top:1px solid #f0eeea;padding-top:14px;">';
+    h+='<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Key Insights</div>';
+    insights.forEach(function(ins){
+      var bg=ins.type==='positive'?'#f0fdf4':ins.type==='negative'?'#fef2f2':ins.type==='warning'?'#fdf3dc':'#eff6ff';
+      var border=ins.type==='positive'?'#22c55e':ins.type==='negative'?'#ef4444':ins.type==='warning'?'#d4a843':'#3b82f6';
+      h+='<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:'+bg+';border-left:3px solid '+border+';border-radius:0 6px 6px 0;margin-bottom:8px;">'
+        +'<span style="font-size:16px;flex-shrink:0;">'+ins.icon+'</span>'
+        +'<span style="font-size:12px;color:#111;line-height:1.5;">'+esc(ins.text)+'</span>'
+        +'</div>';
+    });
+    h+='</div>';
+  }
+
+  h+='</div>';
+  wrap.innerHTML=h;
 }
-function hideHeatTip(){ var t=document.getElementById('heatTooltip'); if(t)t.style.display='none'; }
 
 function runAIAnalysis(active, sold, latestScrape) {
   var wrap = document.getElementById('aiWrap');
