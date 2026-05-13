@@ -2013,6 +2013,93 @@ function runListingAnalysis(active, sold) {
   wrap.innerHTML=h;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   LISTING ANALYSIS — Key highlights only
+══════════════════════════════════════════════════════════════════ */
+function runListingAnalysis(active, sold) {
+  var wrap = document.getElementById('listingAnalysisWrap');
+  if (!wrap || !active.length) return;
+
+  var prices = active.map(function(l){return l.price;}).filter(Boolean).sort(function(a,b){return a-b;});
+  var total = active.length;
+  var floor = prices[0]||0;
+  var ceiling = prices[prices.length-1]||0;
+  var avg = Math.round(prices.reduce(function(s,v){return s+v;},0)/prices.length);
+  var median = prices[Math.floor(prices.length/2)]||0;
+
+  var q1=0,q2=0,q3=0,q4=0;
+  active.forEach(function(l){var q=l.quantity||1;if(q===1)q1++;else if(q===2)q2++;else if(q===3)q3++;else q4++;});
+
+  var domNew=0,dom14p=0,avgDom=0;
+  active.forEach(function(l){var d=l.dom||0;if(d===0)domNew++;if(d>=14)dom14p++;avgDom+=d;});
+  avgDom=Math.round(avgDom/total);
+
+  // Section analysis
+  var secMap={};
+  active.forEach(function(l){
+    var s=l.section||'Unknown';
+    if(!secMap[s])secMap[s]={count:0,total:0,floor:Infinity};
+    secMap[s].count++;secMap[s].total+=l.price;
+    if(l.price<secMap[s].floor)secMap[s].floor=l.price;
+  });
+  var secList=Object.keys(secMap).map(function(s){return{sec:s,count:secMap[s].count,avg:Math.round(secMap[s].total/secMap[s].count),floor:secMap[s].floor};}).sort(function(a,b){return b.count-a.count;});
+  var topSec=secList[0];
+  var spread=ceiling>floor?Math.round((ceiling-floor)/floor*100):0;
+  var stalePct=Math.round(dom14p/total*100);
+  var singlesPct=Math.round(q1/total*100);
+  var pairsPct=Math.round(q2/total*100);
+  var domPack=q1>=q2&&q1>=q3&&q1>=q4?'singles':q2>=q1&&q2>=q3&&q2>=q4?'pairs':'groups';
+
+  // Build 3 analysis cards like market analysis
+  var inventory='';
+  var packaging='';
+  var opportunity='';
+
+  // Inventory analysis
+  if(stalePct>35) inventory=''+stalePct+'% of listings are 14+ days old with an average '+avgDom+' days on market. Sellers are holding at prices the market isn\'t accepting — expect discounting or floor movement soon.';
+  else if(domNew>total*0.12) inventory=''+Math.round(domNew/total*100)+'% of listings entered today ('+domNew+' new). Fresh supply is hitting the market. Watch the floor over the next 24 hours for price impact.';
+  else inventory='Inventory is moving at a steady pace — average '+avgDom+' days on market with '+domNew+' new listings today and '+dom14p+' stale. Market absorption looks balanced at current prices.';
+  if(sold.length>0) inventory+=' '+sold.length+' listing'+(sold.length>1?'s':'')+' sold since last scrape.';
+
+  // Pack size analysis
+  if(domPack==='singles') packaging='Singles dominate at '+singlesPct+'% of active inventory ('+q1+' listings). This market favors individual buyers — pairs and larger groups are comparatively scarce and may carry a premium.';
+  else if(domPack==='pairs') packaging='Pairs lead the market at '+pairsPct+'% of listings ('+q2+'). Singles are less available at '+singlesPct+'% — if you hold singles, you\'re in a less crowded segment.';
+  else packaging='Groups of 3+ make up the majority of inventory. Singles ('+singlesPct+'%) and pairs ('+pairsPct+'%) are the minority — individually sold tickets will face less direct competition.';
+
+  // Opportunity analysis
+  var priceGap=Math.round(avg-floor);
+  if(topSec&&topSec.count>total*0.12) opportunity='Section '+topSec.sec.replace(/^Section\s*/i,'')+' is the most contested with '+topSec.count+' listings (floor $'+Math.round(topSec.floor).toLocaleString()+'). ';
+  else opportunity='';
+  if(spread>150) opportunity+='The $'+Math.round(floor).toLocaleString()+'–$'+Math.round(ceiling).toLocaleString()+' price range spans '+spread+'% — significant premium attached to better sections. ';
+  opportunity+='Average price sits $'+priceGap.toLocaleString()+' above the floor. Listings priced within 3–5% of floor ($'+Math.round(floor*1.05).toLocaleString()+' or below) will move fastest.';
+
+  // Verdict
+  var verdictScore=0;
+  if(stalePct>30) verdictScore--;
+  if(domNew>sold.length*1.5) verdictScore--;
+  if(sold.length>10) verdictScore++;
+  if(avgDom<7) verdictScore++;
+  if(domNew>total*0.15) verdictScore--;
+  var verdict=verdictScore>=1?'ACTIVE':verdictScore<=-1?'SOFT':'STEADY';
+  var verdictCls=verdict==='ACTIVE'?'buy':verdict==='SOFT'?'sell':'hold';
+  var verdictReason=verdict==='ACTIVE'?'Listings are moving and supply is tight — active selling market.':verdict==='SOFT'?'Stale inventory and slow sales point to softening demand at current prices.':'Market is absorbing inventory at a measured pace — steady conditions.';
+
+  var h='<div class="ai-card">';
+  h+='<div class="ai-header"><div class="ai-title">📋 Listing Intelligence Summary <span class="ai-badge">'+total+' active</span></div>';
+  h+='<button class="ai-refresh" onclick="runListingAnalysis(window._liData?window._liData.filter(function(l){return !l.sold;}):[], window._liData?window._liData.filter(function(l){return l.sold;}):[] )">&#8635; Refresh</button></div>';
+  h+='<div class="ai-sections">';
+  h+='<div class="ai-section"><div class="ai-section-label">📦 Inventory Pulse</div><div class="ai-section-text">'+esc(inventory)+'</div></div>';
+  h+='<div class="ai-section"><div class="ai-section-label">🎫 Pack Size Insight</div><div class="ai-section-text">'+esc(packaging)+'</div></div>';
+  h+='<div class="ai-section"><div class="ai-section-label">💡 Pricing Opportunity</div><div class="ai-section-text">'+esc(opportunity)+'</div></div>';
+  h+='</div>';
+  h+='<div class="ai-verdict '+verdictCls+'">';
+  h+='<div class="ai-verdict-label">'+(verdict==='ACTIVE'?'● Active Market':verdict==='SOFT'?'● Soft Market':'● Steady Market')+'</div>';
+  h+=esc(verdictReason);
+  h+='</div></div>';
+
+  wrap.innerHTML=h;
+}
+
 function runAIAnalysis(active, sold, latestScrape) {
   var wrap = document.getElementById('aiWrap');
   if (!wrap) return;
