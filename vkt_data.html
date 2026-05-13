@@ -1564,7 +1564,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   // ── CHARTS ROW ──
   h += '<div class="charts-grid" style="margin-bottom:16px;">';
   h += '<div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div>';
-  h += '<div class="chart-card"><h3>Price Distribution</h3><div class="chart-wrap"><canvas id="listPriceChart"></canvas></div></div>';
+  h += '<div class="chart-card"><h3>Section Price Heat Map</h3><div id="stadiumHeatmap" style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;"></div></div>';
   h += '</div>';
 
   // ── PRICE RANGE BREAKDOWN ──
@@ -1643,13 +1643,8 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   // Render charts
   var qCtx = document.getElementById('listQtyChart');
   if (qCtx && qk.length) new Chart(qCtx,{type:'bar',data:{labels:qk,datasets:[{data:qk.map(function(k){return qm[k];}),backgroundColor:qk.map(function(k){return qcols[k]||'rgba(150,150,150,0.7)';}),borderColor:qk.map(function(k){return (qcols[k]||'rgba(150,150,150,0.7)').replace('0.7','1');}),borderWidth:2,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,grid:{color:'#f0eeea'},ticks:{font:{size:10}}}}}});
-  if (prices.length) {
-    var mn=Math.min.apply(null,prices),mx=Math.max.apply(null,prices),bSz=Math.ceil((mx-mn)/20)||100;
-    var bk={};prices.forEach(function(p){var b=Math.round(Math.floor((p-mn)/bSz)*bSz+mn);bk[b]=(bk[b]||0)+1;});
-    var bKs=Object.keys(bk).map(Number).sort(function(a,b){return a-b;});
-    var pCtx=document.getElementById('listPriceChart');
-    if(pCtx)new Chart(pCtx,{type:'bar',data:{labels:bKs.map(function(k){return'$'+Math.round(k).toLocaleString();}),datasets:[{data:bKs.map(function(k){return bk[k];}),backgroundColor:'rgba(212,168,67,0.5)',borderColor:'rgba(212,168,67,1)',borderWidth:1,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10},maxTicksLimit:8,maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}});
-  }
+  // Draw stadium heatmap instead of price distribution
+  setTimeout(function(){ drawStadiumHeatmap(active); }, 100);
   applyListingFilters();
   // Trigger AI analysis
   setTimeout(function(){ runAIAnalysis(active, sold, latestScrape); }, 800);
@@ -1746,6 +1741,158 @@ function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'
 /* ══════════════════════════════════════════════════════════════════
    AI MARKET ANALYSIS — Client-side, no API needed
 ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   STADIUM HEATMAP
+══════════════════════════════════════════════════════════════════ */
+function drawStadiumHeatmap(listings) {
+  var wrap = document.getElementById('stadiumHeatmap');
+  if (!wrap || !listings || !listings.length) return;
+
+  // Build section price map: section -> avg price
+  var secMap = {};
+  listings.forEach(function(l) {
+    var s = (l.section||'').trim();
+    if (!s) return;
+    if (!secMap[s]) secMap[s] = {total:0, count:0, min:Infinity};
+    secMap[s].total += l.price;
+    secMap[s].count++;
+    if (l.price < secMap[s].min) secMap[s].min = l.price;
+  });
+  Object.keys(secMap).forEach(function(s){ secMap[s].avg = Math.round(secMap[s].total/secMap[s].count); });
+
+  // Classify section into tier + position
+  function classifySection(sec) {
+    var s = sec.replace(/^Section\s*/i,'').trim();
+    // Club/VIP
+    if (/^(C|CLB|VIP|CLUB|M|SUITE|BOX|SWTER|NETER)/i.test(s)) return {tier:'club', num: parseInt(s.replace(/\D/g,''))||0};
+    var num = parseInt(s, 10);
+    if (isNaN(num)) return {tier:'other', num:0};
+    if (num >= 1 && num <= 9)   return {tier:'field', num:num};
+    if (num >= 100 && num <= 199) return {tier:'lower', num:num-100};
+    if (num >= 200 && num <= 299) return {tier:'mid',   num:num-200};
+    if (num >= 300 && num <= 399) return {tier:'upper', num:num-300};
+    if (num >= 400 && num <= 599) return {tier:'upper', num:num-400};
+    return {tier:'other', num:0};
+  }
+
+  // Get all prices for color scale
+  var allAvgs = Object.values(secMap).map(function(v){return v.avg;});
+  var minPrice = Math.min.apply(null, allAvgs);
+  var maxPrice = Math.max.apply(null, allAvgs);
+
+  function priceToColor(price, alpha) {
+    if (maxPrice === minPrice) return 'rgba(212,168,67,'+alpha+')';
+    var t = (price - minPrice) / (maxPrice - minPrice); // 0=cheap, 1=expensive
+    // green -> yellow -> red
+    var r,g,b;
+    if (t < 0.5) { r=Math.round(t*2*212); g=Math.round(168+t*2*(200-168)); b=Math.round(67*(1-t*2)); }
+    else { r=Math.round(212+(t-0.5)*2*(220-212)); g=Math.round(200*(1-(t-0.5)*2)); b=0; }
+    return 'rgba('+r+','+g+','+b+','+alpha+')';
+  }
+
+  // Build SVG
+  var W = wrap.offsetWidth || 360, H = 220;
+  var cx = W/2, cy = H/2;
+  var rx = W*0.46, ry = H*0.44; // outer stadium oval
+
+  // Tier radii (as fraction of outer)
+  var tiers = {
+    upper: {inner:0.72, outer:1.0},
+    mid:   {inner:0.52, outer:0.72},
+    lower: {inner:0.34, outer:0.52},
+    club:  {inner:0.20, outer:0.34},
+    field: {inner:0.0,  outer:0.20}
+  };
+
+  // Group sections by tier
+  var tierSecs = {upper:[],mid:[],lower:[],club:[],field:[]};
+  Object.keys(secMap).forEach(function(sec) {
+    var c = classifySection(sec);
+    if (tierSecs[c.tier]) tierSecs[c.tier].push({sec:sec, num:c.num, avg:secMap[sec].avg, min:secMap[sec].min});
+  });
+
+  // Sort each tier by section number
+  Object.keys(tierSecs).forEach(function(t){ tierSecs[t].sort(function(a,b){return a.num-b.num;}); });
+
+  var svgParts = ['<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg" style="font-family:Arial,sans-serif;">'];
+
+  // Draw each tier as segmented arcs
+  var hoverData = [];
+  Object.keys(tiers).forEach(function(tierName) {
+    var secs = tierSecs[tierName];
+    if (!secs.length) return;
+    var t = tiers[tierName];
+    var innerRx = rx*t.inner, innerRy = ry*t.inner;
+    var outerRx = rx*t.outer, outerRy = ry*t.outer;
+    var total = secs.length;
+    secs.forEach(function(s, i) {
+      var a1 = (i/total)*2*Math.PI - Math.PI/2;
+      var a2 = ((i+1)/total)*2*Math.PI - Math.PI/2;
+      var mid = (a1+a2)/2;
+      // Outer arc points
+      var ox1 = cx + outerRx*Math.cos(a1), oy1 = cy + outerRy*Math.sin(a1);
+      var ox2 = cx + outerRx*Math.cos(a2), oy2 = cy + outerRy*Math.sin(a2);
+      // Inner arc points
+      var ix1 = cx + innerRx*Math.cos(a1), iy1 = cy + innerRy*Math.sin(a1);
+      var ix2 = cx + innerRx*Math.cos(a2), iy2 = cy + innerRy*Math.sin(a2);
+      var large = (a2-a1 > Math.PI) ? 1 : 0;
+      var fill = priceToColor(s.avg, 0.85);
+      var stroke = priceToColor(s.avg, 1.0);
+      var d = '';
+      if (t.inner === 0) {
+        // Field — full ellipse segment from center
+        d = 'M '+cx+' '+cy+' L '+ox1+' '+oy1+' A '+outerRx+' '+outerRy+' 0 '+large+' 1 '+ox2+' '+oy2+' Z';
+      } else {
+        d = 'M '+ox1+' '+oy1
+          +' A '+outerRx+' '+outerRy+' 0 '+large+' 1 '+ox2+' '+oy2
+          +' L '+ix2+' '+iy2
+          +' A '+innerRx+' '+innerRy+' 0 '+large+' 0 '+ix1+' '+iy1
+          +' Z';
+      }
+      var tooltipId = 'ht'+i+'_'+tierName.slice(0,2);
+      svgParts.push('<path d="'+d+'" fill="'+fill+'" stroke="#fff" stroke-width="0.5" opacity="0.9"'
+        +' onmouseenter="showHeatTip(evt,\''+esc(s.sec)+'\',\'$'+s.avg.toLocaleString()+'\',\'$'+s.min.toLocaleString()+'\')"'
+        +' onmouseleave="hideHeatTip()"'
+        +' style="cursor:pointer;transition:opacity 0.1s;"'
+        +' onmousedown="this.style.opacity=\'1\'" />');
+      // Label for bigger segments
+      if (total <= 20) {
+        var lx = cx + (outerRx*t.inner + outerRx*(t.outer-t.inner)*0.5)*Math.cos(mid);
+        var ly = cy + (outerRy*t.inner + outerRy*(t.outer-t.inner)*0.5)*Math.sin(mid);
+        svgParts.push('<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle" font-size="7" fill="#fff" font-weight="600" pointer-events="none">'+esc(s.sec.replace(/^Section\s*/i,''))+'</text>');
+      }
+    });
+  });
+
+  // Pitch label
+  svgParts.push('<text x="'+cx+'" y="'+cy+'" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#888" font-weight="700" pointer-events="none">PITCH</text>');
+
+  // Legend
+  var legX = 8, legY = H-36;
+  svgParts.push('<defs><linearGradient id="heatLeg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="rgba(0,168,67,0.9)"/><stop offset="50%" stop-color="rgba(212,168,67,0.9)"/><stop offset="100%" stop-color="rgba(220,50,0,0.9)"/></linearGradient></defs>');
+  svgParts.push('<rect x="'+legX+'" y="'+legY+'" width="80" height="8" rx="3" fill="url(#heatLeg)"/>');
+  svgParts.push('<text x="'+legX+'" y="'+(legY+18)+'" font-size="9" fill="#888">$'+Math.round(minPrice).toLocaleString()+'</text>');
+  svgParts.push('<text x="'+(legX+80)+'" y="'+(legY+18)+'" font-size="9" fill="#888" text-anchor="end">$'+Math.round(maxPrice).toLocaleString()+'</text>');
+  svgParts.push('<text x="'+(legX+40)+'" y="'+(legY-4)+'" font-size="9" fill="#aaa" text-anchor="middle">Avg Price</text>');
+
+  svgParts.push('</svg>');
+
+  // Tooltip div
+  wrap.innerHTML = svgParts.join('')
+    + '<div id="heatTooltip" style="display:none;position:absolute;background:#111;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>';
+}
+
+function showHeatTip(evt, sec, avg, floor) {
+  var tip = document.getElementById('heatTooltip'); if(!tip)return;
+  var wrap = document.getElementById('stadiumHeatmap');
+  var rect = wrap ? wrap.getBoundingClientRect() : {left:0,top:0};
+  tip.innerHTML = '<strong>'+esc(sec)+'</strong><br>Avg: '+avg+' &nbsp; Floor: '+floor;
+  tip.style.display='block';
+  tip.style.left=(evt.clientX-rect.left+10)+'px';
+  tip.style.top=(evt.clientY-rect.top-36)+'px';
+}
+function hideHeatTip(){ var t=document.getElementById('heatTooltip'); if(t)t.style.display='none'; }
+
 function runAIAnalysis(active, sold, latestScrape) {
   var wrap = document.getElementById('aiWrap');
   if (!wrap) return;
