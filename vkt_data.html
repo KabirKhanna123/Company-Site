@@ -149,6 +149,31 @@
     .ai-signal.negative { background:#fef2f2; color:#dc2626; }
     .ai-signal.neutral { background:#f5f5f5; color:#555; }
     @media(max-width:900px){ .ai-sections { grid-template-columns:1fr; } }
+
+    /* VividSeats theme — applied via body.vs-theme */
+    body.vs-theme .hero-getin-price,
+    body.vs-theme .gold,
+    body.vs-theme .section-header h3,
+    body.vs-theme .ai-badge,
+    body.vs-theme .ai-refresh:hover,
+    body.vs-theme .ai-verdict.hold .ai-verdict-label,
+    body.vs-theme .ticker-label { color:#7c3aed; }
+
+    body.vs-theme .loading-bar { background:linear-gradient(90deg,#7c3aed,#a78bfa,#7c3aed); background-size:200% 100%; animation:loading 1.5s linear infinite; }
+    body.vs-theme .hero-chart-tab.active { background:#7c3aed; border-color:#7c3aed; color:#fff; }
+    body.vs-theme .ai-badge { background:#f3e8ff; color:#7c3aed; }
+    body.vs-theme .ai-refresh:hover { border-color:#7c3aed; }
+    body.vs-theme .ai-verdict.hold { background:#f3e8ff; border-left-color:#7c3aed; }
+    body.vs-theme .ai-verdict.hold .ai-verdict-label { color:#7c3aed; }
+    body.vs-theme .ai-signal.neutral { background:#f3e8ff; color:#7c3aed; }
+    body.vs-theme .platform-card-floor { color:#7c3aed; }
+    body.vs-theme thead th:hover { color:#7c3aed; }
+    body.vs-theme .toolbar input:focus,
+    body.vs-theme .toolbar select:focus,
+    body.vs-theme .toolbar button:hover { border-color:#7c3aed; color:#7c3aed; }
+    body.vs-theme .back-btn:hover { border-color:#7c3aed; color:#7c3aed; }
+    body.vs-theme .hero-chart-tab:not(.active):hover { color:#7c3aed; }
+    body.vs-theme .section-badge { background:#f3e8ff; color:#7c3aed; }
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
 
     /* ── MOBILE ─────────────────────────────────────────────────────── */
@@ -413,6 +438,31 @@
     .ai-signal.negative { background:#fef2f2; color:#dc2626; }
     .ai-signal.neutral { background:#f5f5f5; color:#555; }
     @media(max-width:900px){ .ai-sections { grid-template-columns:1fr; } }
+
+    /* VividSeats theme — applied via body.vs-theme */
+    body.vs-theme .hero-getin-price,
+    body.vs-theme .gold,
+    body.vs-theme .section-header h3,
+    body.vs-theme .ai-badge,
+    body.vs-theme .ai-refresh:hover,
+    body.vs-theme .ai-verdict.hold .ai-verdict-label,
+    body.vs-theme .ticker-label { color:#7c3aed; }
+
+    body.vs-theme .loading-bar { background:linear-gradient(90deg,#7c3aed,#a78bfa,#7c3aed); background-size:200% 100%; animation:loading 1.5s linear infinite; }
+    body.vs-theme .hero-chart-tab.active { background:#7c3aed; border-color:#7c3aed; color:#fff; }
+    body.vs-theme .ai-badge { background:#f3e8ff; color:#7c3aed; }
+    body.vs-theme .ai-refresh:hover { border-color:#7c3aed; }
+    body.vs-theme .ai-verdict.hold { background:#f3e8ff; border-left-color:#7c3aed; }
+    body.vs-theme .ai-verdict.hold .ai-verdict-label { color:#7c3aed; }
+    body.vs-theme .ai-signal.neutral { background:#f3e8ff; color:#7c3aed; }
+    body.vs-theme .platform-card-floor { color:#7c3aed; }
+    body.vs-theme thead th:hover { color:#7c3aed; }
+    body.vs-theme .toolbar input:focus,
+    body.vs-theme .toolbar select:focus,
+    body.vs-theme .toolbar button:hover { border-color:#7c3aed; color:#7c3aed; }
+    body.vs-theme .back-btn:hover { border-color:#7c3aed; color:#7c3aed; }
+    body.vs-theme .hero-chart-tab:not(.active):hover { color:#7c3aed; }
+    body.vs-theme .section-badge { background:#f3e8ff; color:#7c3aed; }
     @media(max-width:1100px){.listing-stats{grid-template-columns:repeat(3,1fr)}}
 
     @media(max-width:700px){.listing-stats{grid-template-columns:repeat(2,1fr)}}
@@ -876,6 +926,9 @@ function aggregateDaily(snaps){var byDay={};snaps.forEach(function(s){var day=s.
 function drawSectionCharts(secName,snaps){if(slChart){slChart.destroy();slChart=null;}if(saChart){saChart.destroy();saChart=null;}var ss=snaps.filter(function(s){return(s.section||'')===secName && n(s.total_listings)!==10;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});var note=document.getElementById('secNote');if(!ss.length){if(note)note.textContent='No data for this section.';return;}if(note)note.textContent='';var dailySecList=aggregateDaily(ss).filter(function(s){return n(s.section_listings)>0;});var dailySecFloor=aggregateDaily(ss).filter(function(s){return n(s.section_floor)>0;});if(dailySecList.length>1)slChart=mkChart('slChart',secName+' Listings',dailySecList.map(function(s){return n(s.section_listings);}),dailySecList.map(function(s){return fmtDT(s.scraped_at);}),'rgb(139,92,246)');if(dailySecFloor.length>1)saChart=mkChart('saChart',secName+' Floor Price',dailySecFloor.map(function(s){return n(s.section_floor);}),dailySecFloor.map(function(s){return fmtDT(s.scraped_at);}),'rgb(212,168,67)');}
 
 function loadAnalysis(eventId){
+  // Apply platform theme to body
+  var isVS = activePlatform === 'VividSeats' || String(eventId).startsWith('vs_');
+  document.body.classList.toggle('vs-theme', isVS);
   // Hide vol period selector on event detail view
   var vps = document.getElementById('vol-period-wrap');
   if(vps) vps.style.display='none';
