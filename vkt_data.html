@@ -730,12 +730,12 @@
   <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')" title="SeatGeek — Coming Soon">
     <span style="font-size:11px;font-weight:900;color:#da2828;font-family:Arial Black,Arial;">SeatGeek</span><span style="font-size:9px;color:#aaa;margin-left:4px;">Soon</span>
   </button>
+  <button id="plt-cmp" onclick="setPlatform('Compare')" style="margin-left:auto;padding:7px 18px;background:#fff;border:2px solid #e4e2dc;border-radius:10px;font-size:11px;font-weight:800;color:#888;cursor:pointer;letter-spacing:0.3px;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.borderColor='#d4a843';this.style.color='#d4a843'" onmouseout="if(!this.classList.contains('active-cmp')){this.style.borderColor='#e4e2dc';this.style.color='#888';}">Compare</button>
 </div>
 
 <div id="fav-bar">
   <button class="fav-tab active" id="fav-tab-all" onclick="setFavView('all')">All Events</button>
   <button class="fav-tab" id="fav-tab-fav" onclick="setFavView('fav')">&#9733; Favorites <span class="fav-count" id="fav-count">0</span></button>
-  <button class="fav-tab" id="fav-tab-cmp" onclick="setFavView('compare')">&#9878; Compare Platforms</button>
   <div id="vol-period-wrap" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
     <span style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Vol Period</span>
     <select id="vol-period-select" onchange="setVolPeriod(this.value)" style="padding:5px 10px;background:#fff;border:1px solid #ddd;border-radius:999px;font-size:11px;font-weight:700;color:#333;cursor:pointer;outline:none;font-family:inherit;">
@@ -1228,6 +1228,16 @@ function getQtyCell(r){
 function setPlatformButtons(platform){document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');}
 
 function setPlatform(platform){
+  // Compare button
+  var cmpBtn = document.getElementById('plt-cmp');
+  if (cmpBtn) { cmpBtn.classList.remove('active-cmp'); cmpBtn.style.borderColor='#e4e2dc'; cmpBtn.style.color='#888'; cmpBtn.style.background='#fff'; }
+  if (platform === 'Compare') {
+    if (cmpBtn) { cmpBtn.classList.add('active-cmp'); cmpBtn.style.borderColor='#d4a843'; cmpBtn.style.color='#d4a843'; cmpBtn.style.background='#fffbf0'; }
+    // Reset platform buttons
+    setPlatformButtons('');
+    loadCompareView();
+    return;
+  }
   activePlatform=platform;
   setPlatformButtons(platform);
   if(platform==='VividSeats'){
@@ -1541,12 +1551,7 @@ function setFavView(view) {
   favView = view;
   document.getElementById('fav-tab-all').classList.toggle('active', view === 'all');
   document.getElementById('fav-tab-fav').classList.toggle('active', view === 'fav');
-  document.getElementById('fav-tab-cmp').classList.toggle('active', view === 'compare');
-  if (view === 'compare') {
-    loadCompareView();
-  } else {
-    drawTable();
-  }
+  drawTable();
 }
 
 function loadCompareView() {
@@ -1558,7 +1563,7 @@ function loadCompareView() {
   Promise.all([
     getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
     getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
-    getRanged('/rest/v1/events?or=(id.like.vs_%25,date=gte.2026-06-01)&select=id,name,date,venue&limit=300', 300)
+    getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue&limit=500', 500)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
