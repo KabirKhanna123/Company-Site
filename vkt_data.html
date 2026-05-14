@@ -1200,32 +1200,34 @@ function loadVSData(){
   loadBar.style.display='block';
   tbl.innerHTML='';
 
-  // Pull ALL VS snapshots — filter in JS to avoid null/empty string ambiguity
-  getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,event_ceiling,section,event_date,venue,scraped_at',1000)
-  .then(function(all){
+  // Fetch VS snapshots AND events table together
+  Promise.all([
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,event_ceiling,section,event_date,venue,scraped_at',1000),
+    getRanged('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&limit=200',200)
+  ]).then(function(res){
+    var all=res[0]||[];
+    var vsEventsDb=res[1]||[];
     loadBar.style.display='none';
-    console.log('[VS] Total snapshots returned:', all ? all.length : 0);
     if(!all||!all.length){
       tbl.innerHTML='<div class="msg">No Vivid Seats data yet — run the VS scraper first.</div>';
       return;
     }
 
-    // Filter to event-level only (no section rows)
+    // Filter to event-level only
     var vsSnaps=all.filter(function(s){ return !s.section || s.section==='' || s.section===null; });
-    console.log('[VS] Event-level snaps:', vsSnaps.length);
 
-    // Build event map from snapshots
+    // Build event map — prefer events table for name/date
+    var evDbMap={};
+    vsEventsDb.forEach(function(e){ evDbMap[e.id]=e; });
     var evMap={};
     vsSnaps.forEach(function(s){
       if(!evMap[s.event_id]){
-        var label=s.venue||('VS Event '+s.event_id);
-        evMap[s.event_id]={id:s.event_id,name:label,date:s.event_date,venue:s.venue};
+        var dbEv=evDbMap[s.event_id]||{};
+        evMap[s.event_id]={id:s.event_id,name:dbEv.name||s.venue||('Match '+s.event_id),date:dbEv.date||s.event_date,venue:dbEv.venue||s.venue};
       }
     });
 
     var vsEvents=Object.values(evMap);
-    console.log('[VS] Unique events:', vsEvents.length);
-
     allRows=buildRows(vsEvents, all);
     buildTicker(allRows);
     drawTable();
