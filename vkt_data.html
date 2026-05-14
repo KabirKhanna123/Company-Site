@@ -150,6 +150,28 @@
     .ai-signal.neutral { background:#f5f5f5; color:#555; }
     @media(max-width:900px){ .ai-sections { grid-template-columns:1fr; } }
 
+
+    /* Platform Comparison View */
+    .cmp-grid { display:flex; flex-direction:column; gap:16px; }
+    .cmp-event { background:#fff; border:1px solid #e4e2dc; border-radius:12px; overflow:hidden; }
+    .cmp-event-header { padding:14px 18px; border-bottom:1px solid #f0eeea; display:flex; align-items:center; justify-content:space-between; }
+    .cmp-event-name { font-size:14px; font-weight:700; color:#111; }
+    .cmp-event-meta { font-size:11px; color:#aaa; margin-top:2px; }
+    .cmp-platforms { display:grid; grid-template-columns:repeat(3,1fr); }
+    .cmp-platform { padding:14px 18px; border-right:1px solid #f0eeea; }
+    .cmp-platform:last-child { border-right:none; }
+    .cmp-platform-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; }
+    .cmp-platform-name.sh { color:#1a3a6b; }
+    .cmp-platform-name.vs { color:#6b2fa0; }
+    .cmp-platform-name.sg { color:#da2828; }
+    .cmp-stat { margin-bottom:8px; }
+    .cmp-stat-label { font-size:10px; color:#aaa; margin-bottom:2px; }
+    .cmp-stat-val { font-size:18px; font-weight:700; color:#111; font-family:monospace; }
+    .cmp-stat-val.best { color:#22c55e; }
+    .cmp-stat-sub { font-size:10px; color:#aaa; margin-top:2px; }
+    .cmp-no-data { color:#ccc; font-size:12px; padding:8px 0; }
+    .cmp-savings { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; background:#f0fdf4; border-radius:999px; font-size:10px; font-weight:700; color:#16a34a; margin-top:6px; }
+    @media(max-width:700px){ .cmp-platforms { grid-template-columns:1fr; } .cmp-platform { border-right:none; border-bottom:1px solid #f0eeea; } }
     /* VividSeats theme — applied via body.vs-theme */
     body.vs-theme .hero-getin-price,
     body.vs-theme .gold,
@@ -439,6 +461,28 @@
     .ai-signal.neutral { background:#f5f5f5; color:#555; }
     @media(max-width:900px){ .ai-sections { grid-template-columns:1fr; } }
 
+
+    /* Platform Comparison View */
+    .cmp-grid { display:flex; flex-direction:column; gap:16px; }
+    .cmp-event { background:#fff; border:1px solid #e4e2dc; border-radius:12px; overflow:hidden; }
+    .cmp-event-header { padding:14px 18px; border-bottom:1px solid #f0eeea; display:flex; align-items:center; justify-content:space-between; }
+    .cmp-event-name { font-size:14px; font-weight:700; color:#111; }
+    .cmp-event-meta { font-size:11px; color:#aaa; margin-top:2px; }
+    .cmp-platforms { display:grid; grid-template-columns:repeat(3,1fr); }
+    .cmp-platform { padding:14px 18px; border-right:1px solid #f0eeea; }
+    .cmp-platform:last-child { border-right:none; }
+    .cmp-platform-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; }
+    .cmp-platform-name.sh { color:#1a3a6b; }
+    .cmp-platform-name.vs { color:#6b2fa0; }
+    .cmp-platform-name.sg { color:#da2828; }
+    .cmp-stat { margin-bottom:8px; }
+    .cmp-stat-label { font-size:10px; color:#aaa; margin-bottom:2px; }
+    .cmp-stat-val { font-size:18px; font-weight:700; color:#111; font-family:monospace; }
+    .cmp-stat-val.best { color:#22c55e; }
+    .cmp-stat-sub { font-size:10px; color:#aaa; margin-top:2px; }
+    .cmp-no-data { color:#ccc; font-size:12px; padding:8px 0; }
+    .cmp-savings { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; background:#f0fdf4; border-radius:999px; font-size:10px; font-weight:700; color:#16a34a; margin-top:6px; }
+    @media(max-width:700px){ .cmp-platforms { grid-template-columns:1fr; } .cmp-platform { border-right:none; border-bottom:1px solid #f0eeea; } }
     /* VividSeats theme — applied via body.vs-theme */
     body.vs-theme .hero-getin-price,
     body.vs-theme .gold,
@@ -691,6 +735,7 @@
 <div id="fav-bar">
   <button class="fav-tab active" id="fav-tab-all" onclick="setFavView('all')">All Events</button>
   <button class="fav-tab" id="fav-tab-fav" onclick="setFavView('fav')">&#9733; Favorites <span class="fav-count" id="fav-count">0</span></button>
+  <button class="fav-tab" id="fav-tab-cmp" onclick="setFavView('compare')">&#9878; Compare Platforms</button>
   <div id="vol-period-wrap" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
     <span style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Vol Period</span>
     <select id="vol-period-select" onchange="setVolPeriod(this.value)" style="padding:5px 10px;background:#fff;border:1px solid #ddd;border-radius:999px;font-size:11px;font-weight:700;color:#333;cursor:pointer;outline:none;font-family:inherit;">
@@ -1496,8 +1541,180 @@ function setFavView(view) {
   favView = view;
   document.getElementById('fav-tab-all').classList.toggle('active', view === 'all');
   document.getElementById('fav-tab-fav').classList.toggle('active', view === 'fav');
-  drawTable();
+  document.getElementById('fav-tab-cmp').classList.toggle('active', view === 'compare');
+  if (view === 'compare') {
+    loadCompareView();
+  } else {
+    drawTable();
+  }
 }
+
+function loadCompareView() {
+  var tbl = document.getElementById('tbl');
+  if (!tbl) return;
+  tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading comparison data...</div>';
+
+  // Fetch both SH and VS snapshots in parallel
+  Promise.all([
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
+    getRanged('/rest/v1/events?or=(id.like.vs_%25,date=gte.2026-06-01)&select=id,name,date,venue&limit=300', 300)
+  ]).then(function(res) {
+    var shSnaps = res[0] || [];
+    var vsSnaps = res[1] || [];
+    var eventsDb = res[2] || [];
+
+    // Build latest snapshot per event per platform
+    var shMap = {}, vsMap = {};
+    shSnaps.forEach(function(s) { if (!shMap[s.event_id]) shMap[s.event_id] = s; });
+    vsSnaps.forEach(function(s) {
+      // VS event_id is vs_XXXXXX — match to SH event if possible
+      if (!vsMap[s.event_id]) vsMap[s.event_id] = s;
+    });
+
+    // Build events lookup
+    var evMap = {};
+    eventsDb.forEach(function(e) { evMap[e.id] = e; });
+
+    // Match VS events to SH events by name/date similarity
+    // VS id = 'vs_5080436', SH id = '153020717'
+    // Match by: event name similarity + same date
+    var vsIds = Object.keys(vsMap);
+    var shIds = Object.keys(shMap);
+
+    // Build match pairs: { shId, vsId, name, date, venue }
+    var matched = []; // events that exist on both platforms
+    var shOnly = [];  // SH events without VS match
+    var vsOnly = [];  // VS events without SH match
+
+    // For each VS event, find a SH event on same date with similar name
+    var usedSH = new Set();
+    vsIds.forEach(function(vsId) {
+      var vsEv = evMap[vsId] || {};
+      var vsDate = vsEv.date || vsMap[vsId].event_date;
+      var vsName = (vsEv.name || '').toLowerCase();
+      // Try to find SH match by same date
+      var shMatch = shIds.find(function(shId) {
+        if (usedSH.has(shId)) return false;
+        var shEv = evMap[shId] || {};
+        var shDate = shEv.date;
+        if (!shDate || !vsDate) return false;
+        if (shDate !== vsDate) return false;
+        // Name similarity: check if any team name overlaps
+        var shName = (shEv.name || '').toLowerCase();
+        var vsWords = vsName.split(/\s+/).filter(function(w){ return w.length > 3; });
+        return vsWords.some(function(w){ return shName.includes(w); });
+      });
+      if (shMatch) {
+        usedSH.add(shMatch);
+        matched.push({ shId: shMatch, vsId: vsId });
+      } else {
+        vsOnly.push(vsId);
+      }
+    });
+    shIds.forEach(function(shId) { if (!usedSH.has(shId)) shOnly.push(shId); });
+
+    if (!matched.length && !vsOnly.length && !shOnly.length) {
+      tbl.innerHTML = '<div class="msg">No data to compare yet. Scrape events on both platforms first.</div>';
+      return;
+    }
+
+    var html = '<div class="cmp-grid">';
+
+    // Matched events
+    matched.sort(function(a, b) {
+      var da = (evMap[a.shId] || {}).date || '';
+      var db = (evMap[b.shId] || {}).date || '';
+      return da < db ? -1 : da > db ? 1 : 0;
+    });
+
+    matched.forEach(function(pair) {
+      var shEv = evMap[pair.shId] || {};
+      var vsEv = evMap[pair.vsId] || {};
+      var sh = shMap[pair.shId] || {};
+      var vs = vsMap[pair.vsId] || {};
+      var name = shEv.name || vsEv.name || pair.shId;
+      var date = shEv.date || vsEv.date || '';
+      var venue = shEv.venue || vsEv.venue || '';
+      var shFloor = sh.event_floor || 0;
+      var vsFloor = vs.event_floor || 0;
+      var cheaperPlatform = shFloor && vsFloor ? (shFloor < vsFloor ? 'sh' : vsFloor < shFloor ? 'vs' : '') : '';
+      var savings = cheaperPlatform && shFloor && vsFloor ? Math.abs(shFloor - vsFloor) : 0;
+
+      html += '<div class="cmp-event">';
+      html += '<div class="cmp-event-header">';
+      html += '<div><div class="cmp-event-name">'+esc(cleanName(name))+'</div>';
+      html += '<div class="cmp-event-meta">'+esc(fmtDate(date))+(venue?' &bull; '+esc(venue):'')+'</div></div>';
+      if (savings > 0) html += '<div class="cmp-savings">&#128176; Save $'+Math.round(savings).toLocaleString()+' on '+(cheaperPlatform==='sh'?'StubHub':'VividSeats')+'</div>';
+      html += '</div>';
+      html += '<div class="cmp-platforms">';
+
+      // StubHub column
+      html += '<div class="cmp-platform">';
+      html += '<div class="cmp-platform-name sh">StubHub</div>';
+      if (shFloor) {
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(cheaperPlatform==='sh'?' best':'')+'">$'+Math.round(shFloor).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Avg Price</div><div class="cmp-stat-val" style="font-size:14px;">$'+Math.round(sh.event_avg||0).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings</div><div class="cmp-stat-val" style="font-size:14px;">'+(sh.total_listings||0).toLocaleString()+'</div></div>';
+      } else { html += '<div class="cmp-no-data">No data</div>'; }
+      html += '</div>';
+
+      // VividSeats column
+      html += '<div class="cmp-platform">';
+      html += '<div class="cmp-platform-name vs">VividSeats</div>';
+      if (vsFloor) {
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(cheaperPlatform==='vs'?' best':'')+'">$'+Math.round(vsFloor).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Avg Price</div><div class="cmp-stat-val" style="font-size:14px;">$'+Math.round(vs.event_avg||0).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings</div><div class="cmp-stat-val" style="font-size:14px;">'+(vs.total_listings||0).toLocaleString()+'</div></div>';
+      } else { html += '<div class="cmp-no-data">No data</div>'; }
+      html += '</div>';
+
+      // Price difference column
+      html += '<div class="cmp-platform">';
+      html += '<div class="cmp-platform-name" style="color:#888;">Difference</div>';
+      if (shFloor && vsFloor) {
+        var diff = shFloor - vsFloor;
+        var pct = Math.round(Math.abs(diff) / Math.min(shFloor,vsFloor) * 100);
+        var clr = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#888';
+        var lbl = diff > 0 ? 'StubHub higher' : diff < 0 ? 'VividSeats higher' : 'Same price';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor Gap</div>';
+        html += '<div class="cmp-stat-val" style="font-size:18px;color:'+clr+';">'+(diff>0?'+':'')+Math.round(diff).toLocaleString()+'</div>';
+        html += '<div class="cmp-stat-sub">'+pct+'% diff &bull; '+lbl+'</div></div>';
+        var listDiff = (sh.total_listings||0) - (vs.total_listings||0);
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings Gap</div>';
+        html += '<div class="cmp-stat-val" style="font-size:14px;color:#888;">'+(listDiff>0?'+':'')+listDiff+'</div></div>';
+      } else {
+        html += '<div class="cmp-no-data">Need both platforms</div>';
+      }
+      html += '</div>';
+      html += '</div></div>';
+    });
+
+    // SH-only events (VS not yet scraped)
+    if (shOnly.length) {
+      html += '<div style="font-size:11px;color:#aaa;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:8px 4px 4px;">StubHub only — not yet on VividSeats</div>';
+      shOnly.forEach(function(shId) {
+        var shEv = evMap[shId] || {};
+        var sh = shMap[shId] || {};
+        html += '<div class="cmp-event"><div class="cmp-event-header">';
+        html += '<div><div class="cmp-event-name">'+esc(cleanName(shEv.name||shId))+'</div>';
+        html += '<div class="cmp-event-meta">'+esc(fmtDate(shEv.date||''))+(shEv.venue?' &bull; '+esc(shEv.venue):'')+'</div></div>';
+        html += '<span style="font-size:10px;color:#aaa;font-weight:600;">StubHub only</span></div>';
+        html += '<div class="cmp-platforms"><div class="cmp-platform"><div class="cmp-platform-name sh">StubHub</div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val">$'+Math.round(sh.event_floor||0).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings</div><div class="cmp-stat-val" style="font-size:14px;">'+(sh.total_listings||0).toLocaleString()+'</div></div>';
+        html += '</div><div class="cmp-platform"><div class="cmp-platform-name vs">VividSeats</div><div class="cmp-no-data">Not scraped yet</div></div>';
+        html += '<div class="cmp-platform"></div></div></div>';
+      });
+    }
+
+    html += '</div>';
+    tbl.innerHTML = html;
+  }).catch(function(e) {
+    tbl.innerHTML = '<div class="msg">Error loading comparison: '+esc(e.message)+'</div>';
+  });
+}
+
 
 function showFavToast(msg) {
   var toast = document.getElementById('fav-toast');
