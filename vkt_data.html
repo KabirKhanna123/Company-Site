@@ -1152,6 +1152,10 @@ function loadAnalysis(eventId){
         var soldSet=new Set(Array.from(prevSet).filter(function(id){return!latestSet.has(id);}));
         var active=Object.values(lh).filter(function(l){return latestSet.has(getKey(l));}).map(function(l){return Object.assign({},l,{dom:latest?Math.floor((new Date(latest)-new Date(l.first_seen))/86400000):0,sold:false});});
         var sold=Object.values(lh).filter(function(l){return soldSet.has(getKey(l));}).map(function(l){return Object.assign({},l,{dom:0,sold:true});});
+        // Debug
+        var dbgWrap = document.getElementById('listingsWrap');
+        if(dbgWrap) dbgWrap.innerHTML='<div style="padding:8px;font-size:11px;color:#aaa;">raw:'+rawListings.length+' lh:'+Object.keys(lh).length+' latestSet:'+latestSet.size+' active:'+active.length+'</div>';
+        if(!active.length){ if(dbgWrap) dbgWrap.innerHTML+='<div style="padding:4px 8px;font-size:11px;color:#e44;">No active listings found in 30-min window. Latest: '+(latest||'none')+'</div>'; }
         renderListingSections(active, sold, soldSet, latest);
       })
       .catch(function(e){
@@ -1942,8 +1946,8 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
 
   // Table
   h += '<div class="mini-wrap" style="max-height:520px;">';
-  h += '<table class="mini-table" id="ls-table">';
   h += '<div id="ls-debug" style="font-size:10px;color:#aaa;padding:4px 0;"></div>';
+  h += '<table class="mini-table" id="ls-table">';
   h += '<thead><tr>';
   var cols = [{k:'zone',l:'Zone'},{k:'section',l:'Section'},{k:'row',l:'Row'},{k:'quantity',l:'Qty'},{k:'price',l:'Price'},{k:'dom',l:'Days on Mkt'},{k:'first_seen',l:'First Seen'},{k:'sold',l:'Status'}];
   cols.forEach(function(c){h+='<th onclick="lsSort(\''+c.k+'\')" id="ls-th-'+c.k+'" style="cursor:pointer;user-select:none;text-align:center;white-space:nowrap;">'+c.l+' <span id="ls-sort-'+c.k+'" style="color:#d4a843;font-size:9px;"></span></th>';});
