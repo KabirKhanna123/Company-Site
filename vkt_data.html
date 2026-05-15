@@ -1580,11 +1580,15 @@ function setFavView(view) {
 }
 
 function addCmpDebug(msg) {
-  var tbl = document.getElementById('tbl');
-  if (!tbl) return;
-  var cur = tbl.innerHTML;
-  if (cur.includes('Loading comparison')) tbl.innerHTML = '<div class="msg" style="font-size:11px;color:#aaa;">'+msg+'</div>';
-  else tbl.innerHTML += '<div style="font-size:11px;color:#aaa;padding:2px 0;">'+msg+'</div>';
+  var dbgDiv = document.getElementById('cmp-debug');
+  if (!dbgDiv) {
+    dbgDiv = document.createElement('div');
+    dbgDiv.id = 'cmp-debug';
+    dbgDiv.style.cssText = 'padding:4px 8px;font-size:10px;color:#aaa;font-family:monospace;';
+    var tbl = document.getElementById('tbl');
+    if (tbl) tbl.prepend(dbgDiv);
+  }
+  dbgDiv.innerHTML += '<div>'+msg+'</div>';
 }
 
 function loadCompareView() {
@@ -1597,10 +1601,11 @@ function loadCompareView() {
   if (!tbl) { loadCompareView._running = false; return; }
   tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading comparison data...</div>';
 
-  // Use direct fetch (no Range headers) to avoid 416 errors
-  var SB2 = SB, H2 = H;
   function dbGet(path) {
-    return fetch(SB2+path, {headers: H2}).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+    return fetch(SB+path, {headers: H}).then(function(r){
+      if (!r.ok) { console.error('dbGet failed:', r.status, path); return []; }
+      return r.json();
+    }).catch(function(e){ console.error('dbGet error:', e.message, path); return []; });
   }
 
   Promise.all([
@@ -1611,7 +1616,6 @@ function loadCompareView() {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
     var eventsDb = res[2] || [];
-    // Debug
     addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | Events: '+eventsDb.length);
 
     // Keep only event-level snapshots (no section breakdown) and deduplicate to latest per event
