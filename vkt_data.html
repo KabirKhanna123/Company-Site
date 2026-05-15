@@ -897,7 +897,7 @@ function drawTable(){
     '<th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;">Date <span id="dateSortIcon">&#8645;</span></th>'+
     '<th>Venue</th>'+
     '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
-    '<th class="th-right">ATP</th><th class="th-right">Listings</th>'+
+    '<th class="th-right">7D Move</th><th class="th-right">Listings</th>'+
     '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;"><span id="vol-th-label">VOL Change %</span> <span id="volSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="qty-th-label">QTY Change</th>'+
@@ -922,7 +922,14 @@ function drawTable(){
     // Store row market data in a global lookup so openAlert can access it safely
     vktRowCache[r.id]={floor:r.floor||0,atp:Math.round(r.atp)||0,listings:r.listings||0,demand:r.demandScore||0,vol24h:r.listingsPct||0,days:r.daysToEvent||0,name:r.name||''};
     var safeId=r.id.replace(/'/g,'');
-    var alertHtml='<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+safeId+'\')" title="Set price alert">&#128276;'+(miniLabel?'<span class="alert-btn-label">'+esc(miniLabel)+'</span>':'')+'</button>';
+    // Where to sell recommendation based on floor vs ATP
+    var sellRec = '';
+    if (r.floor > 0) {
+      // Simple heuristic: high floor relative to ATP = StubHub better (premium buyers)
+      // Could be enhanced with compare data later
+      sellRec = r.floor > 1500 ? 'SH+VS' : r.floor > 500 ? 'StubHub' : 'Either';
+    }
+    var alertHtml='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">'+(sellRec?'<span style="font-size:8px;font-weight:700;color:#888;white-space:nowrap;letter-spacing:0.3px;">'+esc(sellRec)+'</span>':'')+'<button class="alert-btn'+alertActive+'" onclick="event.stopPropagation();openAlert(\''+safeId+'\')" title="Set price alert">&#128276;'+(miniLabel?'<span class="alert-btn-label">'+esc(miniLabel)+'</span>':'')+'</button></div>';
     var isFav=vktFavorites.has(r.id);
     var starHtml='<button class="fav-star-btn'+(isFav?' active':'')+'" data-event-id="'+esc(r.id)+'" onclick="event.stopPropagation();toggleFavorite(\''+r.id+'\',this)" title="'+(isFav?'Remove from favorites':'Add to favorites')+'">'+(isFav?'&#9733;':'&#9734;')+'</button>';
 
@@ -934,7 +941,13 @@ function drawTable(){
       '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
       '<td class="col-venue" style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td>'+
-      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(cur(r.atp)):'<span class="no-data">\u2014</span>')+'</td>'+
+      (function(){
+  var v7=r.vol7d;
+  var cls=v7!==null?(v7>0?'delta-down':v7<0?'delta-up':'delta-flat'):'';
+  // negative vol7d = listings dropped = bullish (prices rising)
+  var label=v7!==null?((v7>0?'+':'')+v7+'%'):'\u2014';
+  return '<td class="td-right mono '+cls+'" style="'+dim+'">'+(r.hasData?'<span style="font-size:11px;">'+esc(label)+'</span>':'<span class="no-data">\u2014</span>')+'</td>';
+})()+
       '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
