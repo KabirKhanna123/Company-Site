@@ -2159,7 +2159,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   // ── CHARTS ROW ──
   h += '<div class="charts-grid" style="margin-bottom:16px;">';
   h += '<div class="chart-card"><h3>Pack Size Distribution</h3><div class="chart-wrap"><canvas id="listQtyChart"></canvas></div></div>';
-  h += '<div class="chart-card"><h3>Section Heat Map <span style="font-size:10px;font-weight:400;color:#aaa;margin-left:6px;">hover for details</span></h3><div id="stadiumHeatmap" style="position:relative;height:300px;width:100%;overflow:hidden;"></div></div>';
+  h += '<div class="chart-card"><h3>Stadium Map</h3><div id="stadiumHeatmap" style="position:relative;width:100%;overflow:visible;"></div></div>';
   h += '</div>';
 
   // ── PRICE RANGE BREAKDOWN ──
@@ -2398,9 +2398,9 @@ function drawStadiumHeatmap(listings) {
   // ── PART 1: Clean stadium image ──
   var html = '<div style="width:100%;border-radius:8px;overflow:hidden;background:#0a0f1a;margin-bottom:14px;">';
   if (mapUrl) {
-    html += '<img src="'+mapUrl+'" style="width:100%;height:auto;display:block;" crossorigin="anonymous" onerror="this.style.display=\'none\'">';
+    html += '<img src="'+mapUrl+'" style="width:100%;height:auto;max-height:none;display:block;object-fit:contain;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
   } else {
-    html += '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;">No venue map for this event</div>';
+    html += '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;">No venue map for this event</div>';
   }
   html += '</div>';
 
@@ -2444,7 +2444,7 @@ function drawStadiumHeatmap(listings) {
   // Legend
   html += '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:#888;">';
   html += '<span>Few listings</span>';
-  ['#f3efe4','#f0d899','#e8bb50','d4a843','#b8892e','#8a6a18'].forEach(function(c){
+  ['#f3efe4','#f0d899','#e8bb50','#d4a843','#b8892e','#8a6a18'].forEach(function(c){
     html += '<div style="width:18px;height:10px;background:'+c+';border-radius:2px;"></div>';
   });
   html += '<span>Most listings</span></div>';
