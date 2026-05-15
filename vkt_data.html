@@ -1614,12 +1614,6 @@ function loadCompareView() {
     // Debug
     addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | Events: '+eventsDb.length);
 
-    // Debug: show sample SH and VS event venue/date combos
-    var shSample = shIds.slice(0,3).map(function(id){ var e=evMap[id]||{}; return id+': '+e.date+' @ '+normalizeVenue(e.venue); }).join(' | ');
-    var vsSample = vsIds.slice(0,3).map(function(id){ var e=evMap[id]||{}; return id+': '+e.date+' @ '+normalizeVenue(e.venue); }).join(' | ');
-    addCmpDebug('SH sample: '+shSample);
-    addCmpDebug('VS sample: '+vsSample);
-
     // Build latest snapshot per event per platform
     var shMap = {}, vsMap = {};
     shSnaps.forEach(function(s) { if (!shMap[s.event_id]) shMap[s.event_id] = s; });
@@ -1678,9 +1672,14 @@ function loadCompareView() {
       var vsVenue = normalizeVenue(vsEv.venue);
       if (!vsDate || !vsVenue) { vsOnly.push(vsId); return; }
 
+      // Debug first 3 VS events
+      if (vsIds.indexOf(vsId) < 3) addCmpDebug('VS: '+vsId+' | '+vsDate+' @ '+vsVenue+' (raw: '+vsEv.venue+')');
+
       var shMatch = shIds.find(function(shId) {
         if (usedSH.has(shId)) return false;
         var shEv = evMap[shId] || {};
+        // Debug first SH event for first VS event
+        if (vsIds.indexOf(vsId) === 0 && shIds.indexOf(shId) < 2) addCmpDebug('  SH candidate: '+shId+' | '+shEv.date+' @ '+normalizeVenue(shEv.venue)+' (raw: '+shEv.venue+')');
         if (shEv.date !== vsDate) return false;
         return normalizeVenue(shEv.venue) === vsVenue;
       });
