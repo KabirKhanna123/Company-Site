@@ -2181,8 +2181,13 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   // ── LISTINGS TABLE CARD ──
   h += '<div class="detail-card" style="margin-bottom:14px;">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
-  h += '<div style="font-size:13px;font-weight:700;color:#111;">All Listings</div>';
-  h += '<div style="font-size:11px;color:#aaa;" id="listingsCount">'+activeAll.length+' listings</div>';
+  h += '<div style="display:flex;align-items:center;gap:8px;">';
+  h += '<div style="font-size:13px;font-weight:700;color:#111;">Listings</div>';
+  h += '<div style="display:flex;border:1px solid #e4e2dc;border-radius:8px;overflow:hidden;">';
+  h += '<button id="ls-btn-active" onclick="setListingMode(\'active\')" style="padding:5px 14px;font-size:11px;font-weight:700;font-family:inherit;border:none;cursor:pointer;background:#111;color:#fff;transition:all 0.15s;">Active</button>';
+  h += '<button id="ls-btn-sold" onclick="setListingMode(\'sold\')" style="padding:5px 14px;font-size:11px;font-weight:700;font-family:inherit;border:none;cursor:pointer;background:#fff;color:#888;border-left:1px solid #e4e2dc;transition:all 0.15s;">Sold</button>';
+  h += '</div></div>';
+  h += '<div style="font-size:11px;color:#aaa;" id="listingsCount">'+activeAll.length+' active</div>';
   h += '</div>';
 
   // Filter bar
@@ -2233,6 +2238,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
 
   // Store data globally
   window._lsData = all;
+  window._lsMode = 'active'; // default to active listings
   if(!window._lsSort) window._lsSort = {col:'price', dir:1};
   window._lsPage = 1;
 
@@ -2252,6 +2258,27 @@ function _lsStat(label, val, sub, cls) {
   return '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value" style="font-size:22px;'+(cls==='gold'?'color:#d4a843;':cls==='red'?'color:#ef4444;':'')+'">' + val + '</div><div class="stat-delta" style="color:#aaa;font-size:11px;">'+sub+'</div></div>';
 }
 
+function setListingMode(mode) {
+  window._lsMode = mode;
+  window._lsPage = 1;
+  // Update button styles
+  var btnActive = document.getElementById('ls-btn-active');
+  var btnSold = document.getElementById('ls-btn-sold');
+  if (btnActive && btnSold) {
+    btnActive.style.background = mode === 'active' ? '#111' : '#fff';
+    btnActive.style.color = mode === 'active' ? '#fff' : '#888';
+    btnSold.style.background = mode === 'sold' ? '#111' : '#fff';
+    btnSold.style.color = mode === 'sold' ? '#fff' : '#888';
+  }
+  // Update count label
+  var countEl = document.getElementById('listingsCount');
+  if (countEl && window._lsData) {
+    var modeData = window._lsData.filter(function(l){ return mode === 'sold' ? l.sold : !l.sold; });
+    countEl.textContent = modeData.length + (mode === 'sold' ? ' sold' : ' active');
+  }
+  applyListingFilters();
+}
+
 function applyListingFilters() {
   if (!window._lsData) return;
   var zone   = (document.getElementById('ls-zone')||{}).value||'';
@@ -2261,7 +2288,10 @@ function applyListingFilters() {
   var search = ((document.getElementById('ls-search')||{}).value||'').toLowerCase();
   var perPage= parseInt((document.getElementById('ls-perpage')||{}).value||'100',10);
 
+  var mode = window._lsMode || 'active';
   var data = window._lsData.filter(function(l) {
+    if (mode === 'sold' && !l.sold) return false;
+    if (mode === 'active' && l.sold) return false;
     if (zone && l.zone !== zone) return false;
     if (sec  && l.section !== sec) return false;
     if (row  && l.row !== row) return false;
