@@ -1601,17 +1601,14 @@ function loadCompareView() {
   if (!tbl) { loadCompareView._running = false; return; }
   tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading comparison data...</div>';
 
-  function dbGet(path) {
-    return fetch(SB+path, {headers: H}).then(function(r){
-      if (!r.ok) { console.error('dbGet failed:', r.status, path); return []; }
-      return r.json();
-    }).catch(function(e){ console.error('dbGet error:', e.message, path); return []; });
+  function dbGet(path, limit) {
+    return getRanged(path, limit || 500);
   }
 
   Promise.all([
-    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section&limit=500'),
-    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section&limit=500'),
-    dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue&limit=500')
+    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500),
+    dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue', 500)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
