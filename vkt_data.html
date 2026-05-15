@@ -1651,7 +1651,9 @@ function addCmpDebug(msg) {
   dbgDiv.innerHTML += '<div>'+msg+'</div>';
 }
 
-function loadCompareDetail(shId, vsId) {
+function loadCompareDetail(el) {
+  var shId = el.getAttribute('data-sh');
+  var vsId = el.getAttribute('data-vs');
   var tbl = document.getElementById('tbl');
   if (!tbl) return;
   tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading match analysis...</div>';
@@ -2027,7 +2029,7 @@ function loadCompareView() {
 
       html += '<div class="cmp-event">';
       // Header with name + click-through
-      html += '<div class="cmp-event-header" style="cursor:pointer;" onclick="loadCompareDetail(''+pair.shId+'',''+pair.vsId+'')">';
+      html += '<div class="cmp-event-header" style="cursor:pointer;" onclick="loadCompareDetail(this)"  data-sh="'+pair.shId+'" data-vs="'+pair.vsId+'">';
       html += '<div><div class="cmp-event-name">'+esc(cleanName(name))+'</div>';
       html += '<div class="cmp-event-meta">'+esc(fmtDate(date))+(venue?' &bull; '+esc(venue):'')+'</div></div>';
       if (savings > 0) html += '<div class="cmp-savings">&#128176; Save $'+Math.round(savings).toLocaleString()+' on '+(cheaperPlatform==='sh'?'StubHub':'VividSeats')+'</div>';
@@ -2077,7 +2079,7 @@ function loadCompareView() {
 
       // Click-through link
       html += '<div style="padding:8px 18px;border-top:1px solid #f0eeea;text-align:right;">';
-      html += '<span style="font-size:11px;color:#aaa;cursor:pointer;" onclick="loadCompareDetail(''+pair.shId+'',''+pair.vsId+'')">View listing-level breakdown →</span>';
+      html += '<span style="font-size:11px;color:#aaa;cursor:pointer;" data-sh="'+pair.shId+'" data-vs="'+pair.vsId+'" onclick="loadCompareDetail(this)">View listing-level breakdown →</span>';
       html += '</div>';
       html += '</div>';
     });
