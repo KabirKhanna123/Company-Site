@@ -1252,13 +1252,25 @@ function setPlatform(platform){
   // Always return to events table (not detail view)
   var appEl = document.getElementById('app');
   var isDetail = appEl && (appEl.querySelector('.analysis-title') || appEl.querySelector('.hero-section'));
-  if(isDetail){ renderDashboard(); setTimeout(function(){ if(platform==='VividSeats') loadVSData(); else{ allRows=buildRows(allEvents,allSnaps); buildTicker(allRows); drawTable(); } },200); return; }
+  if(isDetail){ renderDashboard(); }
   if(platform==='VividSeats'){
     loadVSData();
   } else {
-    allRows=buildRows(allEvents,allSnaps);
-    buildTicker(allRows);
-    drawTable();
+    // Re-fetch StubHub events and snapshots
+    var today=new Date().toISOString().slice(0,10);
+    document.getElementById('loadingBar').style.display='block';
+    getAllEvents(today).then(function(events){
+      allEvents=events||[];
+      var ids=allEvents.map(function(e){return e.id;});
+      var chunks=[];for(var i=0;i<ids.length;i+=200)chunks.push(ids.slice(i,i+200));
+      return Promise.all(chunks.map(function(chunk){var idList=chunk.map(function(i){return'"'+String(i).replace(/"/g,'\\"')+'"';}).join(',');return getSnapshotsForChunk(idList);}));
+    }).then(function(snapChunks){
+      document.getElementById('loadingBar').style.display='none';
+      allSnaps=[].concat.apply([],snapChunks||[]);
+      allRows=buildRows(allEvents,allSnaps);
+      buildTicker(allRows);
+      drawTable();
+    }).catch(function(){ document.getElementById('loadingBar').style.display='none'; drawTable(); });
   }
 }
 
@@ -1601,6 +1613,12 @@ function loadCompareView() {
     var eventsDb = res[2] || [];
     // Debug
     addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | Events: '+eventsDb.length);
+
+    // Debug: show sample SH and VS event venue/date combos
+    var shSample = shIds.slice(0,3).map(function(id){ var e=evMap[id]||{}; return id+': '+e.date+' @ '+normalizeVenue(e.venue); }).join(' | ');
+    var vsSample = vsIds.slice(0,3).map(function(id){ var e=evMap[id]||{}; return id+': '+e.date+' @ '+normalizeVenue(e.venue); }).join(' | ');
+    addCmpDebug('SH sample: '+shSample);
+    addCmpDebug('VS sample: '+vsSample);
 
     // Build latest snapshot per event per platform
     var shMap = {}, vsMap = {};
