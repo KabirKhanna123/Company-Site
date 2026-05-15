@@ -196,6 +196,8 @@
     body.vs-theme .back-btn:hover { border-color:#7c3aed; color:#7c3aed; }
     body.vs-theme .hero-chart-tab:not(.active):hover { color:#7c3aed; }
     body.vs-theme .section-badge { background:#f3e8ff; color:#7c3aed; }
+
+    .info-tip:hover .info-tip-text { visibility:visible !important; opacity:1 !important; }
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts-grid,.section-charts,.detail-grid{grid-template-columns:1fr}.chart-card.full{grid-column:auto}}
 
     /* ── MOBILE ─────────────────────────────────────────────────────── */
@@ -507,6 +509,8 @@
     body.vs-theme .back-btn:hover { border-color:#7c3aed; color:#7c3aed; }
     body.vs-theme .hero-chart-tab:not(.active):hover { color:#7c3aed; }
     body.vs-theme .section-badge { background:#f3e8ff; color:#7c3aed; }
+
+    .info-tip:hover .info-tip-text { visibility:visible !important; opacity:1 !important; }
     @media(max-width:1100px){.listing-stats{grid-template-columns:repeat(3,1fr)}}
 
     @media(max-width:700px){.listing-stats{grid-template-columns:repeat(2,1fr)}}
@@ -1099,7 +1103,7 @@ function loadAnalysis(eventId){
     heroHtml+='</div>';
     html+=heroHtml;
 
-    html+='<div class="stats-grid">'+sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true)+'<div class="stat-card" style="position:relative;"><span title="The marketplace UI may show a higher total — this reflects deduplicated unique listings." style="position:absolute;top:8px;right:10px;cursor:help;color:#bbb;font-size:12px;line-height:1;">&#9432;</span><div class="stat-label">Current Unique Listings</div><div class="stat-value">'+fmt(last?n(last.total_listings):0)+'</div>'+(listDelta!==null?'<div class="stat-delta '+(listDelta>0?'delta-up':listDelta<0?'delta-down':'delta-flat')+'">'+(listDelta>0?'+':'')+fmt(listDelta)+'</div>':'')+'</div>'+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card"><div class="stat-label">24h Vol Change</div><div class="stat-value '+(listingsPct!==null?(listingsPct>0?'delta-up':listingsPct<0?'delta-down':'delta-flat'):'')+'">'+esc(listingsPct!==null?(listingsPct>0?'+':'')+listingsPct+'%':'\u2014')+'</div></div></div>';
+    html+='<div class="stats-grid">'+sc('Current Floor',cur(last?n(last.event_floor):0),floorDelta,true)+'<div class="stat-card" style="position:relative;"><span class="info-tip" style="position:absolute;top:8px;right:10px;cursor:help;color:#bbb;font-size:12px;line-height:1;display:inline-block;">&#9432;<span class="info-tip-text" style="position:absolute;right:0;top:18px;width:200px;background:#111;color:#fff;font-size:11px;padding:6px 8px;border-radius:6px;z-index:100;line-height:1.4;font-weight:400;white-space:normal;visibility:hidden;opacity:0;transition:opacity 0.15s;pointer-events:none;">The marketplace UI may show a higher total — this reflects deduplicated unique listings after removing duplicates.</span></span><div class="stat-label">Current Unique Listings</div><div class="stat-value">'+fmt(last?n(last.total_listings):0)+'</div>'+(listDelta!==null?'<div class="stat-delta '+(listDelta>0?'delta-up':listDelta<0?'delta-down':'delta-flat')+'">'+(listDelta>0?'+':'')+fmt(listDelta)+'</div>':'')+'</div>'+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card"><div class="stat-label">24h Vol Change</div><div class="stat-value '+(listingsPct!==null?(listingsPct>0?'delta-up':listingsPct<0?'delta-down':'delta-flat'):'')+'">'+esc(listingsPct!==null?(listingsPct>0?'+':'')+listingsPct+'%':'\u2014')+'</div></div></div>';
       html+='<div class="charts-grid"><div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div><div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div><div class="chart-card full"><div class="section-header"><h3>Section Deep Dive</h3>';
       if(secNames.length)html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
       html+='</div>';if(secNames.length){html+='<div class="section-charts"><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Listings</div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Floor</div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div><div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';}else html+='<div class="msg" style="padding:2rem;">No section data yet.</div>';html+='</div></div>';
@@ -1245,6 +1249,10 @@ function setPlatform(platform){
   }
   activePlatform=platform;
   setPlatformButtons(platform);
+  // Always return to events table (not detail view)
+  var appEl = document.getElementById('app');
+  var isDetail = appEl && (appEl.querySelector('.analysis-title') || appEl.querySelector('.hero-section'));
+  if(isDetail){ renderDashboard(); setTimeout(function(){ if(platform==='VividSeats') loadVSData(); else{ allRows=buildRows(allEvents,allSnaps); buildTicker(allRows); drawTable(); } },200); return; }
   if(platform==='VividSeats'){
     loadVSData();
   } else {
@@ -1568,17 +1576,25 @@ function addCmpDebug(msg) {
 }
 
 function loadCompareView() {
+  // Reset stale guard (in case previous run failed silently)
+  if (loadCompareView._running && Date.now() - (loadCompareView._startTime||0) > 15000) loadCompareView._running = false;
   if (loadCompareView._running) return;
   loadCompareView._running = true;
+  loadCompareView._startTime = Date.now();
   var tbl = document.getElementById('tbl');
   if (!tbl) { loadCompareView._running = false; return; }
   tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading comparison data...</div>';
 
-  // Fetch both SH and VS snapshots in parallel
+  // Use direct fetch (no Range headers) to avoid 416 errors
+  var SB2 = SB, H2 = H;
+  function dbGet(path) {
+    return fetch(SB2+path, {headers: H2}).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+  }
+
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at', 500),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at', 500),
-    getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue&limit=500', 500)
+    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=300'),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=300'),
+    dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue&limit=500')
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
@@ -1960,7 +1976,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
 
   // Store data globally
   window._lsData = all;
-  window._lsSort = {col:'price', dir:1};
+  if(!window._lsSort) window._lsSort = {col:'price', dir:1};
   window._lsPage = 1;
 
   // Render charts
@@ -2062,7 +2078,8 @@ function applyListingFilters() {
 }
 function _pagBtn(active){return 'padding:5px 10px;border:1px solid '+(active?'#d4a843':'#ddd')+';border-radius:5px;background:'+(active?'#d4a843':'#fff')+';color:'+(active?'#111':'#555')+';font-size:11px;cursor:pointer;font-family:inherit;';}
 function lsGoPage(p){window._lsPage=p;applyListingFilters();}
-function lsSort(col){var s=window._lsSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._lsSort=s;document.querySelectorAll('[id^="ls-sort-"]').forEach(function(el){el.textContent='';});document.querySelectorAll('[id^="ls-th-"]').forEach(function(el){el.style.color='';});var icon=document.getElementById('ls-sort-'+col);if(icon)icon.textContent=s.dir===1?'↑':'↓';var th=document.getElementById('ls-th-'+col);if(th)th.style.color='#d4a843';window._lsPage=1;applyListingFilters();}
+function lsSort(col){var s=window._lsSort||{col:'price',dir:1};if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}window._lsSort=s;lsSortRefreshUI();}
+function lsSortRefreshUI(){var s=window._lsSort||{col:'price',dir:1};document.querySelectorAll('[id^="ls-sort-"]').forEach(function(el){el.textContent='';});document.querySelectorAll('[id^="ls-th-"]').forEach(function(el){el.style.color='';});var icon=document.getElementById('ls-sort-'+s.col);if(icon)icon.textContent=s.dir===1?'↑':'↓';var th=document.getElementById('ls-th-'+s.col);if(th)th.style.color='#d4a843';window._lsPage=1;applyListingFilters();}
 function clearListingFilters(){['ls-zone','ls-sec','ls-row','ls-qty','ls-search'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=el.tagName==='SELECT'?'':'';});window._lsPage=1;applyListingFilters();}
 
 
