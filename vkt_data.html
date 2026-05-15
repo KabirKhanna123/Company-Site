@@ -2057,6 +2057,11 @@ function renderCompareDetail(filterSection) {
       h += '<div class="cd-insight"><div class="cd-insight-icon">'+ins.icon+'</div><div class="cd-insight-text">'+ins.text+'</div></div>';
     });
     if (!insights.length) h += '<div style="color:#aaa;font-size:12px;">Scrape both platforms to unlock full analysis.</div>';
+    h += '</div>'; // cd-analysis
+  }
+  h += '</div>'; // cd-wrap
+  document.getElementById('tbl').innerHTML = h;
+
 function loadCompareView() {
   // Reset stale guard (in case previous run failed silently)
   if (loadCompareView._running && Date.now() - (loadCompareView._startTime||0) > 15000) loadCompareView._running = false;
