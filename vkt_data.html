@@ -1592,30 +1592,50 @@ function loadCompareView() {
     var shOnly = [];  // SH events without VS match
     var vsOnly = [];  // VS events without SH match
 
-    // For each VS event, find a SH event on same date with similar name
+    // Match VS to SH events by date + venue (most reliable — names differ between platforms)
     var usedSH = new Set();
+
+    function normalizeVenue(v) {
+      if (!v) return '';
+      v = v.toLowerCase().replace(/[^a-z0-9]/g,'');
+      // Map common abbreviations to canonical forms
+      var aliases = {
+        'sofi':'sofi','sofistadium':'sofi','sofistadiumlosangeles':'sofi',
+        'metlife':'metlife','metlifestadium':'metlife',
+        'attstad':'att','attstadium':'att','attstadiumarlington':'att',
+        'nrg':'nrg','nrgstadium':'nrg',
+        'gillette':'gillette','gillettestadium':'gillette',
+        'hardrock':'hardrock','hardwickrockstadium':'hardrock',
+        'mercedes':'mercedes','mercedesbenz':'mercedes','mercedesbenzstadium':'mercedes',
+        'lincoln':'lincoln','lincolnfinancial':'lincoln','lincolnfinancialfield':'lincoln',
+        'lumen':'lumen','lumenfield':'lumen',
+        'levis':'levis','levistadium':'levis',
+        'bmo':'bmo','bmofield':'bmo',
+        'bcplace':'bcplace','bcplacestadium':'bcplace',
+        'arrowhead':'arrowhead','gehafield':'arrowhead','arrowheadstadium':'arrowhead',
+        'azteca':'azteca','estadioazteca':'azteca',
+        'bbva':'bbva','estadiobbva':'bbva',
+        'akron':'akron','estadioakron':'akron',
+      };
+      for (var key in aliases) { if (v.includes(key)) return aliases[key]; }
+      return v.slice(0,10); // fallback: first 10 chars
+    }
+
     vsIds.forEach(function(vsId) {
       var vsEv = evMap[vsId] || {};
-      var vsDate = vsEv.date || vsMap[vsId].event_date;
-      var vsName = (vsEv.name || '').toLowerCase();
-      // Try to find SH match by same date
+      var vsDate = vsEv.date;
+      var vsVenue = normalizeVenue(vsEv.venue);
+      if (!vsDate || !vsVenue) { vsOnly.push(vsId); return; }
+
       var shMatch = shIds.find(function(shId) {
         if (usedSH.has(shId)) return false;
         var shEv = evMap[shId] || {};
-        var shDate = shEv.date;
-        if (!shDate || !vsDate) return false;
-        if (shDate !== vsDate) return false;
-        // Name similarity: check if any team name overlaps
-        var shName = (shEv.name || '').toLowerCase();
-        var vsWords = vsName.split(/\s+/).filter(function(w){ return w.length > 3; });
-        return vsWords.some(function(w){ return shName.includes(w); });
+        if (shEv.date !== vsDate) return false;
+        return normalizeVenue(shEv.venue) === vsVenue;
       });
-      if (shMatch) {
-        usedSH.add(shMatch);
-        matched.push({ shId: shMatch, vsId: vsId });
-      } else {
-        vsOnly.push(vsId);
-      }
+
+      if (shMatch) { usedSH.add(shMatch); matched.push({ shId: shMatch, vsId: vsId }); }
+      else { vsOnly.push(vsId); }
     });
     shIds.forEach(function(shId) { if (!usedSH.has(shId)) shOnly.push(shId); });
 
@@ -1623,6 +1643,12 @@ function loadCompareView() {
       tbl.innerHTML = '<div class="msg">No data to compare yet. Scrape events on both platforms first.</div>';
       return;
     }
+
+    // Debug info
+    console.log('[CMP] SH snaps:', shSnaps.length, '| VS snaps:', vsSnaps.length, '| Events:', eventsDb.length);
+    console.log('[CMP] Matched:', matched.length, '| SH only:', shOnly.length, '| VS only:', vsOnly.length);
+    console.log('[CMP] Sample SH IDs:', Object.keys(shMap).slice(0,3));
+    console.log('[CMP] Sample VS IDs:', Object.keys(vsMap).slice(0,3));
 
     var html = '<div class="cmp-grid">';
 
@@ -1638,7 +1664,10 @@ function loadCompareView() {
       var vsEv = evMap[pair.vsId] || {};
       var sh = shMap[pair.shId] || {};
       var vs = vsMap[pair.vsId] || {};
-      var name = shEv.name || vsEv.name || pair.shId;
+      // Prefer SH name (VS names sometimes come as raw IDs)
+      var vsNameRaw = vsEv.name || '';
+      var vsLooksLikeId = /^(World Cup Match|vs_|Match \d+$)/.test(vsNameRaw);
+      var name = (vsLooksLikeId ? shEv.name : vsEv.name) || shEv.name || vsEv.name || pair.shId;
       var date = shEv.date || vsEv.date || '';
       var venue = shEv.venue || vsEv.venue || '';
       var shFloor = sh.event_floor || 0;
