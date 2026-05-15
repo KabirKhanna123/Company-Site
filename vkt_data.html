@@ -1563,14 +1563,16 @@ function addCmpDebug(msg) {
 }
 
 function loadCompareView() {
+  if (loadCompareView._running) return;
+  loadCompareView._running = true;
   var tbl = document.getElementById('tbl');
-  if (!tbl) return;
+  if (!tbl) { loadCompareView._running = false; return; }
   tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading comparison data...</div>';
 
   // Fetch both SH and VS snapshots in parallel
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&or=(section.is.null,section.eq.)&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&or=(section.is.null,section.eq.)&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at', 500),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at', 500),
     getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue&limit=500', 500)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
@@ -1673,8 +1675,8 @@ function loadCompareView() {
       var vs = vsMap[pair.vsId] || {};
       // Prefer SH name (VS names sometimes come as raw IDs)
       var vsNameRaw = vsEv.name || '';
-      var vsLooksLikeId = /^(World Cup Match|vs_|Match \d+$)/.test(vsNameRaw);
-      var name = (vsLooksLikeId ? shEv.name : vsEv.name) || shEv.name || vsEv.name || pair.shId;
+      var vsLooksLikeId = !vsNameRaw || /^(World Cup Match \d|vs_\d|Match \d+$)/.test(vsNameRaw);
+      var name = cleanName((vsLooksLikeId ? shEv.name : vsEv.name) || shEv.name || vsEv.name || pair.shId);
       var date = shEv.date || vsEv.date || '';
       var venue = shEv.venue || vsEv.venue || '';
       var shFloor = sh.event_floor || 0;
@@ -1752,8 +1754,9 @@ function loadCompareView() {
     html += '</div>';
     tbl.innerHTML = html;
   }).catch(function(e) {
+    loadCompareView._running = false;
     tbl.innerHTML = '<div class="msg">Error loading comparison: '+esc(e.message)+'</div>';
-  });
+  }).finally(function() { loadCompareView._running = false; });
 }
 
 
