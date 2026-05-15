@@ -1992,53 +1992,94 @@ function loadCompareView() {
       var cheaperPlatform = shFloor && vsFloor ? (shFloor < vsFloor ? 'sh' : vsFloor < shFloor ? 'vs' : '') : '';
       var savings = cheaperPlatform && shFloor && vsFloor ? Math.abs(shFloor - vsFloor) : 0;
 
-      html += '<div class="cmp-event" style="cursor:pointer;" onclick="loadCompareDetail(''+pair.shId+'',''+pair.vsId+'')">';
-      html += '<div class="cmp-event-header">';
-      html += '<div><div class="cmp-event-name">'+esc(cleanName(name))+' <span style="font-size:10px;color:#aaa;font-weight:400;">→ View Analysis</span></div>';
+      // ── Analysis from snapshot data ──
+      var floorDiff = shFloor && vsFloor ? shFloor - vsFloor : null;
+      var floorDiffPct = floorDiff !== null ? Math.round(Math.abs(floorDiff)/Math.min(shFloor,vsFloor)*100) : 0;
+      var avgDiff = (sh.event_avg||0) && (vs.event_avg||0) ? Math.round((sh.event_avg||0)-(vs.event_avg||0)) : null;
+      var listDiff = (sh.total_listings||0) && (vs.total_listings||0) ? (sh.total_listings||0)-(vs.total_listings||0) : null;
+      var buyPlatform = floorDiff !== null ? (floorDiff > 0 ? 'VividSeats' : floorDiff < 0 ? 'StubHub' : 'Either') : '';
+      var sellPlatform = floorDiff !== null ? (floorDiff > 0 ? 'StubHub' : floorDiff < 0 ? 'VividSeats' : 'Either') : '';
+      var buyReason = '', sellReason = '';
+      if (floorDiff !== null && floorDiff !== 0) {
+        buyReason = 'Floor is $'+Math.abs(floorDiff).toLocaleString()+' ('+floorDiffPct+'%) cheaper';
+        sellReason = 'Floor is $'+Math.abs(floorDiff).toLocaleString()+' ('+floorDiffPct+'%) higher — stronger demand';
+      }
+      if (avgDiff !== null) {
+        var avgWinner = avgDiff > 0 ? 'StubHub' : 'VividSeats';
+        if (!sellReason) sellReason = avgWinner+' buyers pay $'+Math.abs(avgDiff).toLocaleString()+' more on avg';
+        else sellReason += '. '+avgWinner+' avg is $'+Math.abs(avgDiff).toLocaleString()+' higher.';
+      }
+      if (listDiff !== null) {
+        var moreListings = listDiff > 0 ? 'StubHub' : 'VividSeats';
+        var lessListings = listDiff > 0 ? 'VividSeats' : 'StubHub';
+        if (!buyReason && Math.abs(listDiff) > 50) buyReason = lessListings+' has less competition ('+Math.abs(listDiff)+' fewer listings)';
+      }
+
+      // Build insights array
+      var ins = [];
+      if (floorDiff !== null && Math.abs(floorDiff) > 0) ins.push({ icon: floorDiffPct > 15 ? '🔥' : '💰', text: '<strong>$'+Math.abs(floorDiff).toLocaleString()+' floor gap</strong> — '+(floorDiffPct > 20 ? 'Strong arbitrage opportunity.' : floorDiffPct > 10 ? 'Moderate price spread.' : 'Prices closely matched.') });
+      if (avgDiff !== null && Math.abs(avgDiff) > 50) ins.push({ icon:'📊', text:'<strong>Avg price $'+Math.abs(avgDiff).toLocaleString()+' '+(avgDiff>0?'higher on StubHub':'higher on VividSeats')+'</strong> — '+(Math.abs(avgDiff)>500?'Significant margin difference.':'Price difference across the catalog.') });
+      if (listDiff !== null) {
+        var ratio = Math.round(Math.max(sh.total_listings||0,vs.total_listings||0)/Math.max(Math.min(sh.total_listings||0,vs.total_listings||0),1));
+        if (ratio >= 2) ins.push({ icon:'📦', text:'<strong>'+(listDiff>0?'StubHub':'VividSeats')+' has '+ratio+'x more supply</strong> — Less competition on '+(listDiff>0?'VividSeats':'StubHub')+'. Easier to sell there.' });
+        else ins.push({ icon:'📦', text:'<strong>Supply balanced</strong> — '+(sh.total_listings||0).toLocaleString()+' SH listings vs '+(vs.total_listings||0).toLocaleString()+' VS listings.' });
+      }
+
+      html += '<div class="cmp-event">';
+      // Header with name + click-through
+      html += '<div class="cmp-event-header" style="cursor:pointer;" onclick="loadCompareDetail(''+pair.shId+'',''+pair.vsId+'')">';
+      html += '<div><div class="cmp-event-name">'+esc(cleanName(name))+'</div>';
       html += '<div class="cmp-event-meta">'+esc(fmtDate(date))+(venue?' &bull; '+esc(venue):'')+'</div></div>';
       if (savings > 0) html += '<div class="cmp-savings">&#128176; Save $'+Math.round(savings).toLocaleString()+' on '+(cheaperPlatform==='sh'?'StubHub':'VividSeats')+'</div>';
       html += '</div>';
-      html += '<div class="cmp-platforms">';
 
-      // StubHub column
-      html += '<div class="cmp-platform">';
-      html += '<div class="cmp-platform-name sh">StubHub</div>';
+      // Stats row — 3 columns: SH | VS | Gap
+      html += '<div class="cmp-platforms">';
+      html += '<div class="cmp-platform"><div class="cmp-platform-name sh">StubHub</div>';
       if (shFloor) {
         html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(cheaperPlatform==='sh'?' best':'')+'">$'+Math.round(shFloor).toLocaleString()+'</div></div>';
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Avg Price</div><div class="cmp-stat-val" style="font-size:14px;">$'+Math.round(sh.event_avg||0).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Avg</div><div class="cmp-stat-val" style="font-size:14px;">$'+(Math.round(sh.event_avg||0)||'—').toLocaleString()+'</div></div>';
         html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings</div><div class="cmp-stat-val" style="font-size:14px;">'+(sh.total_listings||0).toLocaleString()+'</div></div>';
-      } else { html += '<div class="cmp-no-data">No data</div>'; }
+      } else html += '<div class="cmp-no-data">Not scraped</div>';
       html += '</div>';
 
-      // VividSeats column
-      html += '<div class="cmp-platform">';
-      html += '<div class="cmp-platform-name vs">VividSeats</div>';
+      html += '<div class="cmp-platform"><div class="cmp-platform-name vs">VividSeats</div>';
       if (vsFloor) {
         html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(cheaperPlatform==='vs'?' best':'')+'">$'+Math.round(vsFloor).toLocaleString()+'</div></div>';
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Avg Price</div><div class="cmp-stat-val" style="font-size:14px;">$'+Math.round(vs.event_avg||0).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Avg</div><div class="cmp-stat-val" style="font-size:14px;">$'+(Math.round(vs.event_avg||0)||'—').toLocaleString()+'</div></div>';
         html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings</div><div class="cmp-stat-val" style="font-size:14px;">'+(vs.total_listings||0).toLocaleString()+'</div></div>';
-      } else { html += '<div class="cmp-no-data">No data</div>'; }
+      } else html += '<div class="cmp-no-data">Not scraped</div>';
       html += '</div>';
 
-      // Price difference column
-      html += '<div class="cmp-platform">';
-      html += '<div class="cmp-platform-name" style="color:#888;">Difference</div>';
-      if (shFloor && vsFloor) {
-        var diff = shFloor - vsFloor;
-        var pct = Math.round(Math.abs(diff) / Math.min(shFloor,vsFloor) * 100);
-        var clr = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#888';
-        var lbl = diff > 0 ? 'StubHub higher' : diff < 0 ? 'VividSeats higher' : 'Same price';
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor Gap</div>';
-        html += '<div class="cmp-stat-val" style="font-size:18px;color:'+clr+';">'+(diff>0?'+':'')+Math.round(diff).toLocaleString()+'</div>';
-        html += '<div class="cmp-stat-sub">'+pct+'% diff &bull; '+lbl+'</div></div>';
-        var listDiff = (sh.total_listings||0) - (vs.total_listings||0);
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings Gap</div>';
-        html += '<div class="cmp-stat-val" style="font-size:14px;color:#888;">'+(listDiff>0?'+':'')+listDiff+'</div></div>';
-      } else {
-        html += '<div class="cmp-no-data">Need both platforms</div>';
-      }
+      html += '<div class="cmp-platform"><div class="cmp-platform-name" style="color:#888;">Analysis</div>';
+      if (buyPlatform) {
+        html += '<div style="margin-bottom:8px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#aaa;margin-bottom:3px;">Buy On</div>';
+        html += '<div style="font-size:15px;font-weight:800;color:#16a34a;">'+esc(buyPlatform)+'</div>';
+        html += '<div style="font-size:10px;color:#666;line-height:1.4;margin-top:2px;">'+esc(buyReason)+'</div></div>';
+        html += '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#aaa;margin-bottom:3px;">Sell On</div>';
+        html += '<div style="font-size:15px;font-weight:800;color:#d4a843;">'+esc(sellPlatform)+'</div>';
+        html += '<div style="font-size:10px;color:#666;line-height:1.4;margin-top:2px;">'+esc(sellReason)+'</div></div>';
+      } else html += '<div class="cmp-no-data">Need both platforms</div>';
       html += '</div>';
-      html += '</div></div>';
+      html += '</div>';
+
+      // Insights strip
+      if (ins.length) {
+        html += '<div style="padding:10px 18px;border-top:1px solid #f0eeea;display:flex;flex-wrap:wrap;gap:10px;">';
+        ins.forEach(function(insight){
+          html += '<div style="display:flex;align-items:flex-start;gap:6px;min-width:220px;flex:1;">';
+          html += '<span style="font-size:14px;">'+insight.icon+'</span>';
+          html += '<span style="font-size:11px;color:#555;line-height:1.4;">'+insight.text+'</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Click-through link
+      html += '<div style="padding:8px 18px;border-top:1px solid #f0eeea;text-align:right;">';
+      html += '<span style="font-size:11px;color:#aaa;cursor:pointer;" onclick="loadCompareDetail(''+pair.shId+'',''+pair.vsId+'')">View listing-level breakdown →</span>';
+      html += '</div>';
+      html += '</div>';
     });
 
     // SH-only events (VS not yet scraped)
