@@ -1204,7 +1204,7 @@ function loadAnalysis(eventId){
         var latest=times[0]||null;
         // Group by 30-min window — scraper saves batches at slightly different seconds
         var latestMs=latest?new Date(latest).getTime():0;
-        var WINDOW=3*60*60*1000; // 3 hours — covers full multi-section scrape runs
+        var WINDOW=26*60*60*1000; // 26 hours — always shows last full daily scrape
         var getKey=function(l){return l.listing_id||((l.section||'x')+'_'+(l.row||'x')+'_'+l.quantity+'_'+l.price);};
         var latestSet=new Set(rawListings.filter(function(l){return latestMs-new Date(l.scraped_at).getTime()<WINDOW;}).map(getKey));
         // Previous scrape = earliest timestamp outside the latest window
