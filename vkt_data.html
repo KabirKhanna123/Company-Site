@@ -1132,7 +1132,6 @@ function loadAnalysis(eventId){
         // Build history map
         var lh={};
         rawListings.forEach(function(l){
-          if(!l.listing_id)return;
           var lKey = l.listing_id || ((l.section||'x')+'_'+(l.row||'x')+'_'+l.quantity+'_'+l.price);
           if(!lh[lKey]){lh[lKey]=Object.assign({},l,{first_seen:l.scraped_at,last_seen:l.scraped_at});}
           else{if(l.scraped_at<lh[lKey].first_seen)lh[lKey].first_seen=l.scraped_at;if(l.scraped_at>lh[lKey].last_seen){lh[lKey].last_seen=l.scraped_at;Object.assign(lh[lKey],l);}}
