@@ -1943,6 +1943,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   // Table
   h += '<div class="mini-wrap" style="max-height:520px;">';
   h += '<table class="mini-table" id="ls-table">';
+  h += '<div id="ls-debug" style="font-size:10px;color:#aaa;padding:4px 0;"></div>';
   h += '<thead><tr>';
   var cols = [{k:'zone',l:'Zone'},{k:'section',l:'Section'},{k:'row',l:'Row'},{k:'quantity',l:'Qty'},{k:'price',l:'Price'},{k:'dom',l:'Days on Mkt'},{k:'first_seen',l:'First Seen'},{k:'sold',l:'Status'}];
   cols.forEach(function(c){h+='<th onclick="lsSort(\''+c.k+'\')" id="ls-th-'+c.k+'" style="cursor:pointer;user-select:none;text-align:center;white-space:nowrap;">'+c.l+' <span id="ls-sort-'+c.k+'" style="color:#d4a843;font-size:9px;"></span></th>';});
@@ -2027,6 +2028,9 @@ function applyListingFilters() {
   var slice = data.slice((page-1)*perPage, page*perPage);
 
   var tbody = document.getElementById('ls-tbody'); if(!tbody) return;
+  // Debug: show counts
+  var debugEl = document.getElementById('ls-debug');
+  if (debugEl) debugEl.textContent = 'Total: '+window._lsData.length+' | Filtered: '+data.length+' | Page: '+slice.length;
   tbody.innerHTML = slice.map(function(l) {
     var q2 = l.quantity||1;
     var z  = l.zone||'Other';
