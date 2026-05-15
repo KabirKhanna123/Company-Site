@@ -1554,6 +1554,14 @@ function setFavView(view) {
   drawTable();
 }
 
+function addCmpDebug(msg) {
+  var tbl = document.getElementById('tbl');
+  if (!tbl) return;
+  var cur = tbl.innerHTML;
+  if (cur.includes('Loading comparison')) tbl.innerHTML = '<div class="msg" style="font-size:11px;color:#aaa;">'+msg+'</div>';
+  else tbl.innerHTML += '<div style="font-size:11px;color:#aaa;padding:2px 0;">'+msg+'</div>';
+}
+
 function loadCompareView() {
   var tbl = document.getElementById('tbl');
   if (!tbl) return;
@@ -1561,13 +1569,15 @@ function loadCompareView() {
 
   // Fetch both SH and VS snapshots in parallel
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&or=(section.is.null,section.eq.)&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&or=(section.is.null,section.eq.)&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at&limit=500', 500),
     getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue&limit=500', 500)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
     var eventsDb = res[2] || [];
+    // Debug
+    addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | Events: '+eventsDb.length);
 
     // Build latest snapshot per event per platform
     var shMap = {}, vsMap = {};
@@ -1644,11 +1654,8 @@ function loadCompareView() {
       return;
     }
 
-    // Debug info
-    console.log('[CMP] SH snaps:', shSnaps.length, '| VS snaps:', vsSnaps.length, '| Events:', eventsDb.length);
-    console.log('[CMP] Matched:', matched.length, '| SH only:', shOnly.length, '| VS only:', vsOnly.length);
-    console.log('[CMP] Sample SH IDs:', Object.keys(shMap).slice(0,3));
-    console.log('[CMP] Sample VS IDs:', Object.keys(vsMap).slice(0,3));
+    addCmpDebug('Matched: '+matched.length+' | SH only: '+shOnly.length+' | VS only: '+vsOnly.length);
+    if (shSnaps.length===0&&vsSnaps.length===0) { tbl.innerHTML='<div class="msg">No snapshot data found. Make sure both scrapers have run.</div>'; return; }
 
     var html = '<div class="cmp-grid">';
 
