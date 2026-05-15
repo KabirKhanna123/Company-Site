@@ -1133,23 +1133,25 @@ function loadAnalysis(eventId){
         var lh={};
         rawListings.forEach(function(l){
           if(!l.listing_id)return;
-          if(!lh[l.listing_id]){lh[l.listing_id]=Object.assign({},l,{first_seen:l.scraped_at,last_seen:l.scraped_at});}
-          else{if(l.scraped_at<lh[l.listing_id].first_seen)lh[l.listing_id].first_seen=l.scraped_at;if(l.scraped_at>lh[l.listing_id].last_seen){lh[l.listing_id].last_seen=l.scraped_at;Object.assign(lh[l.listing_id],l);}}
+          var lKey = l.listing_id || ((l.section||'x')+'_'+(l.row||'x')+'_'+l.quantity+'_'+l.price);
+          if(!lh[lKey]){lh[lKey]=Object.assign({},l,{first_seen:l.scraped_at,last_seen:l.scraped_at});}
+          else{if(l.scraped_at<lh[lKey].first_seen)lh[lKey].first_seen=l.scraped_at;if(l.scraped_at>lh[lKey].last_seen){lh[lKey].last_seen=l.scraped_at;Object.assign(lh[lKey],l);}}
         });
         var times=Array.from(new Set(rawListings.map(function(l){return l.scraped_at;}))).sort().reverse();
         var latest=times[0]||null;
         // Group by 30-min window — scraper saves batches at slightly different seconds
         var latestMs=latest?new Date(latest).getTime():0;
         var WINDOW=30*60*1000; // 30 minutes
-        var latestSet=new Set(rawListings.filter(function(l){return latestMs-new Date(l.scraped_at).getTime()<WINDOW;}).map(function(l){return l.listing_id;}).filter(Boolean));
+        var getKey=function(l){return l.listing_id||((l.section||'x')+'_'+(l.row||'x')+'_'+l.quantity+'_'+l.price);};
+        var latestSet=new Set(rawListings.filter(function(l){return latestMs-new Date(l.scraped_at).getTime()<WINDOW;}).map(getKey));
         // Previous scrape = earliest timestamp outside the latest window
         var prevCandidates=times.filter(function(t){return latestMs-new Date(t).getTime()>=WINDOW;});
         var prevAnchor=prevCandidates[0]||null;
         var prevAnchorMs=prevAnchor?new Date(prevAnchor).getTime():0;
-        var prevSet=prevAnchor?new Set(rawListings.filter(function(l){var d=prevAnchorMs-new Date(l.scraped_at).getTime();return d>=0&&d<WINDOW;}).map(function(l){return l.listing_id;}).filter(Boolean)):new Set();
+        var prevSet=prevAnchor?new Set(rawListings.filter(function(l){var d=prevAnchorMs-new Date(l.scraped_at).getTime();return d>=0&&d<WINDOW;}).map(getKey)):new Set();
         var soldSet=new Set(Array.from(prevSet).filter(function(id){return!latestSet.has(id);}));
-        var active=Object.values(lh).filter(function(l){return latestSet.has(l.listing_id);}).map(function(l){return Object.assign({},l,{dom:latest?Math.floor((new Date(latest)-new Date(l.first_seen))/86400000):0,sold:false});});
-        var sold=Object.values(lh).filter(function(l){return soldSet.has(l.listing_id);}).map(function(l){return Object.assign({},l,{dom:0,sold:true});});
+        var active=Object.values(lh).filter(function(l){return latestSet.has(getKey(l));}).map(function(l){return Object.assign({},l,{dom:latest?Math.floor((new Date(latest)-new Date(l.first_seen))/86400000):0,sold:false});});
+        var sold=Object.values(lh).filter(function(l){return soldSet.has(getKey(l));}).map(function(l){return Object.assign({},l,{dom:0,sold:true});});
         renderListingSections(active, sold, soldSet, latest);
       })
       .catch(function(e){
