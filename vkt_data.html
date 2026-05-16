@@ -1302,9 +1302,16 @@ function setPlatform(platform){
   if (cmpBtn) { cmpBtn.classList.remove('active-cmp'); cmpBtn.style.borderColor='#e4e2dc'; cmpBtn.style.color='#888'; cmpBtn.style.background='#fff'; }
   if (platform === 'Compare') {
     if (cmpBtn) { cmpBtn.classList.add('active-cmp'); cmpBtn.style.borderColor='#d4a843'; cmpBtn.style.color='#d4a843'; cmpBtn.style.background='#fffbf0'; }
-    // Reset platform buttons
     setPlatformButtons('');
-    loadCompareView();
+    // If in a detail view, go back to compare events list
+    var tbl = document.getElementById('tbl');
+    var isDetail = tbl && tbl.querySelector('.cd-wrap');
+    if (isDetail) {
+      loadCompareView._running = false;
+      loadCompareView();
+    } else {
+      loadCompareView();
+    }
     return;
   }
   activePlatform=platform;
@@ -2135,7 +2142,18 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   var qk = Object.keys(qm).sort(function(a,b){return parseInt(a)-parseInt(b);});
   var qcols = {'1x':'rgba(34,197,94,0.7)','2x':'rgba(37,99,235,0.7)','3x':'rgba(124,58,237,0.7)','4x':'rgba(202,138,4,0.7)'};
   var prices = activeAll.map(function(l){return l.price;}).filter(Boolean);
-  var priceRanges = [{l:'Under $500',mn:0,mx:500},{l:'$500-$1k',mn:500,mx:1000},{l:'$1k-$1.5k',mn:1000,mx:1500},{l:'$1.5k-$2.5k',mn:1500,mx:2500},{l:'$2.5k+',mn:2500,mx:Infinity}];
+  // Dynamic price ranges based on floor price
+  var floorPrice = prices[0] || 0;
+  var priceRanges;
+  if (floorPrice >= 5000) {
+    priceRanges = [{l:'Under $7.5k',mn:0,mx:7500},{l:'$7.5k–$10k',mn:7500,mx:10000},{l:'$10k–$15k',mn:10000,mx:15000},{l:'$15k–$25k',mn:15000,mx:25000},{l:'$25k+',mn:25000,mx:Infinity}];
+  } else if (floorPrice >= 2000) {
+    priceRanges = [{l:'Under $2.5k',mn:0,mx:2500},{l:'$2.5k–$4k',mn:2500,mx:4000},{l:'$4k–$6k',mn:4000,mx:6000},{l:'$6k–$10k',mn:6000,mx:10000},{l:'$10k+',mn:10000,mx:Infinity}];
+  } else if (floorPrice >= 750) {
+    priceRanges = [{l:'Under $1k',mn:0,mx:1000},{l:'$1k–$1.5k',mn:1000,mx:1500},{l:'$1.5k–$2.5k',mn:1500,mx:2500},{l:'$2.5k–$5k',mn:2500,mx:5000},{l:'$5k+',mn:5000,mx:Infinity}];
+  } else {
+    priceRanges = [{l:'Under $500',mn:0,mx:500},{l:'$500–$1k',mn:500,mx:1000},{l:'$1k–$1.5k',mn:1000,mx:1500},{l:'$1.5k–$2.5k',mn:1500,mx:2500},{l:'$2.5k+',mn:2500,mx:Infinity}];
+  }
 
   var h = '<div class="listings-section">';
   // Section header
