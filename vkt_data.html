@@ -2428,7 +2428,10 @@ function drawStadiumHeatmap(listings) {
   // ── PART 1: Clean stadium image ──
   var html = '<div style="width:100%;border-radius:8px;overflow:hidden;background:#0a0f1a;margin-bottom:14px;">';
   if (mapUrl) {
-    html += '<img src="'+mapUrl+'" style="width:100%;height:auto;max-height:none;display:block;object-fit:contain;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
+    // Wrap in a cropping container — clip the top ~8% which contains "Seat Plan" header
+    html += '<div style="overflow:hidden;width:100%;">';
+    html += '<img src="'+mapUrl+'" style="width:100%;height:auto;display:block;margin-top:-8%;object-fit:contain;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
+    html += '</div>';
   } else {
     html += '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;">No venue map for this event</div>';
   }
