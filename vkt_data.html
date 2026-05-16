@@ -2433,7 +2433,7 @@ function drawStadiumHeatmap(listings) {
   if (mapUrl) {
     // Draw image on canvas cropping the top "Seat Plan" header (~9% of height)
     var canvasId = 'stadiumCanvas_' + Date.now();
-    // Use CSS clip instead of canvas to avoid </script> tag injection issues
+    // Use CSS clip instead of inline script
     html += '<div style="overflow:hidden;width:100%;border-radius:8px;">';
     html += '<img id="'+canvasId+'" src="'+mapUrl+'" style="width:100%;height:auto;display:block;margin-top:-14%;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
     html += '</div>';
