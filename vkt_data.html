@@ -2162,6 +2162,9 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   h += '<div class="chart-card"><h3>Stadium Map</h3><div id="stadiumHeatmap" style="position:relative;width:100%;overflow:visible;"></div></div>';
   h += '</div>';
 
+  // ── SECTION LISTING DENSITY (own card, full width, below pack + map) ──
+  h += '<div class="chart-card" style="margin-bottom:16px;grid-column:1/-1;" id="sectionDensityWrap"></div>';
+
   // ── PRICE RANGE BREAKDOWN ──
   h += '<div class="chart-card" style="margin-bottom:16px;"><div style="font-size:13px;font-weight:700;color:#111;margin-bottom:12px;">Price Range Breakdown</div>';
   h += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">';
@@ -2450,13 +2453,12 @@ function drawStadiumHeatmap(listings) {
   }
   html += '</div>';
 
-  // ── PART 2: Section density grid ──
-  html += '<div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">';
-  html += '<div style="font-size:12px;font-weight:700;color:#111;">Section Listing Density</div>';
-  html += '<div style="font-size:10px;color:#aaa;">'+secs.length+' sections · hover for details</div>';
-  html += '</div>';
+  // ── PART 2: Section density now rendered in its own card below ──
+  // (see sectionDensityWrap)
 
-  // Color scale: light = few, dark gold = most
+  wrap.innerHTML = html;
+
+  // Color scale helpers
   function countToColor(count) {
     var t = count / maxCount;
     if (t < 0.15) return '#f3efe4';
@@ -2467,35 +2469,31 @@ function drawStadiumHeatmap(listings) {
     return '#8a6a18';
   }
   function countToText(count) {
-    var t = count / maxCount;
-    return t < 0.4 ? '#8a6a18' : '#fff';
+    return (count / maxCount) < 0.4 ? '#8a6a18' : '#fff';
   }
 
-  html += '<div style="display:flex;flex-wrap:wrap;gap:3px;padding:10px;background:#f7f6f3;border-radius:8px;border:1px solid #e4e2dc;">';
-  secs.forEach(function(sec) {
-    var d = secMap[sec];
-    var bg = countToColor(d.count);
-    var tc = countToText(d.count);
-    var label = sec.replace(/^Section\s*/i,'');
-    html += '<div style="'
-      +'background:'+bg+';color:'+tc+';'
-      +'border-radius:4px;padding:3px 6px;font-size:9px;font-weight:700;cursor:default;'
-      +'position:relative;white-space:nowrap;'
-      +'" title="'+sec+': '+d.count+' listings | Floor $'+Math.round(d.floor).toLocaleString()+' | Avg $'+d.avg.toLocaleString()+'">'
-      +label
-      +'</div>';
-  });
-  html += '</div>';
-
-  // Legend
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:#888;">';
-  html += '<span>Few listings</span>';
-  ['#f3efe4','#f0d899','#e8bb50','#d4a843','#b8892e','#8a6a18'].forEach(function(c){
-    html += '<div style="width:18px;height:10px;background:'+c+';border-radius:2px;"></div>';
-  });
-  html += '<span>Most listings</span></div>';
-
-  wrap.innerHTML = html;
+  // Render section density into its own card
+  var densityWrap = document.getElementById('sectionDensityWrap');
+  if (densityWrap) {
+    var dHtml = '<h3>Section Listing Density</h3>';
+    dHtml += '<div style="font-size:10px;color:#aaa;margin-bottom:10px;">'+secs.length+' sections · hover for details</div>';
+    dHtml += '<div style="display:flex;flex-wrap:wrap;gap:3px;padding:10px;background:#f7f6f3;border-radius:8px;border:1px solid #e4e2dc;">';
+    secs.forEach(function(sec) {
+      var d = secMap[sec];
+      var bg = countToColor(d.count);
+      var tc = countToText(d.count);
+      var label = sec.replace(/^Section\s*/i,'');
+      dHtml += '<div style="background:'+bg+';color:'+tc+';border-radius:4px;padding:3px 6px;font-size:9px;font-weight:700;cursor:default;white-space:nowrap;" title="'+sec+': '+d.count+' listings | Floor $'+Math.round(d.floor).toLocaleString()+' | Avg $'+d.avg.toLocaleString()+'">'+label+'</div>';
+    });
+    dHtml += '</div>';
+    dHtml += '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:#888;">';
+    dHtml += '<span>Few listings</span>';
+    ['#f3efe4','#f0d899','#e8bb50','#d4a843','#b8892e','#8a6a18'].forEach(function(c){
+      dHtml += '<div style="width:18px;height:10px;background:'+c+';border-radius:2px;"></div>';
+    });
+    dHtml += '<span>Most listings</span></div>';
+    densityWrap.innerHTML = dHtml;
+  }
 }
 
 function showHeatTip(){ }
