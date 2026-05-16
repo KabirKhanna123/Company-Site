@@ -2433,21 +2433,10 @@ function drawStadiumHeatmap(listings) {
   if (mapUrl) {
     // Draw image on canvas cropping the top "Seat Plan" header (~9% of height)
     var canvasId = 'stadiumCanvas_' + Date.now();
-    html += '<canvas id="'+canvasId+'" style="width:100%;height:auto;display:block;border-radius:8px;"></canvas>';
-    html += '<script>(function(){'
-      + 'var img=new Image();img.crossOrigin="anonymous";'
-      + 'img.onload=function(){'
-      +   'var c=document.getElementById("'+canvasId+'");if(!c)return;'
-      +   'var cropTop=Math.round(img.naturalHeight*0.14);'
-      +   'c.width=img.naturalWidth;'
-      +   'c.height=img.naturalHeight-cropTop;'
-      +   'c.style.height="auto";'
-      +   'var ctx=c.getContext("2d");'
-      +   'ctx.drawImage(img,0,cropTop,img.naturalWidth,img.naturalHeight-cropTop,0,0,img.naturalWidth,img.naturalHeight-cropTop);'
-      + '};'
-      + 'img.onerror=function(){var c=document.getElementById("'+canvasId+'");if(c)c.style.display="none";};'
-      + 'img.src="'+mapUrl+'"'
-      + ';})();</script>';
+    // Use CSS clip instead of canvas to avoid </script> tag injection issues
+    html += '<div style="overflow:hidden;width:100%;border-radius:8px;">';
+    html += '<img id="'+canvasId+'" src="'+mapUrl+'" style="width:100%;height:auto;display:block;margin-top:-14%;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
+    html += '</div>';
   } else {
     html += '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;">No venue map for this event</div>';
   }
