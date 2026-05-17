@@ -1659,10 +1659,21 @@ function addCmpDebug(msg) {
 }
 
 function loadCompareDetail(el) {
-  var shId = el.getAttribute('data-sh');
-  var vsId = el.getAttribute('data-vs');
+  // Walk up to find the element with data-sh/data-vs attributes
+  var target = el;
+  while (target && !target.getAttribute('data-sh')) {
+    target = target.parentElement;
+  }
+  if (!target) return;
+  var shId = target.getAttribute('data-sh');
+  var vsId = target.getAttribute('data-vs');
   var tbl = document.getElementById('tbl');
   if (!tbl) return;
+  // Hide toolbar and vol period when in compare detail
+  var vps = document.getElementById('vol-period-wrap');
+  if (vps) vps.style.display = 'none';
+  var toolbar = document.querySelector('.toolbar');
+  if (toolbar) toolbar.style.display = 'none';
   tbl.innerHTML = '<div class="msg"><div class="loading-bar" style="width:140px;border-radius:4px;margin:0 auto 8px;"></div>Loading match analysis...</div>';
 
   var shEv = window._cmpEvMap && window._cmpEvMap[shId] || {};
@@ -1867,6 +1878,11 @@ function renderCompareDetail(filterSection) {
 }
 
 function loadCompareView() {
+  // Restore toolbar visibility
+  var toolbar = document.querySelector('.toolbar');
+  if (toolbar) toolbar.style.display = '';
+  var vps = document.getElementById('vol-period-wrap');
+  if (vps) vps.style.display = 'none'; // vol period hidden on compare tab
   // Reset stale guard (in case previous run failed silently)
   if (loadCompareView._running && Date.now() - (loadCompareView._startTime||0) > 15000) loadCompareView._running = false;
   if (loadCompareView._running) return;
