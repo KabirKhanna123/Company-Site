@@ -163,6 +163,7 @@
     .cmp-platform-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; }
     .cmp-platform-name.sh { color:#1a3a6b; }
     .cmp-platform-name.vs { color:#6b2fa0; }
+    .cmp-platform-name.sg { color:#dc2626; }
     .cmp-platform-name.sg { color:#da2828; }
     .cmp-stat { margin-bottom:8px; }
     .cmp-stat-label { font-size:10px; color:#aaa; margin-bottom:2px; }
@@ -523,6 +524,7 @@
     .cmp-platform-name { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; }
     .cmp-platform-name.sh { color:#1a3a6b; }
     .cmp-platform-name.vs { color:#6b2fa0; }
+    .cmp-platform-name.sg { color:#dc2626; }
     .cmp-platform-name.sg { color:#da2828; }
     .cmp-stat { margin-bottom:8px; }
     .cmp-stat-label { font-size:10px; color:#aaa; margin-bottom:2px; }
@@ -1942,12 +1944,14 @@ function loadCompareView() {
   Promise.all([
     dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500),
     dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500),
-    dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue', 500)
+    dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue', 500),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
     var eventsDb = res[2] || [];
-    addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | Events: '+eventsDb.length);
+    var sgSnaps = res[3] || [];
+    addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | SG snaps: '+sgSnaps.length+' | Events: '+eventsDb.length);
 
     // Keep only event-level snapshots (no section breakdown) and deduplicate to latest per event
     function toEventSnap(snaps) {
@@ -1958,9 +1962,11 @@ function loadCompareView() {
     }
     var shMap = toEventSnap(shSnaps);
     var vsMap = toEventSnap(vsSnaps);
+    var sgMap = toEventSnap(sgSnaps);
     // Store globally for detail view
     window._cmpShMap = shMap;
     window._cmpVsMap = vsMap;
+    window._cmpSgMap = sgMap;
     window._cmpEvMap = evMap;
 
     // Build events lookup
@@ -2060,17 +2066,28 @@ function loadCompareView() {
       html += '<span style="font-size:11px;color:#ccc;padding-left:12px;">→</span>';
       html += '</div>';
 
-      html += '<div class="cmp-platforms" style="grid-template-columns:1fr 1fr;">';
+      var sg = sgMap[pair.shId] || {};
+      var sgFloor = sg.event_floor || 0;
+      var allFloors3 = [shFloor, vsFloor, sgFloor].filter(Boolean);
+      var bestFloor3 = allFloors3.length ? Math.min.apply(null, allFloors3) : 0;
+
+      html += '<div class="cmp-platforms">';
 
       html += '<div class="cmp-platform"><div class="cmp-platform-name sh">StubHub</div>';
       if (shFloor) {
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(floorDiff!==null&&floorDiff<=0?' best':'')+'">$'+Math.round(shFloor).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(shFloor===bestFloor3?' best':'')+'">$'+Math.round(shFloor).toLocaleString()+'</div></div>';
       } else html += '<div class="cmp-no-data">Not scraped</div>';
       html += '</div>';
 
       html += '<div class="cmp-platform"><div class="cmp-platform-name vs">VividSeats</div>';
       if (vsFloor) {
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(floorDiff!==null&&floorDiff>0?' best':'')+'">$'+Math.round(vsFloor).toLocaleString()+'</div></div>';
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(vsFloor===bestFloor3?' best':'')+'">$'+Math.round(vsFloor).toLocaleString()+'</div></div>';
+      } else html += '<div class="cmp-no-data">Not scraped</div>';
+      html += '</div>';
+
+      html += '<div class="cmp-platform"><div class="cmp-platform-name sg">SeatGeek</div>';
+      if (sgFloor) {
+        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val'+(sgFloor===bestFloor3?' best':'')+'">$'+Math.round(sgFloor).toLocaleString()+'</div></div>';
       } else html += '<div class="cmp-no-data">Not scraped</div>';
       html += '</div>';
 
