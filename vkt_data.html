@@ -1395,7 +1395,7 @@ function loadSGData(){
 
   Promise.all([
     getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
-    getRanged('/rest/v1/events?select=id,name,date,venue&limit=500',500)
+    getRanged('/rest/v1/events?select=id,name,date,venue&order=date.asc',200)
   ]).then(function(res){
     var all=res[0]||[];
     var sgEventsDb=res[1]||[];
