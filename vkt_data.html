@@ -778,7 +778,7 @@
   <button class="plt-btn vs" id="plt-vs" onclick="setPlatform('VividSeats')" title="Vivid Seats">
     <span style="font-size:11px;font-weight:900;color:#6b2fa0;font-family:Arial Black,Arial;letter-spacing:-0.3px;">VIVID</span><span style="font-size:11px;font-weight:900;color:#04092C;font-family:Arial Black,Arial;letter-spacing:-0.3px;margin-left:3px;">SEATS</span>
   </button>
-  <button class="plt-btn sg" id="plt-sg" onclick="showComingSoon('SeatGeek')" title="SeatGeek — Coming Soon">
+  <button class="plt-btn sg" id="plt-sg" onclick="setPlatform('SeatGeek')" title="SeatGeek">
     <span style="font-size:11px;font-weight:900;color:#da2828;font-family:Arial Black,Arial;">SeatGeek</span><span style="font-size:9px;color:#aaa;margin-left:4px;">Soon</span>
   </button>
   <button id="plt-cmp" onclick="setPlatform('Compare')" style="margin-left:auto;padding:7px 18px;background:#fff;border:2px solid #e4e2dc;border-radius:10px;font-size:11px;font-weight:800;color:#888;cursor:pointer;letter-spacing:0.3px;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.borderColor='#d4a843';this.style.color='#d4a843'" onmouseout="if(!this.classList.contains('active-cmp')){this.style.borderColor='#e4e2dc';this.style.color='#888';}">Compare</button>
@@ -1322,6 +1322,8 @@ function setPlatform(platform){
   if(isDetail){ renderDashboard(); }
   if(platform==='VividSeats'){
     loadVSData();
+  } else if(platform==='SeatGeek'){
+    loadSGData();
   } else {
     // Re-fetch StubHub events and snapshots
     var today=new Date().toISOString().slice(0,10);
@@ -1385,7 +1387,46 @@ function loadVSData(){
     tbl.innerHTML='<div class="msg">Error loading Vivid Seats data: '+esc(err.message)+'</div>';
   });
 }
-function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
+function loadSGData(){
+  var loadBar=document.getElementById('loadingBar');
+  var tbl=document.getElementById('tbl');
+  loadBar.style.display='block';
+  tbl.innerHTML='';
+
+  Promise.all([
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at',1000),
+    getRanged('/rest/v1/events?id=like.1_________&select=id,name,date,venue&limit=200',200)
+  ]).then(function(res){
+    var all=res[0]||[];
+    var sgEventsDb=res[1]||[];
+    loadBar.style.display='none';
+    if(!all||!all.length){
+      tbl.innerHTML='<div class="msg">No SeatGeek data yet — run the SeatGeek scraper first.</div>';
+      return;
+    }
+
+    var sgSnaps=all.filter(function(s){ return !s.section||s.section===''||s.section===null; });
+    var evDbMap={};
+    sgEventsDb.forEach(function(e){ evDbMap[e.id]=e; });
+    var evMap={};
+    sgSnaps.forEach(function(s){
+      if(!evMap[s.event_id]){
+        var dbEv=evDbMap[s.event_id]||{};
+        evMap[s.event_id]={id:s.event_id,name:dbEv.name||('Match '+s.event_id),date:dbEv.date||'',venue:dbEv.venue||''};
+      }
+    });
+
+    var sgEvents=Object.values(evMap);
+    allRows=buildRows(sgEvents, all);
+    buildTicker(allRows);
+    drawTable();
+  })
+  .catch(function(err){
+    loadBar.style.display='none';
+    tbl.innerHTML='<div class="msg">Error loading SeatGeek data: '+esc(err.message)+'</div>';
+  });
+}
+sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
 function toggleDaysSort(){resetAllSorts();if(sortDaysDir===null)sortDaysDir='asc';else if(sortDaysDir==='asc')sortDaysDir='desc';else sortDaysDir=null;var icon=document.getElementById('daysSortIcon');if(icon)icon.textContent=sortDaysDir===null?'\u21C5':sortDaysDir==='asc'?'\u2191':'\u2193';var hdr=document.getElementById('daysHeader');if(hdr)hdr.style.color=sortDaysDir?'#d4a843':'';drawTable();}
 function toggleDemandSort(){resetAllSorts();if(sortDemandDir===null)sortDemandDir='desc';else if(sortDemandDir==='desc')sortDemandDir='asc';else sortDemandDir=null;var icon=document.getElementById('demandSortIcon');if(icon)icon.textContent=sortDemandDir===null?'\u21C5':sortDemandDir==='desc'?'\u2193':'\u2191';var hdr=document.getElementById('demandHeader');if(hdr)hdr.style.color=sortDemandDir?'#d4a843':'';drawTable();}
 function toggleSellThruSort(){resetAllSorts();if(sortSellThruDir===null)sortSellThruDir='desc';else if(sortSellThruDir==='desc')sortSellThruDir='asc';else sortSellThruDir=null;var icon=document.getElementById('sellthruSortIcon');if(icon)icon.textContent=sortSellThruDir===null?'\u21C5':sortSellThruDir==='desc'?'\u2193':'\u2191';var hdr=document.getElementById('sellthruHeader');if(hdr)hdr.style.color=sortSellThruDir?'#d4a843':'';drawTable();}
