@@ -954,7 +954,7 @@ function drawTable(){
     '</tr></thead><tbody>';
 
   rows.forEach(function(r){
-    var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id);
+    var href=window.location.pathname+'?event_id='+encodeURIComponent(r.id)+'&platform='+encodeURIComponent(activePlatform);
     var pctStr='\u2014',pctCls='chg-flat';
     var activePct=activeVolPeriod==='7d'?r.vol7d:activeVolPeriod==='14d'?r.vol14d:r.listingsPct;
     if(activePct!==null&&activePct!==undefined){pctStr=(activePct>0?'+':'')+activePct+'%';pctCls=activePct>0?'chg-up':activePct<0?'chg-down':'chg-flat';}
@@ -2140,7 +2140,15 @@ function showFavToast(msg) {
 
 function init(){
   var eventId=qp('event_id');
-  if(eventId){document.getElementById('loadingBar').style.display='none';loadAnalysis(eventId);return;}
+  if(eventId){
+    document.getElementById('loadingBar').style.display='none';
+    var urlPlatform=qp('platform');
+    if(urlPlatform && ['StubHub','VividSeats','SeatGeek','Compare'].indexOf(urlPlatform)>=0){
+      activePlatform=urlPlatform;
+    }
+    loadAnalysis(eventId);
+    return;
+  }
   renderDashboard();
   var today=new Date().toISOString().slice(0,10);
   getAllEvents(today).then(function(events){
