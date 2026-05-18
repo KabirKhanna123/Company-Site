@@ -1046,7 +1046,11 @@ function loadAnalysis(eventId){
   destroyCharts();
   document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
   Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')]).then(function(res){
-    var ev=(res[0]||[])[0];var snaps=res[1]||[];var activeListings=[];var soldListingsArr=[];var soldIds=new Set();
+    var ev=(res[0]||[])[0];var snaps=res[1]||[];
+    // Filter snapshots to active platform
+    var snapPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : 'StubHub';
+    snaps = snaps.filter(function(s){ return (s.platform || 'StubHub') === snapPlatform; });
+    var activeListings=[];var soldListingsArr=[];var soldIds=new Set();
     if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
     var eventSnaps=snaps.filter(function(s){return!s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var first=eventSnaps[0]||snaps[0];var last=eventSnaps[eventSnaps.length-1]||snaps[snaps.length-1];
@@ -1106,7 +1110,8 @@ function loadAnalysis(eventId){
     else{
       var platformSnaps={};['StubHub','SeatGeek','VividSeats'].forEach(function(plt){var ps=snaps.filter(function(s){return(s.platform||'StubHub')===plt&&(!s.section||s.section==='');});if(ps.length){var latest=ps[ps.length-1];platformSnaps[plt]={floor:n(latest.event_floor),listings:n(latest.total_listings)};}});
       var hasPlatformData=Object.keys(platformSnaps).length>1;
-      if(hasPlatformData){var floors=Object.values(platformSnaps).map(function(p){return p.floor;}).filter(function(f){return f>0;});var bestFloor=floors.length?Math.max.apply(null,floors):0;html+='<div class="platform-compare">';['StubHub','SeatGeek','VividSeats'].forEach(function(plt){var pd=platformSnaps[plt];var isBest=pd&&pd.floor===bestFloor&&bestFloor>0;html+='<div class="platform-card'+(isBest?' best':'')+'"><div class="platform-card-name">'+(isBest?'&#10003; ':'')+plt+'</div><div class="platform-card-floor">'+(pd?cur(pd.floor):'\u2014')+'</div><div class="platform-card-sub">'+(pd&&pd.listings?fmt(pd.listings)+' listings':'No data')+'</div></div>';});html+='</div>';}
+      // Only show cross-platform comparison on Compare tab, not on StubHub/SeatGeek/VS tabs
+      if(hasPlatformData && activePlatform==='Compare'){var floors=Object.values(platformSnaps).map(function(p){return p.floor;}).filter(function(f){return f>0;});var bestFloor=floors.length?Math.max.apply(null,floors):0;html+='<div class="platform-compare">';['StubHub','SeatGeek','VividSeats'].forEach(function(plt){var pd=platformSnaps[plt];var isBest=pd&&pd.floor===bestFloor&&bestFloor>0;html+='<div class="platform-card'+(isBest?' best':'')+'"><div class="platform-card-name">'+(isBest?'&#10003; ':'')+plt+'</div><div class="platform-card-floor">'+(pd?cur(pd.floor):'\u2014')+'</div><div class="platform-card-sub">'+(pd&&pd.listings?fmt(pd.listings)+' listings':'No data')+'</div></div>';});html+='</div>';}
       
     // ── HERO DASHBOARD (SeatData style) ──
     // Compute milestones from dailySnaps
@@ -1188,7 +1193,9 @@ function loadAnalysis(eventId){
     (function fetchListings(){
       var wrap=document.getElementById('listingsWrap');
       if(wrap)wrap.innerHTML='<div style="padding:1rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;font-size:12px;color:#888;">Querying listings for event_id: <strong style=\"color:#111;\">'+eventId+'</strong>...</div>';
-      getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000)
+      var listingPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : 'StubHub';
+      var listingPlatformFilter = '&platform=eq.' + encodeURIComponent(listingPlatform);
+      getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+listingPlatformFilter+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000)
       .then(function(rawListings){
         rawListings=rawListings||[];
         if(!rawListings.length){
