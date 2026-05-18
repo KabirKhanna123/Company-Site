@@ -780,6 +780,7 @@
   <button class="plt-btn sg" id="plt-sg" onclick="setPlatform('SeatGeek')" title="SeatGeek">
     <span style="font-size:11px;font-weight:900;color:#da2828;font-family:Arial Black,Arial;">SeatGeek</span>
   </button>
+  <button id="plt-total" onclick="setPlatform('Total')" style="padding:7px 18px;background:#fff;border:2px solid #e4e2dc;border-radius:10px;font-size:11px;font-weight:800;color:#888;cursor:pointer;letter-spacing:0.3px;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.borderColor='#22c55e';this.style.color='#22c55e'" onmouseout="if(!this.classList.contains('active-total')){this.style.borderColor='#e4e2dc';this.style.color='#888';}">Total</button>
   <button id="plt-cmp" onclick="setPlatform('Compare')" style="margin-left:auto;padding:7px 18px;background:#fff;border:2px solid #e4e2dc;border-radius:10px;font-size:11px;font-weight:800;color:#888;cursor:pointer;letter-spacing:0.3px;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.borderColor='#d4a843';this.style.color='#d4a843'" onmouseout="if(!this.classList.contains('active-cmp')){this.style.borderColor='#e4e2dc';this.style.color='#888';}">Compare</button>
 </div>
 
@@ -1300,7 +1301,13 @@ function getQtyCell(r){
   var clr=qty<0?'#22c55e':'#ef4444';
   return '<span style="font-weight:700;font-family:monospace;color:'+clr+'">'+(qty>0?'+':'')+qty+'</span>';
 }
-function setPlatformButtons(platform){document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');}
+function setPlatformButtons(platform){
+  document.getElementById('plt-sh').className='plt-btn'+(platform==='StubHub'?' active sh':'');
+  document.getElementById('plt-sg').className='plt-btn'+(platform==='SeatGeek'?' active sg':'');
+  document.getElementById('plt-vs').className='plt-btn'+(platform==='VividSeats'?' active vs':'');
+  var tot=document.getElementById('plt-total');
+  if(tot){tot.classList.toggle('active-total',platform==='Total');tot.style.borderColor=platform==='Total'?'#22c55e':'#e4e2dc';tot.style.color=platform==='Total'?'#22c55e':'#888';tot.style.background=platform==='Total'?'#f0fdf4':'#fff';}
+}
 
 function setPlatform(platform){
   // Compare button
@@ -1330,6 +1337,8 @@ function setPlatform(platform){
     loadVSData();
   } else if(platform==='SeatGeek'){
     loadSGData();
+  } else if(platform==='Total'){
+    loadTotalData();
   } else {
     // Re-fetch StubHub events and snapshots
     var today=new Date().toISOString().slice(0,10);
@@ -1432,6 +1441,70 @@ function loadSGData(){
   .catch(function(err){
     loadBar.style.display='none';
     tbl.innerHTML='<div class="msg">Error loading SeatGeek data: '+esc(err.message)+'</div>';
+  });
+}
+function loadTotalData(){
+  var loadBar=document.getElementById('loadingBar');
+  var tbl=document.getElementById('tbl');
+  loadBar.style.display='block';
+  tbl.innerHTML='';
+
+  Promise.all([
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
+    getRanged('/rest/v1/events?select=id,name,date,venue&order=date.asc',200)
+  ]).then(function(res){
+    loadBar.style.display='none';
+    var allSnaps=[].concat(res[0]||[],res[1]||[],res[2]||[]);
+    var eventsDb=res[3]||[];
+
+    // Keep only event-level (no section), latest per event per platform
+    var snapsByEvent={};
+    allSnaps.filter(function(s){return !s.section||s.section===''||s.section===null;}).forEach(function(s){
+      var key=s.event_id+'|'+(s.platform||'StubHub');
+      if(!snapsByEvent[key]||new Date(s.scraped_at)>new Date(snapsByEvent[key].scraped_at)){
+        snapsByEvent[key]=s;
+      }
+    });
+
+    // Build event map
+    var evDbMap={};
+    eventsDb.forEach(function(e){evDbMap[e.id]=e;});
+
+    // Group by event_id, total listings and find best floor
+    var totals={};
+    Object.values(snapsByEvent).forEach(function(s){
+      var id=s.event_id;
+      if(!totals[id]){
+        var ev=evDbMap[id]||{};
+        totals[id]={id:id,name:ev.name||id,date:ev.date||'',venue:ev.venue||'',totalListings:0,floors:[],platforms:{}};
+      }
+      totals[id].totalListings+=n(s.total_listings);
+      if(n(s.event_floor)>0) totals[id].floors.push(n(s.event_floor));
+      totals[id].platforms[s.platform||'StubHub']=n(s.total_listings);
+      totals[id].latestScrape=s.scraped_at;
+    });
+
+    // Build synthetic events for buildRows using combined data
+    var synthEvents=Object.values(totals).filter(function(t){return t.totalListings>0;});
+    // Build synthetic snapshot array for buildRows — one "Total" snap per event
+    var synthSnaps=synthEvents.map(function(t){
+      var floor=t.floors.length?Math.min.apply(null,t.floors):0;
+      return {event_id:t.id,platform:'Total',total_listings:t.totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:t.latestScrape};
+    });
+
+    if(!synthEvents.length){
+      tbl.innerHTML='<div class="msg">No total data available yet — run all scrapers first.</div>';
+      return;
+    }
+
+    allRows=buildRows(synthEvents, synthSnaps);
+    buildTicker(allRows);
+    drawTable();
+  }).catch(function(err){
+    loadBar.style.display='none';
+    tbl.innerHTML='<div class="msg">Error loading total data: '+esc(err.message)+'</div>';
   });
 }
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
@@ -1733,12 +1806,16 @@ function loadCompareDetail(el) {
   var date = shEv.date || vsEv.date || '';
   var venue = shEv.venue || vsEv.venue || '';
 
+  var sgSnap = window._cmpSgMap && window._cmpSgMap[shId] || {};
+
   Promise.all([
     getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.StubHub&select=section,row,quantity,price,listing_id,scraped_at&order=price.asc', 3000),
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=section,row,quantity,price,scraped_at&order=price.asc', 3000)
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=section,row,quantity,price,scraped_at&order=price.asc', 3000),
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.SeatGeek&select=section,row,quantity,price,scraped_at&order=price.asc', 3000)
   ]).then(function(res) {
     var shAll = res[0] || [];
     var vsAll = res[1] || [];
+    var sgAll = res[2] || [];
 
     function latestWindow(lst) {
       if (!lst.length) return lst;
@@ -1756,14 +1833,16 @@ function loadCompareDetail(el) {
 
     var shListings = dedup(latestWindow(shAll));
     var vsListings = dedup(latestWindow(vsAll));
+    var sgListings = dedup(latestWindow(sgAll));
 
-    // Get all unique sections across both platforms
+    // Get all unique sections across all platforms
     var allSections = {};
     shListings.forEach(function(l){ if(l.section) allSections[l.section]=1; });
     vsListings.forEach(function(l){ if(l.section) allSections[l.section]=1; });
+    sgListings.forEach(function(l){ if(l.section) allSections[l.section]=1; });
     var sections = Object.keys(allSections).sort(function(a,b){ return (parseInt(a)||0)-(parseInt(b)||0); });
 
-    window._cmpDetail = { shListings:shListings, vsListings:vsListings, sections:sections, name:name, date:date, venue:venue, shSnap:shSnap, vsSnap:vsSnap };
+    window._cmpDetail = { shListings:shListings, vsListings:vsListings, sgListings:sgListings, sections:sections, name:name, date:date, venue:venue, shSnap:shSnap, vsSnap:vsSnap, sgSnap:sgSnap };
     renderCompareDetail('ALL');
   }).catch(function(e){
     tbl.innerHTML = '<div class="msg">Error: '+esc(e.message)+'</div>';
@@ -1775,6 +1854,7 @@ function renderCompareDetail(filterSection) {
   if (!d) return;
   var shListings = filterSection === 'ALL' ? d.shListings : d.shListings.filter(function(l){ return String(l.section) === filterSection; });
   var vsListings = filterSection === 'ALL' ? d.vsListings : d.vsListings.filter(function(l){ return String(l.section) === filterSection; });
+  var sgListings = filterSection === 'ALL' ? d.sgListings : (d.sgListings||[]).filter(function(l){ return String(l.section) === filterSection; });
 
   function stats(lst) {
     if (!lst.length) return null;
@@ -1787,9 +1867,14 @@ function renderCompareDetail(filterSection) {
 
   var sh = stats(shListings);
   var vs = stats(vsListings);
+  var sg = stats(sgListings);
   var shFloor = sh ? sh.floor : (d.shSnap.event_floor||0);
   var vsFloor = vs ? vs.floor : (d.vsSnap.event_floor||0);
+  var sgFloor = sg ? sg.floor : (d.sgSnap ? d.sgSnap.event_floor||0 : 0);
+  var allFloors = [shFloor, vsFloor, sgFloor].filter(Boolean);
+  var bestFloorVal = allFloors.length ? Math.min.apply(null, allFloors) : 0;
   var floorDiff = shFloor && vsFloor ? shFloor - vsFloor : null;
+  var cheapestPlatform = sgFloor && sgFloor === bestFloorVal ? 'SeatGeek' : vsFloor && vsFloor === bestFloorVal ? 'VividSeats' : shFloor && shFloor === bestFloorVal ? 'StubHub' : '';
 
   // Section selector
   var sectionOpts = '<option value="ALL">All Sections</option>';
@@ -1876,14 +1961,14 @@ function renderCompareDetail(filterSection) {
   h += '</div>';
 
   // Side-by-side platform blocks
-  h += '<div class="cd-split">';
+  h += '<div class="cd-split" style="grid-template-columns:1fr 1fr 1fr;">';
 
   // StubHub
   h += '<div class="cd-platform-block sh">';
   h += '<div class="cd-platform-title sh">StubHub &nbsp;<span style="font-size:11px;font-weight:400;color:#888;">'+(sh?sh.count+' listings':'no data')+'</span></div>';
   if (sh) {
     h += '<div class="cd-stats-row">';
-    h += statPill('Floor','$'+sh.floor.toLocaleString(), floorDiff!==null && floorDiff<=0);
+    h += statPill('Floor','$'+sh.floor.toLocaleString(), shFloor===bestFloorVal&&bestFloorVal>0);
     h += statPill('Avg','$'+sh.avg.toLocaleString(), false);
     h += statPill('Ceiling','$'+sh.ceiling.toLocaleString(), false);
     h += '</div>';
@@ -1899,7 +1984,7 @@ function renderCompareDetail(filterSection) {
   h += '<div class="cd-platform-title vs">VividSeats &nbsp;<span style="font-size:11px;font-weight:400;color:#888;">'+(vs?vs.count+' listings':'no data')+'</span></div>';
   if (vs) {
     h += '<div class="cd-stats-row">';
-    h += statPill('Floor','$'+vs.floor.toLocaleString(), floorDiff!==null && floorDiff>0);
+    h += statPill('Floor','$'+vs.floor.toLocaleString(), vsFloor===bestFloorVal&&bestFloorVal>0);
     h += statPill('Avg','$'+vs.avg.toLocaleString(), false);
     h += statPill('Ceiling','$'+vs.ceiling.toLocaleString(), false);
     h += '</div>';
@@ -1908,6 +1993,22 @@ function renderCompareDetail(filterSection) {
     h += '<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;">Listings</div>';
     h += listTable(vsListings, '#6b2fa0');
   } else h += '<div class="cmp-no-data" style="padding:20px 0;">Not scraped on VividSeats yet</div>';
+  h += '</div>';
+
+  // SeatGeek
+  h += '<div class="cd-platform-block sg" style="border-left:3px solid #dc2626;">';
+  h += '<div class="cd-platform-title sg" style="color:#dc2626;">SeatGeek &nbsp;<span style="font-size:11px;font-weight:400;color:#888;">'+(sg?sg.count+' listings':'no data')+'</span></div>';
+  if (sg) {
+    h += '<div class="cd-stats-row">';
+    h += statPill('Floor','$'+sg.floor.toLocaleString(), sgFloor===bestFloorVal&&bestFloorVal>0);
+    h += statPill('Avg','$'+sg.avg.toLocaleString(), false);
+    h += statPill('Ceiling','$'+sg.ceiling.toLocaleString(), false);
+    h += '</div>';
+    h += '<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Pack Distribution</div>';
+    h += packChart(sg.qtyCounts, '#dc2626');
+    h += '<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;">Listings</div>';
+    h += listTable(sgListings, '#dc2626');
+  } else h += '<div class="cmp-no-data" style="padding:20px 0;">Not scraped on SeatGeek yet</div>';
   h += '</div>';
 
   h += '</div>'; // cd-split
