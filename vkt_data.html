@@ -1394,8 +1394,8 @@ function loadSGData(){
   tbl.innerHTML='';
 
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at',1000),
-    getRanged('/rest/v1/events?id=like.1_________&select=id,name,date,venue&limit=200',200)
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
+    getRanged('/rest/v1/events?select=id,name,date,venue&limit=500',500)
   ]).then(function(res){
     var all=res[0]||[];
     var sgEventsDb=res[1]||[];
@@ -1408,6 +1408,8 @@ function loadSGData(){
     var sgSnaps=all.filter(function(s){ return !s.section||s.section===''||s.section===null; });
     var evDbMap={};
     sgEventsDb.forEach(function(e){ evDbMap[e.id]=e; });
+    // Only include events that actually have SeatGeek snapshots
+    var snapEventIds=new Set(sgSnaps.map(function(s){return s.event_id;}));
     var evMap={};
     sgSnaps.forEach(function(s){
       if(!evMap[s.event_id]){
