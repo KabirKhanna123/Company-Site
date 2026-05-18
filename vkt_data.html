@@ -1450,61 +1450,59 @@ function loadTotalData(){
   tbl.innerHTML='';
 
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
-    getRanged('/rest/v1/events?select=id,name,date,venue&order=date.asc',200)
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
+    getRanged('/rest/v1/events?id=gte.100000000&id=lte.999999999&select=id,name,date,venue&order=date.asc',200)
   ]).then(function(res){
     loadBar.style.display='none';
-    var allSnaps=[].concat(res[0]||[],res[1]||[],res[2]||[]);
+    var shSnaps=res[0]||[], vsSnaps=res[1]||[], sgSnaps=res[2]||[];
     var eventsDb=res[3]||[];
 
-    // Keep only event-level (no section), latest per event per platform
-    var snapsByEvent={};
-    allSnaps.filter(function(s){return !s.section||s.section===''||s.section===null;}).forEach(function(s){
-      var key=s.event_id+'|'+(s.platform||'StubHub');
-      if(!snapsByEvent[key]||new Date(s.scraped_at)>new Date(snapsByEvent[key].scraped_at)){
-        snapsByEvent[key]=s;
-      }
-    });
+    // Latest snap per event per platform
+    function latestPerEvent(snaps){
+      var map={};
+      snaps.forEach(function(s){
+        if(!map[s.event_id]||new Date(s.scraped_at)>new Date(map[s.event_id].scraped_at))
+          map[s.event_id]=s;
+      });
+      return map;
+    }
+    var shMap=latestPerEvent(shSnaps);
+    var vsMap=latestPerEvent(vsSnaps);
+    var sgMap=latestPerEvent(sgSnaps);
 
-    // Build event map
+    // Only include the 104 StubHub FIFA events (9-digit IDs in eventsDb)
     var evDbMap={};
     eventsDb.forEach(function(e){evDbMap[e.id]=e;});
 
-    // Group by event_id, total listings and find best floor
-    var totals={};
-    Object.values(snapsByEvent).forEach(function(s){
-      var id=s.event_id;
-      if(!totals[id]){
-        var ev=evDbMap[id]||{};
-        totals[id]={id:id,name:ev.name||id,date:ev.date||'',venue:ev.venue||'',totalListings:0,floors:[],platforms:{}};
-      }
-      totals[id].totalListings+=n(s.total_listings);
-      if(n(s.event_floor)>0) totals[id].floors.push(n(s.event_floor));
-      totals[id].platforms[s.platform||'StubHub']=n(s.total_listings);
-      totals[id].latestScrape=s.scraped_at;
+    // Filter to events that have at least one platform scraped
+    var fifa=eventsDb.filter(function(e){
+      return /^\d{9}$/.test(e.id) && (shMap[e.id]||vsMap[e.id]||sgMap[e.id]);
     });
 
-    // Build synthetic events for buildRows using combined data
-    var synthEvents=Object.values(totals).filter(function(t){return t.totalListings>0;});
-    // Build synthetic snapshot array for buildRows — one "Total" snap per event
-    var synthSnaps=synthEvents.map(function(t){
-      var floor=t.floors.length?Math.min.apply(null,t.floors):0;
-      return {event_id:t.id,platform:'Total',total_listings:t.totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:t.latestScrape};
-    });
-
-    if(!synthEvents.length){
-      tbl.innerHTML='<div class="msg">No total data available yet — run all scrapers first.</div>';
+    if(!fifa.length){
+      tbl.innerHTML='<div class="msg">No data yet — run the scrapers first.</div>';
       return;
     }
 
-    allRows=buildRows(synthEvents, synthSnaps);
+    // Build synthetic snaps summing all platforms
+    var synthSnaps=[];
+    fifa.forEach(function(e){
+      var sh=shMap[e.id], vs=vsMap[e.id], sg=sgMap[e.id];
+      var totalListings=(sh?n(sh.total_listings):0)+(vs?n(vs.total_listings):0)+(sg?n(sg.total_listings):0);
+      var floors=[sh,vs,sg].filter(Boolean).map(function(s){return n(s.event_floor);}).filter(function(f){return f>0;});
+      var floor=floors.length?Math.min.apply(null,floors):0;
+      var latestScrape=[sh,vs,sg].filter(Boolean).map(function(s){return s.scraped_at;}).sort().pop();
+      synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
+    });
+
+    allRows=buildRows(fifa, synthSnaps);
     buildTicker(allRows);
     drawTable();
   }).catch(function(err){
     loadBar.style.display='none';
-    tbl.innerHTML='<div class="msg">Error loading total data: '+esc(err.message)+'</div>';
+    tbl.innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>';
   });
 }
 function resetAllSorts(){sortVolDir=null;sortFloorDir=null;sortDateDir=null;sortDaysDir=null;sortDemandDir=null;sortSellThruDir=null;['volSortIcon','floorSortIcon','dateSortIcon','daysSortIcon','demandSortIcon','sellthruSortIcon'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='\u21C5';});['volHeader','floorHeader','dateHeader','daysHeader','demandHeader','sellthruHeader'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.color='';});}
