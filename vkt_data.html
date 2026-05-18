@@ -51,9 +51,9 @@
     .toolbar button:hover { border-color:#d4a843; color:#d4a843; }
     .date-group { display:flex; align-items:center; gap:6px; font-size:11px; color:#888; flex:0 0 auto; }
     .date-group input { width:145px; }
-    .table-shell { padding:12px; width:100%; background:#f7f6f3; }
-    .table-card { background:#fff; border:1px solid #e4e2dc; border-radius:10px; overflow:hidden; width:100%; }
-    .table-wrap { overflow:auto; max-height:calc(100vh - 240px); width:100%; }
+    .table-shell { padding:0; width:100%; background:#f7f6f3; }
+    .table-card { background:#fff; border:1px solid #e4e2dc; border-radius:0; overflow:hidden; width:100%; }
+    .table-wrap { overflow:auto; max-height:calc(100vh - 160px); width:100%; }
     table { width:100%; min-width:100%; margin:0; border-collapse:collapse; table-layout:fixed; }
     thead th { background:#f7f6f3; border-bottom:1px solid #e4e2dc; padding:9px 8px; font-size:9.5px; letter-spacing:.5px; text-transform:uppercase; color:#888; text-align:center; position:sticky; top:0; z-index:2; font-weight:700; cursor:pointer; white-space:nowrap; }
     thead th:hover { color:#d4a843; }
@@ -467,7 +467,7 @@
 
 
     /* Compare Detail View */
-    .cd-wrap { max-width:1100px; margin:0 auto; padding:0 0 40px; }
+    .cd-wrap { max-width:none; margin:0; padding:0 12px 40px; }
     .cd-back { display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid #e4e2dc;border-radius:8px;font-size:12px;color:#888;cursor:pointer;margin-bottom:18px;background:#fff; }
     .cd-back:hover { border-color:#d4a843;color:#d4a843; }
     .cd-hero { background:#fff;border:1px solid #e4e2dc;border-radius:14px;padding:20px 24px;margin-bottom:16px; }
