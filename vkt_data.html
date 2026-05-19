@@ -834,7 +834,10 @@ function buildRows(events,snaps){
   var snapIndex={};
   snaps.forEach(function(s){if(!snapIndex[s.event_id])snapIndex[s.event_id]=[];snapIndex[s.event_id].push(s);});
   return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
-    var es=(snapIndex[ev.id]||[]).filter(function(s){return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform||activePlatform==='Total');}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var es=(snapIndex[ev.id]||[]).filter(function(s){
+      if(activePlatform==='Total') return s.platform==='Total';
+      return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform);
+    }).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var latest=es.length?es[es.length-1]:null;
     var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){return!s.platform||s.platform===activePlatform||activePlatform==='Total';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var runMap={};allEvSnaps.forEach(function(s){var hr=s.scraped_at.slice(0,13);if(!runMap[hr]||n(s.total_listings)>n(runMap[hr].total_listings))runMap[hr]=s;});
@@ -1454,7 +1457,7 @@ function loadSGData(){
 
   Promise.all([
     getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,section,scraped_at,platform',1000),
-    getRanged('/rest/v1/events?select=id,name,date,venue&order=date.asc',200)
+    getRanged('/rest/v1/events?date=gte.2026-06-01&order=date.asc&select=id,name,date,venue',500)
   ]).then(function(res){
     var all=res[0]||[];
     var sgEventsDb=res[1]||[];
@@ -1465,19 +1468,11 @@ function loadSGData(){
     }
 
     var sgSnaps=all.filter(function(s){ return !s.section||s.section===''||s.section===null; });
-    var evDbMap={};
-    sgEventsDb.forEach(function(e){ evDbMap[e.id]=e; });
-    // Only include events that actually have SeatGeek snapshots
     var snapEventIds=new Set(sgSnaps.map(function(s){return s.event_id;}));
-    var evMap={};
-    sgSnaps.forEach(function(s){
-      if(!evMap[s.event_id]){
-        var dbEv=evDbMap[s.event_id]||{};
-        evMap[s.event_id]={id:s.event_id,name:dbEv.name||('Match '+s.event_id),date:dbEv.date||'',venue:dbEv.venue||''};
-      }
-    });
 
-    var sgEvents=Object.values(evMap);
+    // Only show 9-digit FIFA events that have SeatGeek data
+    var sgEvents=sgEventsDb.filter(function(e){ return /^\d{9}$/.test(e.id) && snapEventIds.has(e.id); });
+
     allRows=buildRows(sgEvents, all);
     buildTicker(allRows);
     drawTable();
