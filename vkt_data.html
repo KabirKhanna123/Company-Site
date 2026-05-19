@@ -1494,9 +1494,9 @@ function loadTotalData(){
   tbl.innerHTML='';
 
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',2000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',2000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',2000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',10000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',10000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',10000),
     getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue',500)
   ]).then(function(res){
     loadBar.style.display='none';
@@ -1588,9 +1588,6 @@ function loadTotalData(){
       }
     });
 
-    var m103 = synthSnaps.find(function(s){return s.event_id==='153023903' && s.total_listings > 500;});
-    console.log('[Total] Match 103 synth snap:', m103 ? JSON.stringify(m103) : 'NOT FOUND');
-    console.log('[Total] All Match 103 synth snaps:', JSON.stringify(synthSnaps.filter(function(s){return s.event_id==='153023903';})));
     allRows=buildRows(shEvents, synthSnaps);
     document.getElementById('eventCount').textContent=shEvents.length.toLocaleString()+' events';
     buildTicker(allRows);
