@@ -2137,10 +2137,10 @@ function loadCompareView() {
   }
 
   Promise.all([
-    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500),
-    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 5000),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000),
     dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue', 500),
-    dbGet('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 500)
+    dbGet('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
@@ -2171,8 +2171,8 @@ function loadCompareView() {
     // Match VS events to SH events by name/date similarity
     // VS id = 'vs_5080436', SH id = '153020717'
     // Match by: event name similarity + same date
-    var vsIds = Object.keys(vsMap);
-    var shIds = Object.keys(shMap);
+    var vsIds = Object.keys(vsMap).filter(function(id){ return String(id).startsWith('vs_'); });
+    var shIds = Object.keys(shMap).filter(function(id){ return /^\d{9}$/.test(id) && evMap[id] && evMap[id].date; });
 
     // Build match pairs: { shId, vsId, name, date, venue }
     var matched = []; // events that exist on both platforms
@@ -2225,13 +2225,58 @@ function loadCompareView() {
     var html = '<div class="cmp-grid">';
 
     // Matched events
+    // Sort all SH events (matched + unmatched) by match number
+    function getMatchNum(shId) {
+      var name = (evMap[shId] || {}).name || '';
+      var m = name.match(/match\s+(\d+)/i);
+      return m ? parseInt(m[1], 10) : 9999;
+    }
+
     matched.sort(function(a, b) {
+      var na = getMatchNum(a.shId), nb = getMatchNum(b.shId);
+      if (na !== nb) return na - nb;
       var da = (evMap[a.shId] || {}).date || '';
       var db = (evMap[b.shId] || {}).date || '';
       return da < db ? -1 : da > db ? 1 : 0;
     });
 
-    matched.forEach(function(pair) {
+    // Sort shOnly by match number and merge into display order
+    shOnly.sort(function(a, b) { return getMatchNum(a) - getMatchNum(b); });
+
+    // Build full ordered list: matched events + shOnly interspersed by match number
+    var allPairs = matched.map(function(p){ return {type:'matched', data:p}; });
+    shOnly.forEach(function(shId){ allPairs.push({type:'shOnly', data:shId}); });
+    allPairs.sort(function(a, b){
+      var na = a.type==='matched' ? getMatchNum(a.data.shId) : getMatchNum(a.data);
+      var nb = b.type==='matched' ? getMatchNum(b.data.shId) : getMatchNum(b.data);
+      return na - nb;
+    });
+
+    var html = '<div class="cmp-list">';
+
+    allPairs.forEach(function(item) {
+      if (item.type === 'shOnly') {
+        var shId = item.data;
+        var shEv = evMap[shId] || {};
+        var sh = shMap[shId] || {};
+        html += '<div class="cmp-event" style="cursor:pointer;" data-sh="'+shId+'" data-vs="" onclick="loadCompareDetail(this)">';
+        html += '<div class="cmp-event-header">';
+        html += '<div style="flex:1;"><div class="cmp-event-name">'+esc(cleanName(shEv.name||shId))+'</div>';
+        html += '<div class="cmp-event-meta">'+esc(fmtDate(shEv.date||''))+(shEv.venue?' &bull; '+esc(shEv.venue):'')+'</div></div>';
+        html += '<span style="font-size:10px;color:#aaa;font-weight:600;">No VS/SG data yet</span></div>';
+        html += '<div class="cmp-platforms">';
+        html += '<div class="cmp-platform"><div class="cmp-platform-name sh">StubHub</div>';
+        if (sh.event_floor) {
+          html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val">$'+Math.round(sh.event_floor).toLocaleString()+'</div></div>';
+        } else html += '<div class="cmp-no-data">Not scraped</div>';
+        html += '</div>';
+        html += '<div class="cmp-platform"><div class="cmp-platform-name vs">VividSeats</div><div class="cmp-no-data">Not scraped yet</div></div>';
+        html += '<div class="cmp-platform"><div class="cmp-platform-name sg">SeatGeek</div><div class="cmp-no-data">Not scraped yet</div></div>';
+        html += '</div></div>';
+        return;
+      }
+
+      var pair = item.data;
       var shEv = evMap[pair.shId] || {};
       var vsEv = evMap[pair.vsId] || {};
       var sh = shMap[pair.shId] || {};
@@ -2288,24 +2333,6 @@ function loadCompareView() {
 
       html += '</div></div>';
     });
-
-    // SH-only events (VS not yet scraped)
-    if (shOnly.length) {
-      html += '<div style="font-size:11px;color:#aaa;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:8px 4px 4px;">StubHub only — not yet on VividSeats</div>';
-      shOnly.forEach(function(shId) {
-        var shEv = evMap[shId] || {};
-        var sh = shMap[shId] || {};
-        html += '<div class="cmp-event"><div class="cmp-event-header">';
-        html += '<div><div class="cmp-event-name">'+esc(cleanName(shEv.name||shId))+'</div>';
-        html += '<div class="cmp-event-meta">'+esc(fmtDate(shEv.date||''))+(shEv.venue?' &bull; '+esc(shEv.venue):'')+'</div></div>';
-        html += '<span style="font-size:10px;color:#aaa;font-weight:600;">StubHub only</span></div>';
-        html += '<div class="cmp-platforms"><div class="cmp-platform"><div class="cmp-platform-name sh">StubHub</div>';
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Floor</div><div class="cmp-stat-val">$'+Math.round(sh.event_floor||0).toLocaleString()+'</div></div>';
-        html += '<div class="cmp-stat"><div class="cmp-stat-label">Listings</div><div class="cmp-stat-val" style="font-size:14px;">'+(sh.total_listings||0).toLocaleString()+'</div></div>';
-        html += '</div><div class="cmp-platform"><div class="cmp-platform-name vs">VividSeats</div><div class="cmp-no-data">Not scraped yet</div></div>';
-        html += '<div class="cmp-platform"></div></div></div>';
-      });
-    }
 
     html += '</div>';
     tbl.innerHTML = html;
