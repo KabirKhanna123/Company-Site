@@ -944,7 +944,7 @@ function drawTable(){
     '<th class="th-right" id="dateHeader" onclick="toggleDateSort()" style="cursor:pointer;user-select:none;">Date <span id="dateSortIcon">&#8645;</span></th>'+
     '<th>Venue</th>'+
     '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
-    '<th class="th-right">7D Move</th><th class="th-right">Listings</th>'+
+    '<th class="th-right">Listings</th>'+
     '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;"><span id="vol-th-label">VOL Change %</span> <span id="volSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="qty-th-label">QTY Change</th>'+
@@ -988,14 +988,7 @@ function drawTable(){
       '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
       '<td class="col-venue" style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td>'+
-      (function(){
-  var v7=r.vol7d;
-  var cls=v7!==null?(v7>0?'delta-down':v7<0?'delta-up':'delta-flat'):'';
-  // negative vol7d = listings dropped = bullish (prices rising)
-  var label=v7!==null?((v7>0?'+':'')+v7+'%'):'\u2014';
-  return '<td class="td-right mono '+cls+'" style="'+dim+'">'+(r.hasData?'<span style="font-size:11px;">'+esc(label)+'</span>':'<span class="no-data">\u2014</span>')+'</td>';
-})()+
-      '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
+            '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right" style="'+dim+'">'+getQtyCell(r)+'</td>'+
