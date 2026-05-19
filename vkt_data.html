@@ -1492,9 +1492,9 @@ function loadTotalData(){
   tbl.innerHTML='';
 
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',2000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',2000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',2000),
     getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue',500)
   ]).then(function(res){
     loadBar.style.display='none';
