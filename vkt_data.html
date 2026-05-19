@@ -1038,16 +1038,47 @@ function loadAnalysis(eventId){
   // Apply platform theme to body
   var isVS = activePlatform === 'VividSeats' || String(eventId).startsWith('vs_');
   document.body.classList.toggle('vs-theme', isVS);
-  // Hide vol period selector on event detail view
   var vps = document.getElementById('vol-period-wrap');
   if(vps) vps.style.display='none';
   destroyCharts();
   document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Loading...</div></div>';
+
+  // For Total: fetch SH + VS + SG listings combined
+  if(activePlatform === 'Total'){
+    var vsId = (window._totalShToVs||{})[eventId];
+    var promises = [
+      get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),
+      getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,event_floor,section,scraped_at,platform'),
+      getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+'&select=listing_id,section,row,quantity,price,scraped_at,platform&order=scraped_at.desc',3000)
+    ];
+    if(vsId){
+      promises.push(getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&order=scraped_at.asc&select=id,event_id,total_listings,event_floor,section,scraped_at,platform'));
+      promises.push(getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=listing_id,section,row,quantity,price,scraped_at,platform&order=scraped_at.desc',3000));
+    }
+    Promise.all(promises).then(function(res){
+      var ev=(res[0]||[])[0];
+      var shSnaps=res[1]||[];
+      var shListings=res[2]||[];
+      var vsSnaps=vsId?(res[3]||[]):[];
+      var vsListings=vsId?(res[4]||[]):[];
+      if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
+      // Combine snaps — tag VS snaps with SH event_id so charts work
+      var vsSnapsMapped=vsSnaps.map(function(s){return Object.assign({},s,{event_id:eventId});});
+      var combinedSnaps=shSnaps.concat(vsSnapsMapped);
+      // Now run the rest of normal analysis with combined data
+      processAnalysis(ev, combinedSnaps);
+    });
+    return;
+  }
   Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')]).then(function(res){
     var ev=(res[0]||[])[0];var snaps=res[1]||[];
-    // Filter snapshots to active platform
-    var snapPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : activePlatform === 'Total' ? null : 'StubHub';
-    if (snapPlatform) snaps = snaps.filter(function(s){ return (s.platform || 'StubHub') === snapPlatform; });
+    var snapPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : 'StubHub';
+    snaps = snaps.filter(function(s){ return (s.platform || 'StubHub') === snapPlatform; });
+    processAnalysis(ev, snaps);
+  }).catch(function(e){ document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Error: '+e.message+'</div></div>'; });
+}
+
+function processAnalysis(ev, snaps) {
     var activeListings=[];var soldListingsArr=[];var soldIds=new Set();
     if(!ev){document.getElementById('app').innerHTML='<div class="analysis-shell"><div class="msg">Event not found.</div></div>';return;}
     var eventSnaps=snaps.filter(function(s){return!s.section||s.section==='';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
@@ -1193,9 +1224,13 @@ function loadAnalysis(eventId){
       if(wrap)wrap.innerHTML='<div style="padding:1rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;font-size:12px;color:#888;">Querying listings for event_id: <strong style=\"color:#111;\">'+eventId+'</strong>...</div>';
       var listingPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : activePlatform === 'Total' ? null : 'StubHub';
       var listingPlatformFilter = listingPlatform ? '&platform=eq.' + encodeURIComponent(listingPlatform) : '';
-      getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+listingPlatformFilter+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000)
-      .then(function(rawListings){
-        rawListings=rawListings||[];
+      var listingPromises = [getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(eventId)+listingPlatformFilter+'&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000)];
+      if(activePlatform === 'Total' && (window._totalShToVs||{})[eventId]){
+        var vsIdForListings = window._totalShToVs[eventId];
+        listingPromises.push(getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsIdForListings)+'&platform=eq.VividSeats&select=listing_id,section,row,quantity,price,scraped_at&order=scraped_at.desc',2000));
+      }
+      Promise.all(listingPromises).then(function(listingRes){
+        var rawListings=(listingRes[0]||[]).concat(listingRes[1]||[]);
         if(!rawListings.length){
           if(wrap)wrap.innerHTML='<div style="padding:1.5rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;font-size:12px;">No listings found in DB for event_id: <strong>'+eventId+'</strong>. Check that the scraper saved with the same ID.</div>';
           return;
@@ -1243,11 +1278,7 @@ function loadAnalysis(eventId){
     var snapSel=document.getElementById('snapSecSel');if(snapSel){renderSnapHistory('All');snapSel.addEventListener('change',function(){renderSnapHistory(this.value);});}
 
 
-  }).catch(function(err){
-    document.getElementById('app').innerHTML =
-      '<div class="analysis-shell"><div class="msg">Error: ' + esc(err.message) + '</div></div>';
-  });
-}
+} // end processAnalysis
 
 var activeVolPeriod='24h';
 
@@ -1452,7 +1483,6 @@ function loadTotalData(){
   loadBar.style.display='block';
   tbl.innerHTML='';
 
-  // Use same fetching pattern as Compare tab — fetch all events in one query
   Promise.all([
     getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
     getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
@@ -1472,14 +1502,10 @@ function loadTotalData(){
       return map;
     }
     var shMap=latestPerEvent(shSnaps);
-    var vsMap=latestPerEvent(vsSnaps);
+    var vsMap=latestPerEvent(vsSnaps); // keyed by vs_ IDs
     var sgMap=latestPerEvent(sgSnaps);
 
-    // Build evMap for all events
-    var evMap={};
-    allEvents.forEach(function(e){evMap[e.id]=e;});
-
-    // Match VS to SH by match number — same as Compare tab
+    // Match VS (vs_ IDs) to SH (9-digit IDs) by match number
     function extractMatchNum(name){
       if(!name) return null;
       var m=String(name).match(/match\s+(\d+)/i);
@@ -1490,16 +1516,20 @@ function loadTotalData(){
       var num=extractMatchNum(e.name);
       if(num) shByMatchNum[num]=e.id;
     });
+    // Build shId -> vsId map
     var shToVs={};
     allEvents.filter(function(e){return String(e.id).startsWith('vs_');}).forEach(function(e){
       var num=extractMatchNum(e.name);
       if(num&&shByMatchNum[num]) shToVs[shByMatchNum[num]]=e.id;
     });
 
-    // Only the 104 SH FIFA events
-    var shEvents=allEvents.filter(function(e){return /^\d{9}$/.test(e.id);});
-    var vsEvents=allEvents.filter(function(e){return String(e.id).startsWith('vs_');});
+    // Store globally for event detail lookup
+    window._totalShToVs = shToVs;
+    window._totalVsMap = vsMap;
+    window._totalSgMap = sgMap;
+    window._totalShMap = shMap;
 
+    var shEvents=allEvents.filter(function(e){return /^\d{9}$/.test(e.id);});
     if(!shEvents.length){
       tbl.innerHTML='<div class="msg">No events found.</div>';
       return;
@@ -1518,12 +1548,7 @@ function loadTotalData(){
       synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
     });
 
-    // Debug
-    var m55snap = synthSnaps.find(function(s){return s.event_id==='153023579';});
-    console.log('[Total] Match 55 synthSnap total:', m55snap ? m55snap.total_listings : 'NOT FOUND');
     allRows=buildRows(shEvents, synthSnaps);
-    var m55row = allRows.find(function(r){return r.id==='153023579';});
-    console.log('[Total] Match 55 row.listings:', m55row ? m55row.listings : 'NOT FOUND');
     buildTicker(allRows);
     drawTable();
   }).catch(function(err){
