@@ -960,7 +960,7 @@ function drawTable(){
     var daysBadge='\u2014';
     if(r.daysToEvent!==null){var dc=r.daysToEvent<=7?'days-hot':r.daysToEvent<=30?'days-soon':'days-normal';daysBadge='<span class="days-badge '+dc+'">'+r.daysToEvent+'d</span>';}
     var demandHtml='\u2014';
-    if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';demandHtml='<span class="demand-score '+dc2+'">'+r.demandScore+'</span>';}
+    if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';var demandLabel=r.demandScore>=60?'High':r.demandScore>=35?'Medium':'Low';demandHtml='<span class="demand-score '+dc2+'">'+demandLabel+'</span>';}
     var sellHtml='\u2014';
     // sellThru removed from display
     var existingAlert=vktAlerts[r.id]||null;
