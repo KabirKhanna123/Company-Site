@@ -876,7 +876,21 @@ function buildRows(events,snaps){
     var floorSnaps=es.filter(function(s){return n(s.event_floor)>0;});
     if(floorSnaps.length>=2){floorVelocity=n(floorSnaps[floorSnaps.length-1].event_floor)-n(floorSnaps[0].event_floor);}
     var demandScore=null;
-    if(daysToEvent!==null&&curListings>0){var d=0;if(daysToEvent<=3)d+=40;else if(daysToEvent<=7)d+=30;else if(daysToEvent<=14)d+=20;else if(daysToEvent<=30)d+=10;else d+=5;if(sellThru!==null){if(sellThru>20)d+=30;else if(sellThru>10)d+=20;else if(sellThru>0)d+=10;else if(sellThru<0)d-=10;}if(floorVelocity!==null){if(floorVelocity>50)d+=20;else if(floorVelocity>20)d+=12;else if(floorVelocity>0)d+=6;else if(floorVelocity<-20)d-=10;}if(listingsPct!==null){if(listingsPct<-10)d+=10;else if(listingsPct>20)d-=5;}demandScore=Math.min(99,Math.max(1,d));}
+    if(curListings>0&&latest){
+      var d=40; // base — World Cup events start at medium
+      // Floor price signals premium demand
+      var flr=n(latest.event_floor);
+      if(flr>=2000)d+=30;else if(flr>=1000)d+=20;else if(flr>=500)d+=12;else if(flr>=200)d+=6;else d-=5;
+      // Days to event — closer = more urgent
+      if(daysToEvent!==null){if(daysToEvent<=7)d+=20;else if(daysToEvent<=14)d+=14;else if(daysToEvent<=30)d+=8;else if(daysToEvent<=60)d+=4;}
+      // Floor trending up = high demand
+      if(floorVelocity!==null){if(floorVelocity>100)d+=15;else if(floorVelocity>50)d+=10;else if(floorVelocity>20)d+=6;else if(floorVelocity<-50)d-=10;else if(floorVelocity<-20)d-=5;}
+      // Listing count dropping = selling fast
+      if(listingsPct!==null){if(listingsPct<-15)d+=12;else if(listingsPct<-5)d+=6;else if(listingsPct>30)d-=8;else if(listingsPct>15)d-=4;}
+      // High listing count at high floor = strong market
+      if(curListings>800&&flr>500)d+=8;else if(curListings<200&&flr>500)d+=5;
+      demandScore=Math.min(99,Math.max(1,d));
+    }
     return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?n(latest.event_floor):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,vol7d:vol7d,vol14d:vol14d,vol7dQty:vol7dQty,vol14dQty:vol14dQty,vol24Qty:vol24Qty,demandScore:demandScore,floorVelocity:floorVelocity,latestScrape:latest?latest.scraped_at:null};
   });
 }
@@ -960,7 +974,7 @@ function drawTable(){
     var daysBadge='\u2014';
     if(r.daysToEvent!==null){var dc=r.daysToEvent<=7?'days-hot':r.daysToEvent<=30?'days-soon':'days-normal';daysBadge='<span class="days-badge '+dc+'">'+r.daysToEvent+'d</span>';}
     var demandHtml='\u2014';
-    if(r.demandScore!==null){var dc2=r.demandScore>=60?'demand-high':r.demandScore>=35?'demand-med':'demand-low';var demandLabel=r.demandScore>=60?'High':r.demandScore>=35?'Medium':'Low';demandHtml='<span class="demand-score '+dc2+'">'+demandLabel+'</span>';}
+    if(r.demandScore!==null){var dc2=r.demandScore>=65?'demand-high':r.demandScore>=35?'demand-med':'demand-low';var demandLabel=r.demandScore>=65?'High':r.demandScore>=35?'Medium':'Low';demandHtml='<span class="demand-score '+dc2+'">'+demandLabel+'</span>';}
     var sellHtml='\u2014';
     // sellThru removed from display
     var existingAlert=vktAlerts[r.id]||null;
@@ -1144,7 +1158,7 @@ function processAnalysis(ev, snaps, eventId) {
     var delta7str=delta7===null?'—':(delta7>0?'+':'')+delta7+'% from last week';
     // Demand label based on sell-through
     var demandLabel='';
-    if(allRows.length){var row=allRows.find(function(r){return r.id==eventId;});if(row&&row.demandScore!==null){var ds=row.demandScore;demandLabel=ds>=60?'High demand. Listings are moving fast.':ds>=35?'Moderate demand. Market is steady.':'Low demand. Prices may soften closer to the event.';}}
+    if(allRows.length){var row=allRows.find(function(r){return r.id==eventId;});if(row&&row.demandScore!==null){var ds=row.demandScore;demandLabel=ds>=65?'High demand. Listings are moving fast.':ds>=35?'Moderate demand. Market is steady.':'Low demand. Prices may soften closer to the event.';}}
     // Hero chart tabs: store data globally
     window._heroSnaps={all:dailySnaps,labels:labels,floorData:floorData,listLabels:listLabels,listData:listData};
     window._heroChart=null;
