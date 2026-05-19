@@ -839,10 +839,23 @@ function buildRows(events,snaps){
     var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){return!s.platform||s.platform===activePlatform||activePlatform==='Total';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var runMap={};allEvSnaps.forEach(function(s){var hr=s.scraped_at.slice(0,13);if(!runMap[hr]||n(s.total_listings)>n(runMap[hr].total_listings))runMap[hr]=s;});
     var runs=Object.keys(runMap).sort().map(function(k){return runMap[k];});
-    var curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
+    // For Total: use the synth snap's total_listings directly (already summed across platforms)
+    var curListings;
+    if(activePlatform==='Total'){
+      var synthLatest=es.length?es[es.length-1]:null;
+      curListings=synthLatest?n(synthLatest.total_listings):0;
+    } else {
+      curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
+    }
     var latestTime=runs.length?new Date(runs[runs.length-1].scraped_at).getTime():Date.now();
     var prevRuns=runs.filter(function(r){return new Date(r.scraped_at).getTime()<latestTime-20*3600000;});
-    var prevListings=prevRuns.length?n(prevRuns[prevRuns.length-1].total_listings):null;
+    var prevListings;
+    if(activePlatform==='Total'){
+      var synthPrev=es.length>1?es[0]:null; // first synth snap is the older one
+      prevListings=synthPrev?n(synthPrev.total_listings):null;
+    } else {
+      prevListings=prevRuns.length?n(prevRuns[prevRuns.length-1].total_listings):null;
+    }
     var listingsPct=pct(curListings,prevListings);
     var atpSnaps=(snapIndex[ev.id]||[]).filter(function(s){return n(s.section_avg)>0;});
     var atp=atpSnaps.length?atpSnaps.reduce(function(s,x){return s+n(x.section_avg);},0)/atpSnaps.length:0;
