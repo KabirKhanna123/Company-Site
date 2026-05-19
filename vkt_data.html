@@ -834,9 +834,9 @@ function buildRows(events,snaps){
   var snapIndex={};
   snaps.forEach(function(s){if(!snapIndex[s.event_id])snapIndex[s.event_id]=[];snapIndex[s.event_id].push(s);});
   return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
-    var es=(snapIndex[ev.id]||[]).filter(function(s){return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform);}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var es=(snapIndex[ev.id]||[]).filter(function(s){return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform||activePlatform==='Total');}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var latest=es.length?es[es.length-1]:null;
-    var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){return!s.platform||s.platform===activePlatform;}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
+    var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){return!s.platform||s.platform===activePlatform||activePlatform==='Total';}).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var runMap={};allEvSnaps.forEach(function(s){var hr=s.scraped_at.slice(0,13);if(!runMap[hr]||n(s.total_listings)>n(runMap[hr].total_listings))runMap[hr]=s;});
     var runs=Object.keys(runMap).sort().map(function(k){return runMap[k];});
     var curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
