@@ -1472,28 +1472,30 @@ function loadTotalData(){
     var vsMap=latestPerEvent(vsSnaps);
     var sgMap=latestPerEvent(sgSnaps);
 
-    // Match VS events to SH events by date+position
-    var vsByDate={};
-    vsEventsDb.forEach(function(e){
-      if(!vsByDate[e.date]) vsByDate[e.date]=[];
-      vsByDate[e.date].push(e.id);
-    });
-    var shByDate={};
+    // Build full evMap for name lookup
+    var evMap={};
+    shEvents.forEach(function(e){evMap[e.id]=e;});
+    vsEventsDb.forEach(function(e){evMap[e.id]=e;});
+
+    // Match VS to SH by FIFA match number (same logic as Compare tab)
+    function extractMatchNum(name){
+      if(!name) return null;
+      var m=String(name).match(/match\s+(\d+)/i);
+      return m?parseInt(m[1],10):null;
+    }
+    var shByMatchNum={};
     shEvents.forEach(function(e){
-      if(!shByDate[e.date]) shByDate[e.date]=[];
-      shByDate[e.date].push(e.id);
+      var num=extractMatchNum(e.name);
+      if(num) shByMatchNum[num]=e.id;
     });
     var shToVs={};
-    Object.keys(shByDate).forEach(function(date){
-      var shIds=shByDate[date];
-      var vsIds=vsByDate[date]||[];
-      shIds.forEach(function(shId,i){ if(vsIds[i]) shToVs[shId]=vsIds[i]; });
+    vsEventsDb.forEach(function(e){
+      var num=extractMatchNum(evMap[e.id]&&evMap[e.id].name||e.name);
+      if(num&&shByMatchNum[num]) shToVs[shByMatchNum[num]]=e.id;
     });
 
-    var fifa=shEvents.filter(function(e){
-      return /^\d{9}$/.test(e.id) && (shMap[e.id]||sgMap[e.id]||(shToVs[e.id]&&vsMap[shToVs[e.id]]));
-    });
-
+    // All 104 SH FIFA events
+    var fifa=shEvents.filter(function(e){ return /^\d{9}$/.test(e.id); });
     if(!fifa.length){
       tbl.innerHTML='<div class="msg">No data yet — run the scrapers first.</div>';
       return;
@@ -1508,7 +1510,7 @@ function loadTotalData(){
       var totalListings=(sh?n(sh.total_listings):0)+(vs?n(vs.total_listings):0)+(sg?n(sg.total_listings):0);
       var floors=[sh,vs,sg].filter(Boolean).map(function(s){return n(s.event_floor);}).filter(function(f){return f>0;});
       var floor=floors.length?Math.min.apply(null,floors):0;
-      var latestScrape=[sh,vs,sg].filter(Boolean).map(function(s){return s.scraped_at;}).sort().pop();
+      var latestScrape=[sh,vs,sg].filter(Boolean).map(function(s){return s.scraped_at;}).sort().pop()||'';
       synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
     });
 
