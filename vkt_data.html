@@ -1495,6 +1495,12 @@ function loadTotalData(){
 
     // Only the 104 SH FIFA events
     var shEvents=allEvents.filter(function(e){return /^\d{9}$/.test(e.id);});
+    var vsEvents=allEvents.filter(function(e){return String(e.id).startsWith('vs_');});
+    console.log('[Total] allEvents:',allEvents.length,'shEvents:',shEvents.length,'vsEvents:',vsEvents.length);
+    console.log('[Total] shSnaps:',shSnaps.length,'vsSnaps:',vsSnaps.length,'sgSnaps:',sgSnaps.length);
+    console.log('[Total] shMap keys:',Object.keys(shMap).length,'vsMap keys:',Object.keys(vsMap).length,'sgMap keys:',Object.keys(sgMap).length);
+    console.log('[Total] Sample shToVs:',JSON.stringify(Object.entries(shToVs).slice(0,3)));
+    console.log('[Total] Sample vsMap key:',Object.keys(vsMap)[0]);
 
     if(!shEvents.length){
       tbl.innerHTML='<div class="msg">No events found.</div>';
