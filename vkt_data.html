@@ -1589,7 +1589,6 @@ function loadTotalData(){
     });
 
     allRows=buildRows(shEvents, synthSnaps);
-    console.log('[Total] Row check:', JSON.stringify(allRows.map(function(r){var m=(r.name.match(/Match (\d+)/i)||[])[1];return {m:m?parseInt(m):0,t:r.listings};}).sort(function(a,b){return a.m-b.m;})));
     document.getElementById('eventCount').textContent=shEvents.length.toLocaleString()+' events';
     buildTicker(allRows);
     drawTable();
