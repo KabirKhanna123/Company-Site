@@ -1453,13 +1453,13 @@ function loadTotalData(){
     getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
     getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
     getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
-    getRanged('/rest/v1/events?id=gte.100000000&id=lte.999999999&select=id,name,date,venue&order=date.asc',200)
+    getRanged('/rest/v1/events?id=gte.100000000&id=lte.999999999&select=id,name,date,venue&order=date.asc',200),
+    getRanged('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&order=date.asc',200)
   ]).then(function(res){
     loadBar.style.display='none';
     var shSnaps=res[0]||[], vsSnaps=res[1]||[], sgSnaps=res[2]||[];
-    var eventsDb=res[3]||[];
+    var shEvents=res[3]||[], vsEventsDb=res[4]||[];
 
-    // Latest snap per event per platform
     function latestPerEvent(snaps){
       var map={};
       snaps.forEach(function(s){
@@ -1472,13 +1472,26 @@ function loadTotalData(){
     var vsMap=latestPerEvent(vsSnaps);
     var sgMap=latestPerEvent(sgSnaps);
 
-    // Only include the 104 StubHub FIFA events (9-digit IDs in eventsDb)
-    var evDbMap={};
-    eventsDb.forEach(function(e){evDbMap[e.id]=e;});
+    // Match VS events to SH events by date+position
+    var vsByDate={};
+    vsEventsDb.forEach(function(e){
+      if(!vsByDate[e.date]) vsByDate[e.date]=[];
+      vsByDate[e.date].push(e.id);
+    });
+    var shByDate={};
+    shEvents.forEach(function(e){
+      if(!shByDate[e.date]) shByDate[e.date]=[];
+      shByDate[e.date].push(e.id);
+    });
+    var shToVs={};
+    Object.keys(shByDate).forEach(function(date){
+      var shIds=shByDate[date];
+      var vsIds=vsByDate[date]||[];
+      shIds.forEach(function(shId,i){ if(vsIds[i]) shToVs[shId]=vsIds[i]; });
+    });
 
-    // Filter to events that have at least one platform scraped
-    var fifa=eventsDb.filter(function(e){
-      return /^\d{9}$/.test(e.id) && (shMap[e.id]||vsMap[e.id]||sgMap[e.id]);
+    var fifa=shEvents.filter(function(e){
+      return /^\d{9}$/.test(e.id) && (shMap[e.id]||sgMap[e.id]||(shToVs[e.id]&&vsMap[shToVs[e.id]]));
     });
 
     if(!fifa.length){
@@ -1486,10 +1499,12 @@ function loadTotalData(){
       return;
     }
 
-    // Build synthetic snaps summing all platforms
     var synthSnaps=[];
     fifa.forEach(function(e){
-      var sh=shMap[e.id], vs=vsMap[e.id], sg=sgMap[e.id];
+      var sh=shMap[e.id];
+      var vsId=shToVs[e.id];
+      var vs=vsId?vsMap[vsId]:null;
+      var sg=sgMap[e.id];
       var totalListings=(sh?n(sh.total_listings):0)+(vs?n(vs.total_listings):0)+(sg?n(sg.total_listings):0);
       var floors=[sh,vs,sg].filter(Boolean).map(function(s){return n(s.event_floor);}).filter(function(f){return f>0;});
       var floor=floors.length?Math.min.apply(null,floors):0;
