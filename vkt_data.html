@@ -1449,16 +1449,16 @@ function loadTotalData(){
   loadBar.style.display='block';
   tbl.innerHTML='';
 
+  // Use same fetching pattern as Compare tab — fetch all events in one query
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
-    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,scraped_at',1000),
-    getRanged('/rest/v1/events?id=gte.100000000&id=lte.999999999&select=id,name,date,venue&order=date.asc',200),
-    getRanged('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&order=date.asc',200)
+    getRanged('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&order=scraped_at.desc&select=event_id,total_listings,event_floor,scraped_at',1000),
+    getRanged('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue',500)
   ]).then(function(res){
     loadBar.style.display='none';
     var shSnaps=res[0]||[], vsSnaps=res[1]||[], sgSnaps=res[2]||[];
-    var shEvents=res[3]||[], vsEventsDb=res[4]||[];
+    var allEvents=res[3]||[];
 
     function latestPerEvent(snaps){
       var map={};
@@ -1472,37 +1472,37 @@ function loadTotalData(){
     var vsMap=latestPerEvent(vsSnaps);
     var sgMap=latestPerEvent(sgSnaps);
 
-    // Build full evMap for name lookup
+    // Build evMap for all events
     var evMap={};
-    shEvents.forEach(function(e){evMap[e.id]=e;});
-    vsEventsDb.forEach(function(e){evMap[e.id]=e;});
+    allEvents.forEach(function(e){evMap[e.id]=e;});
 
-    // Match VS to SH by FIFA match number (same logic as Compare tab)
+    // Match VS to SH by match number — same as Compare tab
     function extractMatchNum(name){
       if(!name) return null;
       var m=String(name).match(/match\s+(\d+)/i);
       return m?parseInt(m[1],10):null;
     }
     var shByMatchNum={};
-    shEvents.forEach(function(e){
+    allEvents.filter(function(e){return /^\d{9}$/.test(e.id);}).forEach(function(e){
       var num=extractMatchNum(e.name);
       if(num) shByMatchNum[num]=e.id;
     });
     var shToVs={};
-    vsEventsDb.forEach(function(e){
-      var num=extractMatchNum(evMap[e.id]&&evMap[e.id].name||e.name);
+    allEvents.filter(function(e){return String(e.id).startsWith('vs_');}).forEach(function(e){
+      var num=extractMatchNum(e.name);
       if(num&&shByMatchNum[num]) shToVs[shByMatchNum[num]]=e.id;
     });
 
-    // All 104 SH FIFA events
-    var fifa=shEvents.filter(function(e){ return /^\d{9}$/.test(e.id); });
-    if(!fifa.length){
-      tbl.innerHTML='<div class="msg">No data yet — run the scrapers first.</div>';
+    // Only the 104 SH FIFA events
+    var shEvents=allEvents.filter(function(e){return /^\d{9}$/.test(e.id);});
+
+    if(!shEvents.length){
+      tbl.innerHTML='<div class="msg">No events found.</div>';
       return;
     }
 
     var synthSnaps=[];
-    fifa.forEach(function(e){
+    shEvents.forEach(function(e){
       var sh=shMap[e.id];
       var vsId=shToVs[e.id];
       var vs=vsId?vsMap[vsId]:null;
@@ -1514,7 +1514,7 @@ function loadTotalData(){
       synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
     });
 
-    allRows=buildRows(fifa, synthSnaps);
+    allRows=buildRows(shEvents, synthSnaps);
     buildTicker(allRows);
     drawTable();
   }).catch(function(err){
@@ -2256,7 +2256,7 @@ function init(){
   if(eventId){
     document.getElementById('loadingBar').style.display='none';
     var urlPlatform=qp('platform');
-    if(urlPlatform && ['StubHub','VividSeats','SeatGeek','Compare'].indexOf(urlPlatform)>=0){
+    if(urlPlatform && ['StubHub','VividSeats','SeatGeek','Compare','Total'].indexOf(urlPlatform)>=0){
       activePlatform=urlPlatform;
       setPlatformButtons(urlPlatform);
     }
