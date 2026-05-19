@@ -3202,7 +3202,15 @@ function resolveAccess(email,googleId,onBypassSkip){
   if(VKT_BYPASS_EMAILS.indexOf(email)>=0){vktUser={email:email,googleId:googleId,status:'bypass'};if(onBypassSkip)onBypassSkip();setVktSession(email,googleId,'bypass',null);hideGate();showManageSubButton();init();loadFavorites(email);return;}
   checkAccess(email,googleId).then(function(data){if(!data)throw new Error('No response');vktUser={email:email,googleId:googleId,status:data.status,trialEndsAt:data.trialEndsAt,currentPeriodEnd:data.currentPeriodEnd,daysRemaining:data.daysRemaining};if(data.access==='granted'){grantAccess(data);}else{showPaywall(data.status);}}).catch(function(e){console.error('[VKT] Status check failed:',e);hideGate();init();});
 }
-function handleCredentialResponse(response){var token=response.credential;vktToken=token;setStoredToken(token);var payload=decodeJwt(token);if(!payload||!payload.email){hideGate();init();return;}resolveAccess(payload.email,payload.sub);}
+function handleCredentialResponse(response){var token=response.credential;vktToken=token;setStoredToken(token);var payload=decodeJwt(token);if(!payload||!payload.email){hideGate();init();return;}
+  // Grant access immediately — no subscription check
+  vktUser={email:payload.email,googleId:payload.sub,status:'free'};
+  setVktSession(payload.email,payload.sub,'free',null);
+  hideGate();
+  showManageSubButton();
+  init();
+  loadFavorites(payload.email);
+}
 window.handleCredentialResponse=handleCredentialResponse;
 (function(){var params=new URLSearchParams(window.location.search);var co=params.get('checkout');if(co==='success'){params.delete('checkout');var nq=params.toString();window.history.replaceState({},'',window.location.pathname+(nq?'?'+nq:''));window.addEventListener('load',function(){
   // Show auth gate with a welcome message after checkout
@@ -3222,33 +3230,36 @@ var btnSignout=document.getElementById('btn-paywall-signout');if(btnSignout)btnS
 window.addEventListener('load',function(){
   if(new URLSearchParams(window.location.search).get(VKT_DEV_PARAM)==='true'){hideGate();init();return;}
 
-  // Check long-lived VKT session first \u2014 user should not need to re-authenticate on every page
+  // Check long-lived VKT session first
   var session=getVktSession();
   if(session&&session.email){
     vktUser={email:session.email,googleId:session.googleId,status:session.status,daysRemaining:session.daysRemaining};
     hideGate();
     showManageSubButton();
-    if(session.status==='trial'&&session.daysRemaining)showTrialBanner(session.daysRemaining);
-    // Check if paywall should show (e.g. trial expired since last visit)
-    if(session.status==='trial_expired'||session.status==='canceled'||session.status==='past_due'){
-      showPaywall(session.status);
-    } else {
-      init();
-      loadFavorites(session.email);
-    }
+    init();
+    loadFavorites(session.email);
     return;
   }
 
-  // No session \u2014 try Google JWT
+  // No session — try Google JWT
   var stored=getStoredToken();
   if(stored){
     var payload=decodeJwt(stored);
     var exp=payload&&payload.exp?payload.exp*1000:0;
     if(exp&&Date.now()>exp){clearStoredToken();}
-    else if(payload&&payload.email){vktToken=stored;resolveAccess(payload.email,payload.sub);return;}
+    else if(payload&&payload.email){
+      // Grant access immediately — no paywall check
+      vktUser={email:payload.email,googleId:payload.sub,status:'free'};
+      setVktSession(payload.email,payload.sub,'free',null);
+      hideGate();
+      showManageSubButton();
+      init();
+      loadFavorites(payload.email);
+      return;
+    }
   }
 
-  // No valid auth \u2014 show sign-in gate
+  // No valid auth — show sign-in gate
   showAuthGate();
 });
 </script>
