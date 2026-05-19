@@ -1180,8 +1180,8 @@ function processAnalysis(ev, snaps, eventId) {
     heroHtml+='<div style="font-size:13px;font-weight:700;color:#111;">Floor Price History</div>';
     heroHtml+='<div class="hero-chart-tabs">';
     heroHtml+='<button class="hero-chart-tab" onclick="setHeroRange(7,this)">7D</button>';
-    heroHtml+='<button class="hero-chart-tab active" onclick="setHeroRange(30,this)">30D</button>';
-    heroHtml+='<button class="hero-chart-tab" onclick="setHeroRange(0,this)">All</button>';
+    heroHtml+='<button class="hero-chart-tab" onclick="setHeroRange(30,this)">30D</button>';
+    heroHtml+='<button class="hero-chart-tab active" onclick="setHeroRange(0,this)">All</button>';
     heroHtml+='</div></div>';
     heroHtml+='<div class="hero-chart-wrap"><canvas id="heroFloorChart"></canvas></div>';
     if(demandLabel)heroHtml+='<div class="hero-demand"><strong>Demand:</strong> '+esc(demandLabel)+'</div>';
@@ -1259,8 +1259,8 @@ function processAnalysis(ev, snaps, eventId) {
       });
     })();
     if(labels.length>1)fChart=mkChart('fChart','Floor',floorData,labels,'rgb(212,168,67)');
-    // Init hero floor chart (default 30 days)
-    setHeroRange(30, document.querySelector('.hero-chart-tab.active'));
+    // Init hero floor chart (default ALL)
+    setHeroRange(0, document.querySelector('.hero-chart-tab.active'));
     if(listLabels.length>1)lChart=mkChart('lChart','Listings',listData,listLabels,'rgb(59,130,246)');
     // ATP chart removed
     var sf=document.getElementById('secSel');if(sf&&secNames.length){drawSectionCharts(sf.value,snaps);sf.addEventListener('change',function(){drawSectionCharts(this.value,snaps);});}
@@ -1492,8 +1492,26 @@ function loadTotalData(){
       return map;
     }
     var shMap=latestPerEvent(shSnaps);
-    var vsMap=latestPerEvent(vsSnaps); // keyed by vs_ IDs
+    var vsMap=latestPerEvent(vsSnaps);
     var sgMap=latestPerEvent(sgSnaps);
+
+    // Also build "previous" snap maps (~24h ago) for vol change calculations
+    function prevPerEvent(snaps, latestMap){
+      var map={};
+      var cutoff24=Date.now()-24*3600000;
+      var cutoff7d=Date.now()-7*24*3600000;
+      snaps.forEach(function(s){
+        var latest=latestMap[s.event_id];
+        if(!latest||s.scraped_at===latest.scraped_at) return;
+        var t=new Date(s.scraped_at).getTime();
+        if(t<=cutoff24&&(!map[s.event_id]||new Date(s.scraped_at)>new Date(map[s.event_id].scraped_at)))
+          map[s.event_id]=s;
+      });
+      return map;
+    }
+    var shPrevMap=prevPerEvent(shSnaps,shMap);
+    var vsPrevMap=prevPerEvent(vsSnaps,vsMap);
+    var sgPrevMap=prevPerEvent(sgSnaps,sgMap);
 
     // Match VS (vs_ IDs) to SH (9-digit IDs) by match number
     function extractMatchNum(name){
@@ -1536,6 +1554,18 @@ function loadTotalData(){
       var floor=floors.length?Math.min.apply(null,floors):0;
       var latestScrape=[sh,vs,sg].filter(Boolean).map(function(s){return s.scraped_at;}).sort().pop()||'';
       synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
+
+      // Add previous (~24h ago) snap so buildRows can compute vol change
+      var shP=shPrevMap[e.id], vsP=vsId?vsPrevMap[vsId]:null, sgP=sgPrevMap[e.id];
+      var prevPlatforms=[shP,vsP,sgP].filter(Boolean);
+      if(prevPlatforms.length){
+        var prevTotal=(shP?n(shP.total_listings):0)+(vsP?n(vsP.total_listings):0)+(sgP?n(sgP.total_listings):0);
+        var prevFloors=prevPlatforms.map(function(s){return n(s.event_floor);}).filter(function(f){return f>0;});
+        var prevFloor=prevFloors.length?Math.min.apply(null,prevFloors):0;
+        // Use a timestamp ~25h ago so buildRows recognises it as "previous"
+        var prevTime=new Date(Date.now()-25*3600000).toISOString();
+        synthSnaps.push({event_id:e.id,platform:'Total',total_listings:prevTotal,event_floor:prevFloor,event_avg:0,section:null,scraped_at:prevTime});
+      }
     });
 
     allRows=buildRows(shEvents, synthSnaps);
@@ -3356,7 +3386,7 @@ window.addEventListener('load',function(){
   <div class="auth-card">
     <div class="auth-logo">Victory Kay <span>Tickets</span></div>
     <div class="auth-title">VKT Market Data</div>
-    <div class="auth-sub">Real-time ticket pricing intelligence for serious resellers. Create an account to start your 7-day free trial.</div>
+    <div class="auth-sub">Real-time ticket pricing intelligence for the FIFA World Cup. Create a free account to get started.</div>
 
     <!-- Tab switcher -->
     <div style="display:flex;border-bottom:1px solid #222;margin-bottom:20px;">
@@ -3401,21 +3431,12 @@ window.addEventListener('load',function(){
     </div>
 
     <div id="auth-error-msg" style="font-size:11px;color:#c0392b;margin-top:10px;display:none;text-align:center;"></div>
-    <div class="auth-terms" style="margin-top:16px;">7-day free trial &middot; $299/month &middot; Cancel anytime</div>
+    <div class="auth-terms" style="margin-top:16px;">Free access &middot; FIFA World Cup 2026</div>
   </div>
-</div>
-
-<!-- TRIAL BANNER -->
-<div id="trial-banner" style="display:none;">
-  <div>
-    <div class="trial-text" id="trial-text">&#9201; 7 days left in your free trial</div>
-    <div class="trial-sub">Subscribe to keep access to VKT Market Data</div>
-  </div>
-  <button class="btn-upgrade" id="btn-upgrade" onclick="createCheckout()">Subscribe &mdash; $299/mo</button>
 </div>
 
 <!-- PAYWALL -->
-<div id="vkt-paywall">
+<div id="vkt-paywall" style="display:none!important;">
   <div class="paywall-card">
     <div class="paywall-title">Let's Get Started</div>
     <div class="paywall-sub">Subscribe to continue accessing VKT Market Data &mdash; the most comprehensive ticket pricing intelligence for resellers.</div>
