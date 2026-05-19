@@ -1519,6 +1519,7 @@ function loadTotalData(){
     });
 
     allRows=buildRows(shEvents, synthSnaps);
+    console.log('[Total] synthSnaps sample:', JSON.stringify(synthSnaps.slice(0,3).map(function(s){return {id:s.event_id,total:s.total_listings,floor:s.event_floor};})));
     buildTicker(allRows);
     drawTable();
   }).catch(function(err){
