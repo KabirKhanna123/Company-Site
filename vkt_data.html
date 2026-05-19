@@ -1518,8 +1518,12 @@ function loadTotalData(){
       synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
     });
 
-    allRows=buildRows(shEvents, synthSnaps);
-    console.log('[Total] synthSnaps sample:', JSON.stringify(synthSnaps.slice(0,3).map(function(s){return {id:s.event_id,total:s.total_listings,floor:s.event_floor};})));
+    // Debug: check Match 55 specifically
+    var m55sh = Object.keys(shByMatchNum).find(function(k){return shByMatchNum[k] && k==55;});
+    console.log('[Total] Match 55 shId:', shByMatchNum[55], '→ vsId:', shToVs[shByMatchNum[55]]);
+    var testVsId = shToVs[shByMatchNum[55]];
+    console.log('[Total] vsMap for that vsId:', vsMap[testVsId] ? vsMap[testVsId].total_listings : 'NOT FOUND');
+    console.log('[Total] vsMap sample keys:', Object.keys(vsMap).slice(0,3));
     buildTicker(allRows);
     drawTable();
   }).catch(function(err){
