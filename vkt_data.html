@@ -1310,7 +1310,10 @@ function setPlatformButtons(platform){
 }
 
 function setPlatform(platform){
-  // Compare button
+  // Clear event_id from URL so switching tabs doesn't re-open event detail
+  if (window.location.search.includes('event_id')) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
   var cmpBtn = document.getElementById('plt-cmp');
   if (cmpBtn) { cmpBtn.classList.remove('active-cmp'); cmpBtn.style.borderColor='#e4e2dc'; cmpBtn.style.color='#888'; cmpBtn.style.background='#fff'; }
   if (platform === 'Compare') {
@@ -1496,11 +1499,6 @@ function loadTotalData(){
     // Only the 104 SH FIFA events
     var shEvents=allEvents.filter(function(e){return /^\d{9}$/.test(e.id);});
     var vsEvents=allEvents.filter(function(e){return String(e.id).startsWith('vs_');});
-    console.log('[Total] allEvents:',allEvents.length,'shEvents:',shEvents.length,'vsEvents:',vsEvents.length);
-    console.log('[Total] shSnaps:',shSnaps.length,'vsSnaps:',vsSnaps.length,'sgSnaps:',sgSnaps.length);
-    console.log('[Total] shMap keys:',Object.keys(shMap).length,'vsMap keys:',Object.keys(vsMap).length,'sgMap keys:',Object.keys(sgMap).length);
-    console.log('[Total] Sample shToVs:',JSON.stringify(Object.entries(shToVs).slice(0,3)));
-    console.log('[Total] Sample vsMap key:',Object.keys(vsMap)[0]);
 
     if(!shEvents.length){
       tbl.innerHTML='<div class="msg">No events found.</div>';
