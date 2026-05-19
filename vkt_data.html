@@ -1518,12 +1518,12 @@ function loadTotalData(){
       synthSnaps.push({event_id:e.id,platform:'Total',total_listings:totalListings,event_floor:floor,event_avg:0,section:null,scraped_at:latestScrape});
     });
 
-    // Debug: check Match 55 specifically
-    var m55sh = Object.keys(shByMatchNum).find(function(k){return shByMatchNum[k] && k==55;});
-    console.log('[Total] Match 55 shId:', shByMatchNum[55], '→ vsId:', shToVs[shByMatchNum[55]]);
-    var testVsId = shToVs[shByMatchNum[55]];
-    console.log('[Total] vsMap for that vsId:', vsMap[testVsId] ? vsMap[testVsId].total_listings : 'NOT FOUND');
-    console.log('[Total] vsMap sample keys:', Object.keys(vsMap).slice(0,3));
+    // Debug
+    var m55snap = synthSnaps.find(function(s){return s.event_id==='153023579';});
+    console.log('[Total] Match 55 synthSnap total:', m55snap ? m55snap.total_listings : 'NOT FOUND');
+    allRows=buildRows(shEvents, synthSnaps);
+    var m55row = allRows.find(function(r){return r.id==='153023579';});
+    console.log('[Total] Match 55 row.listings:', m55row ? m55row.listings : 'NOT FOUND');
     buildTicker(allRows);
     drawTable();
   }).catch(function(err){
