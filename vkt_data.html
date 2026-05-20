@@ -2798,7 +2798,7 @@ function drawStadiumHeatmap(listings) {
       var bg = countToColor(d.count);
       var tc = countToText(d.count);
       var label = sec.replace(/^Section\s*/i,'');
-      dHtml += '<div style="background:'+bg+';color:'+tc+';border-radius:4px;padding:3px 6px;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;position:relative;" onmouseenter="showSectionTip(this,\''+sec.replace(/'/g,\"\")+'\','+d.count+','+Math.round(d.floor)+','+d.avg+')" onmouseleave="hideSectionTip()">'+label+'</div>';
+      dHtml += '<div style="background:'+bg+';color:'+tc+';border-radius:4px;padding:3px 6px;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;" data-sec="'+sec.replace(/"/g,'&quot;')+'" data-count="'+d.count+'" data-floor="'+Math.round(d.floor)+'" data-avg="'+d.avg+'" onmouseenter="showSectionTip(this)" onmouseleave="hideSectionTip()">'+label+'</div>';
     });
     dHtml += '</div>';
     dHtml += '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:#888;">';
@@ -2811,10 +2811,14 @@ function drawStadiumHeatmap(listings) {
   }
 }
 
-function showSectionTip(el, sec, count, floor, avg) {
+function showSectionTip(el) {
+  var sec = el.getAttribute('data-sec') || '';
+  var count = el.getAttribute('data-count') || 0;
+  var floor = el.getAttribute('data-floor') || 0;
+  var avg = el.getAttribute('data-avg') || 0;
   var tip = document.getElementById('section-hover-tip');
   if (!tip) { tip = document.createElement('div'); tip.id='section-hover-tip'; tip.style.cssText='position:fixed;background:#111;color:#fff;font-size:11px;padding:8px 12px;border-radius:6px;z-index:9999;pointer-events:none;line-height:1.6;box-shadow:0 2px 8px rgba(0,0,0,0.3);'; document.body.appendChild(tip); }
-  tip.innerHTML = '<strong>'+sec+'</strong><br>'+count+' listings<br>Floor: $'+Math.round(floor).toLocaleString()+'<br>Avg: $'+avg.toLocaleString();
+  tip.innerHTML = '<strong>'+sec+'</strong><br>'+count+' listings<br>Floor: $'+parseInt(floor).toLocaleString()+'<br>Avg: $'+parseInt(avg).toLocaleString();
   var rect = el.getBoundingClientRect();
   tip.style.left = Math.min(rect.left, window.innerWidth-180)+'px';
   tip.style.top = (rect.bottom+6)+'px';
