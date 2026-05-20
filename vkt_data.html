@@ -2162,7 +2162,7 @@ function loadCompareView() {
     dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000),
     dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue', 500),
     dbGet('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000),
-    dbGet('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&limit=200', 200)
+    dbGet('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&order=id.asc', 200)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
@@ -2189,7 +2189,8 @@ function loadCompareView() {
     var evMap = {};
     eventsDb.forEach(function(e) { evMap[e.id] = e; });
     vsEventsDb.forEach(function(e) { evMap[e.id] = e; });
-    window._cmpEvMap = evMap; // Set AFTER evMap is populated
+    window._cmpEvMap = evMap;
+    addCmpDebug('evMap has VS events: '+vsEventsDb.length+' | sample: '+(vsEventsDb[0]?vsEventsDb[0].name:'none'));
 
     // Match VS events to SH events by name/date similarity
     // VS id = 'vs_5080436', SH id = '153020717'
