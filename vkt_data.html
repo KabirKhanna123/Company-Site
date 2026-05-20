@@ -2760,8 +2760,8 @@ function drawStadiumHeatmap(listings) {
     // Draw image on canvas cropping the top "Seat Plan" header (~9% of height)
     var canvasId = 'stadiumCanvas_' + Date.now();
     // Use CSS clip instead of inline script
-    html += '<div style="overflow:hidden;width:100%;border-radius:8px;">';
-    html += '<img id="'+canvasId+'" src="'+mapUrl+'" style="width:120%;height:auto;display:block;margin-top:-18%;margin-left:-10%;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
+    html += '<div style="overflow:hidden;width:100%;border-radius:8px;padding-top:0;">';
+    html += '<img id="'+canvasId+'" src="'+mapUrl+'" style="width:100%;height:auto;display:block;margin-top:-9%;" crossorigin="anonymous" onerror="this.parentElement.style.display=\'none\'">';
     html += '</div>';
   } else {
     html += '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;">No venue map for this event</div>';
