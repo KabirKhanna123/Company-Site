@@ -2168,8 +2168,6 @@ function loadCompareView() {
     var eventsDb = res[2] || [];
     var sgSnaps = res[3] || [];
     addCmpDebug('SH snaps: '+shSnaps.length+' | VS snaps: '+vsSnaps.length+' | SG snaps: '+sgSnaps.length+' | Events: '+eventsDb.length);
-    console.log('[CMP] SH:',shSnaps.length,'VS:',vsSnaps.length,'SG:',sgSnaps.length,'Events:',eventsDb.length);
-    console.log('[CMP] Sample VS snap:', JSON.stringify(vsSnaps.slice(0,2)));
     // Keep only event-level snapshots (no section breakdown) and deduplicate to latest per event
     function toEventSnap(snaps) {
       var map = {};
@@ -2242,8 +2240,6 @@ function loadCompareView() {
       return;
     }
 
-    console.log('[CMP] matched:',matched.length,'shOnly:',shOnly.length);
-    if(matched.length>0){var m1=matched[0];console.log('[CMP] Match 1 pair:',m1.shId,'->',m1.vsId,'vsMap:',JSON.stringify(vsMap[m1.vsId]),'sgMap:',JSON.stringify(sgMap[m1.shId]));}
     if (shSnaps.length===0&&vsSnaps.length===0) { tbl.innerHTML='<div class="msg">No snapshot data found. Make sure both scrapers have run.</div>'; return; }
 
     var html = '<div class="cmp-grid">';
