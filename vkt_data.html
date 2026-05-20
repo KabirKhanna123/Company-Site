@@ -1260,23 +1260,15 @@ function processAnalysis(ev, snaps, eventId) {
         });
         var times=Array.from(new Set(rawListings.map(function(l){return l.scraped_at;}))).sort().reverse();
         var latest=times[0]||null;
-        // Group by 30-min window — scraper saves batches at slightly different seconds
         var latestMs=latest?new Date(latest).getTime():0;
-        var WINDOW=26*60*60*1000; // 26 hours — always shows last full daily scrape
+        var WINDOW=30*60*1000; // 30 min — group listings within same scrape run
         var getKey=function(l){return l.listing_id||((l.section||'x')+'_'+(l.row||'x')+'_'+l.quantity+'_'+l.price);};
+        // Latest run = all listings scraped within 30 min of the most recent scraped_at
         var latestSet=new Set(rawListings.filter(function(l){return latestMs-new Date(l.scraped_at).getTime()<WINDOW;}).map(getKey));
-        // Previous scrape = earliest timestamp outside the latest window
-        var prevCandidates=times.filter(function(t){return latestMs-new Date(t).getTime()>=WINDOW;});
-        var prevAnchor=prevCandidates[0]||null;
-        var prevAnchorMs=prevAnchor?new Date(prevAnchor).getTime():0;
-        var prevSet=prevAnchor?new Set(rawListings.filter(function(l){var d=prevAnchorMs-new Date(l.scraped_at).getTime();return d>=0&&d<WINDOW;}).map(getKey)):new Set();
-        var soldSet=new Set(Array.from(prevSet).filter(function(id){return!latestSet.has(id);}));
+        // All-time sold = any listing ever seen that is NOT in the latest run
+        var soldSet=new Set(Object.values(lh).filter(function(l){return!latestSet.has(getKey(l));}).map(function(l){return getKey(l);}));
         var active=Object.values(lh).filter(function(l){return latestSet.has(getKey(l));}).map(function(l){return Object.assign({},l,{dom:latest?Math.floor((new Date(latest)-new Date(l.first_seen))/86400000):0,sold:false});});
         var sold=Object.values(lh).filter(function(l){return soldSet.has(getKey(l));}).map(function(l){return Object.assign({},l,{dom:0,sold:true});});
-        // Debug
-        var dbgWrap = document.getElementById('listingsWrap');
-        if(dbgWrap) dbgWrap.innerHTML='<div style="padding:8px;font-size:11px;color:#aaa;">raw:'+rawListings.length+' lh:'+Object.keys(lh).length+' latestSet:'+latestSet.size+' active:'+active.length+'</div>';
-        if(!active.length){ if(dbgWrap) dbgWrap.innerHTML+='<div style="padding:4px 8px;font-size:11px;color:#e44;">No active listings found in 30-min window. Latest: '+(latest||'none')+'</div>'; }
         renderListingSections(active, sold, soldSet, latest);
       })
       .catch(function(e){
