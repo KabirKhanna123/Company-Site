@@ -1216,7 +1216,7 @@ function processAnalysis(ev, snaps, eventId) {
     html+=heroHtml;
 
     html+='<div class="stats-grid">'+sc('Current Floor',cur(last?n(last.event_floor):0),null,true)+'<div class="stat-card" style="position:relative;"><span class="info-tip" style="position:absolute;top:8px;right:10px;cursor:help;color:#bbb;font-size:12px;line-height:1;display:inline-block;">&#9432;<span class="info-tip-text" style="position:absolute;right:0;top:18px;width:200px;background:#111;color:#fff;font-size:11px;padding:6px 8px;border-radius:6px;z-index:100;line-height:1.4;font-weight:400;white-space:normal;visibility:hidden;opacity:0;transition:opacity 0.15s;pointer-events:none;">The marketplace UI may show a higher total — this reflects deduplicated unique listings after removing duplicates.</span></span><div class="stat-label">Current Unique Listings</div><div class="stat-value">'+fmt(last?n(last.total_listings):0)+'</div></div>'+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card" id="stat-total-sales"><div class="stat-label">Total Sales</div><div class="stat-value" style="color:#ef4444;">—</div><div style="font-size:11px;color:#aaa;margin-top:4px;">loading...</div></div></div>';
-      html+='<div class="charts-grid"><div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div><div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div><div class="chart-card full"><div class="section-header"><h3>Section Deep Dive</h3>';
+      html+='<div class="charts-grid"><div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div><div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div>'+(activePlatform!=='VividSeats'?'<div class="chart-card full"><div class="section-header"><h3>Section Deep Dive</h3>':'');
       if(secNames.length)html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
       html+='</div>';if(secNames.length){html+='<div class="section-charts"><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Listings</div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Floor</div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div><div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';}else html+='<div class="msg" style="padding:2rem;">No section data yet.</div>';html+='</div></div>';
     }
@@ -1426,7 +1426,7 @@ function loadVSData(){
 
   // Fetch VS snapshots AND events table together
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,total_listings,event_floor,event_avg,section,event_date,venue,scraped_at',3000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&total_listings=gt.0&order=scraped_at.desc&select=event_id,total_listings,event_floor,event_avg,section,event_date,venue,scraped_at',5000),
     getRanged('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&limit=200',200),
     getRanged('/rest/v1/events?id=gte.100000000&id=lte.999999999&select=id,name,date,venue&order=date.asc',200)
   ]).then(function(res){
@@ -1454,7 +1454,11 @@ function loadVSData(){
         var date = dbEv.date || s.event_date || null;
         // Fallback: match by match number to get date from SH events
         if(!date){ var num=extractMatchNum(dbEv.name||''); if(num) date=shDateByMatchNum[num]||null; }
-        evMap[s.event_id]={id:s.event_id,name:dbEv.name||s.venue||('Match '+s.event_id),date:date,venue:dbEv.venue||s.venue};
+        var rawName=dbEv.name||s.venue||('Match '+s.event_id);
+        // VS names like "East Rutherford NJ - 2026 World Cup - Match 104" — extract city as venue
+        var vsVenue=dbEv.venue||s.venue||null;
+        if(!vsVenue&&rawName){var dashIdx=rawName.indexOf(' - 2026');if(dashIdx>0)vsVenue=rawName.slice(0,dashIdx).trim();}
+        evMap[s.event_id]={id:s.event_id,name:dbEv.name||s.venue||('Match '+s.event_id),date:date,venue:vsVenue};
       }
     });
 
@@ -2179,11 +2183,11 @@ function loadCompareView() {
     window._cmpShMap = shMap;
     window._cmpVsMap = vsMap;
     window._cmpSgMap = sgMap;
-    window._cmpEvMap = evMap;
 
     // Build events lookup
     var evMap = {};
     eventsDb.forEach(function(e) { evMap[e.id] = e; });
+    window._cmpEvMap = evMap; // Set AFTER evMap is populated
 
     // Match VS events to SH events by name/date similarity
     // VS id = 'vs_5080436', SH id = '153020717'
