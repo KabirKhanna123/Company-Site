@@ -1261,9 +1261,9 @@ function processAnalysis(ev, snaps, eventId) {
         var times=Array.from(new Set(rawListings.map(function(l){return l.scraped_at;}))).sort().reverse();
         var latest=times[0]||null;
         var latestMs=latest?new Date(latest).getTime():0;
-        var WINDOW=30*60*1000; // 30 min — group listings within same scrape run
+        var WINDOW=2*60*60*1000; // 2 hours — group listings within same scrape session
         var getKey=function(l){return l.listing_id||((l.section||'x')+'_'+(l.row||'x')+'_'+l.quantity+'_'+l.price);};
-        // Latest run = all listings scraped within 30 min of the most recent scraped_at
+        // Latest run = all listings scraped within 2 hours of the most recent scraped_at
         var latestSet=new Set(rawListings.filter(function(l){return latestMs-new Date(l.scraped_at).getTime()<WINDOW;}).map(getKey));
         // All-time sold = any listing ever seen that is NOT in the latest run
         var soldSet=new Set(Object.values(lh).filter(function(l){return!latestSet.has(getKey(l));}).map(function(l){return getKey(l);}));
@@ -2547,7 +2547,7 @@ function renderListingSections(active, sold, soldSet, latestScrape) {
   h += '<div id="ls-debug" style="font-size:10px;color:#aaa;padding:4px 0;"></div>';
   h += '<table class="mini-table" id="ls-table">';
   h += '<thead><tr>';
-  var cols = [{k:'zone',l:'Zone'},{k:'section',l:'Section'},{k:'row',l:'Row'},{k:'quantity',l:'Qty'},{k:'price',l:'Price'},{k:'dom',l:'Days on Mkt'},{k:'first_seen',l:'First Seen'},{k:'sold',l:'Status'}];
+  var cols = [{k:'zone',l:'Zone'},{k:'section',l:'Section'},{k:'row',l:'Row'},{k:'quantity',l:'Qty'},{k:'price',l:'Price'},{k:'dom',l:'Days on Mkt'},{k:'first_seen',l:'First Seen'},{k:'last_seen',l:'Sale Date'},{k:'sold',l:'Status'}];
   cols.forEach(function(c){h+='<th onclick="lsSort(\''+c.k+'\')" id="ls-th-'+c.k+'" style="cursor:pointer;user-select:none;text-align:center;white-space:nowrap;">'+c.l+' <span id="ls-sort-'+c.k+'" style="color:#d4a843;font-size:9px;"></span></th>';});
   h += '</tr></thead><tbody id="ls-tbody"></tbody></table></div>';
 
@@ -2667,8 +2667,10 @@ function applyListingFilters() {
     var qTag   = '<span class="pack-badge '+(q2===1?'pack-1':q2===2?'pack-2':q2===3?'pack-3':q2===4?'pack-4':'pack-x')+'">'+q2+'x</span>';
     var domStr = l.dom===0?'<span class="dom-new">New</span>':l.dom>=14?'<span class="dom-stale">'+l.dom+'d</span>':'<span class="dom-text">'+l.dom+'d</span>';
     var fs     = l.first_seen ? new Date(l.first_seen).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '--';
+    var ls     = l.last_seen ? new Date(l.last_seen).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '--';
+    var saleDateCell = l.sold ? '<td style="color:#ef4444;font-size:11px;">'+ls+'</td>' : '<td style="color:#aaa;font-size:11px;">—</td>';
     var status = l.sold ? '<span class="status-sold">Sold</span>' : '<span class="status-active">Active</span>';
-    return '<tr style="'+(l.sold?'opacity:0.4':'')+'"><td>'+zTag+'</td><td>'+esc(l.section||'--')+'</td><td>'+esc(l.row||'--')+'</td><td>'+qTag+'</td><td class="gold mono">$'+Math.round(l.price||0).toLocaleString()+'</td><td>'+domStr+'</td><td style="color:#aaa;font-size:11px;">'+fs+'</td><td>'+status+'</td></tr>';
+    return '<tr style="'+(l.sold?'opacity:0.4':'')+'"><td>'+zTag+'</td><td>'+esc(l.section||'--')+'</td><td>'+esc(l.row||'--')+'</td><td>'+qTag+'</td><td class="gold mono">$'+Math.round(l.price||0).toLocaleString()+'</td><td>'+domStr+'</td><td style="color:#aaa;font-size:11px;">'+fs+'</td>'+saleDateCell+'<td>'+status+'</td></tr>';
   }).join('');
 
   // Pagination controls
