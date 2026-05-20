@@ -1426,7 +1426,7 @@ function loadVSData(){
 
   // Fetch VS snapshots AND events table together
   Promise.all([
-    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.asc&select=event_id,total_listings,event_floor,event_avg,event_ceiling,section,event_date,venue,scraped_at',1000),
+    getRanged('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,total_listings,event_floor,event_avg,section,event_date,venue,scraped_at',3000),
     getRanged('/rest/v1/events?id=like.vs_%25&select=id,name,date,venue&limit=200',200),
     getRanged('/rest/v1/events?id=gte.100000000&id=lte.999999999&select=id,name,date,venue&order=date.asc',200)
   ]).then(function(res){
