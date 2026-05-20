@@ -1276,6 +1276,18 @@ function processAnalysis(ev, snaps, eventId) {
           var soldRevEst = sold.reduce(function(s,l){return s+(l.price||0);},0);
           salesCard.innerHTML = '<div class="stat-label">Total Sales</div><div class="stat-value" style="color:#ef4444;">'+sold.length.toLocaleString()+'</div><div style="font-size:11px;color:#aaa;margin-top:4px;">~$'+Math.round(soldRevEst/1000)+'k revenue est.</div>';
         }
+        // Update floor if snapshot had null floor — derive from cheapest active listing
+        var floorCard = document.querySelector('.stats-grid .stat-card');
+        if (floorCard && active.length) {
+          var snapshotFloor = last ? n(last.event_floor) : 0;
+          if (!snapshotFloor) {
+            var listingFloor = Math.min.apply(null, active.map(function(l){return n(l.price);}).filter(function(p){return p>0;}));
+            if (listingFloor > 0) {
+              var floorVal = floorCard.querySelector('.stat-value');
+              if (floorVal && floorVal.textContent === '$0') floorVal.textContent = '$' + listingFloor.toLocaleString();
+            }
+          }
+        }
       })
       .catch(function(e){
         var wrap=document.getElementById('listingsWrap');
@@ -1440,6 +1452,7 @@ function loadVSData(){
     });
 
     var vsEvents=Object.values(evMap);
+    console.log('[VS] events built:', vsEvents.length, 'sample:', JSON.stringify(vsEvents.slice(0,2)));
     allRows=buildRows(vsEvents, all);
     document.getElementById('eventCount').textContent=vsEvents.length.toLocaleString()+' events';
     buildTicker(allRows);
