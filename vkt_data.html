@@ -2137,10 +2137,10 @@ function loadCompareView() {
   }
 
   Promise.all([
-    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 5000),
-    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.StubHub&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 10000),
+    dbGet('/rest/v1/volume_snapshots?platform=eq.VividSeats&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000),
     dbGet('/rest/v1/events?date=gte.2026-06-01&select=id,name,date,venue', 500),
-    dbGet('/rest/v1/volume_snapshots?platform=eq.SeatGeek&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000)
+    dbGet('/rest/v1/volume_snapshots?platform=eq.SeatGeek&section=is.null&total_listings=gt.0&order=scraped_at.desc&select=event_id,event_floor,event_avg,total_listings,scraped_at,section', 2000)
   ]).then(function(res) {
     var shSnaps = res[0] || [];
     var vsSnaps = res[1] || [];
@@ -2172,7 +2172,8 @@ function loadCompareView() {
     // VS id = 'vs_5080436', SH id = '153020717'
     // Match by: event name similarity + same date
     var vsIds = Object.keys(vsMap).filter(function(id){ return String(id).startsWith('vs_'); });
-    var shIds = Object.keys(shMap).filter(function(id){ return /^\d{9}$/.test(id) && evMap[id] && evMap[id].date; });
+    // Use events table as source of truth for SH events — not snapshot keys (snapshots may be cut off)
+    var shIds = eventsDb.filter(function(e){ return /^\d{9}$/.test(e.id) && e.date; }).map(function(e){ return e.id; });
 
     // Build match pairs: { shId, vsId, name, date, venue }
     var matched = []; // events that exist on both platforms
@@ -2219,8 +2220,7 @@ function loadCompareView() {
       return;
     }
 
-    addCmpDebug('Matched: '+matched.length+' | SH only: '+shOnly.length+' | VS only: '+vsOnly.length+' | allPairs: '+(matched.length+shOnly.length));
-    console.log('[CMP] shIds sample:', shIds.slice(0,5), 'total shIds:', shIds.length, 'matched:', matched.length, 'shOnly:', shOnly.length);
+    addCmpDebug('Matched: '+matched.length+' | SH only: '+shOnly.length+' | VS only: '+vsOnly.length);
     if (shSnaps.length===0&&vsSnaps.length===0) { tbl.innerHTML='<div class="msg">No snapshot data found. Make sure both scrapers have run.</div>'; return; }
 
     var html = '<div class="cmp-grid">';
