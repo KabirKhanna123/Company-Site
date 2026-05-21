@@ -978,6 +978,7 @@ function drawTable(){
     '<th>Venue</th>'+
     '<th class="th-right" id="floorHeader" onclick="toggleFloorSort()" style="cursor:pointer;user-select:none;">Floor <span id="floorSortIcon">&#8645;</span></th>'+
     '<th class="th-right">Listings</th>'+
+    '<th class="th-right">Total Tickets</th>'+
     '<th class="th-right" id="demandHeader" onclick="toggleDemandSort()" style="cursor:pointer;user-select:none;">Demand <span id="demandSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="volHeader" onclick="toggleVolSort()" style="cursor:pointer;user-select:none;"><span id="vol-th-label">VOL Change %</span> <span id="volSortIcon">&#8645;</span></th>'+
     '<th class="th-right" id="qty-th-label">QTY Change</th>'+
@@ -1022,6 +1023,7 @@ function drawTable(){
       '<td class="col-venue" style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td>'+
             '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
+      '<td class="td-right mono" style="color:#aaa;'+dim+'" id="tq-'+r.id+'"><span class="no-data">\u2014</span></td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right" style="'+dim+'">'+getQtyCell(r)+'</td>'+
@@ -1029,9 +1031,27 @@ function drawTable(){
       '</tr>';
   });
   tbl.innerHTML=html+'</tbody></table>';
+  loadTotalTickets(rows);
 }
 
-function go(href){window.location.href=href;}
+function loadTotalTickets(rows) {
+  // Fetch total ticket quantities from listings table for current platform
+  var platform = activePlatform === 'Total' ? null : activePlatform;
+  var ids = rows.filter(function(r){return r.hasData;}).map(function(r){return r.id;}).slice(0,104);
+  if (!ids.length) return;
+  var url = '/rest/v1/listings?select=event_id,quantity&event_id=in.('+ids.map(encodeURIComponent).join(',')+')';
+  if (platform) url += '&platform=eq.'+encodeURIComponent(platform);
+  url += '&scrape_date=eq.'+(new Date().toISOString().slice(0,10));
+  fetch(SB+url, {headers:H}).then(function(r){return r.json();}).then(function(data){
+    if(!data||!data.length) return;
+    var totals={};
+    data.forEach(function(l){ totals[l.event_id]=(totals[l.event_id]||0)+(l.quantity||1); });
+    Object.keys(totals).forEach(function(eid){
+      var cell=document.getElementById('tq-'+eid);
+      if(cell) cell.innerHTML=fmt(totals[eid]);
+    });
+  }).catch(function(){});
+}
 function destroyCharts(){[fChart,lChart,aChart,slChart,saChart].forEach(function(c){if(c)c.destroy();});fChart=lChart=aChart=slChart=saChart=null;}
 function calcTrendline(data){var n=data.length;if(n<2)return data.map(function(){return null;});var sumX=0,sumY=0,sumXY=0,sumX2=0;for(var i=0;i<n;i++){sumX+=i;sumY+=data[i];sumXY+=i*data[i];sumX2+=i*i;}var slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);var intercept=(sumY-slope*sumX)/n;return data.map(function(_,i){return Math.round((slope*i+intercept)*100)/100;});}
 
