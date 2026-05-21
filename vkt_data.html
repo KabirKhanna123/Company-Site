@@ -1034,6 +1034,7 @@ function drawTable(){
   loadTotalTickets(rows);
 }
 
+function go(href){window.location.href=href;}
 function loadTotalTickets(rows) {
   // Fetch total ticket quantities from listings table for current platform
   var platform = activePlatform === 'Total' ? null : activePlatform;
