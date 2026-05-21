@@ -836,7 +836,7 @@ function buildRows(events,snaps){
   return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
     var es=(snapIndex[ev.id]||[]).filter(function(s){
       if(activePlatform==='Total') return s.platform==='Total';
-      return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform);
+      return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform)&&n(s.total_listings)>0;
     }).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var latest=es.length?es[es.length-1]:null;
     var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){
