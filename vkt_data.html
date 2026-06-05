@@ -866,7 +866,7 @@ function buildRows(events,snaps){
       var synthLatest=es.length?es[es.length-1]:null;
       curListings=synthLatest?n(synthLatest.total_listings):0;
     } else {
-      curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
+      curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return snapVal(r,'total_listings');})):0;if(!curListings&&latest)curListings=snapVal(latest,'total_listings');
     }
     var latestTime=runs.length?new Date(runs[runs.length-1].scraped_at).getTime():Date.now();
     var prevRuns=runs.filter(function(r){return new Date(r.scraped_at).getTime()<latestTime-20*3600000;});
@@ -1037,7 +1037,7 @@ function drawTable(){
       '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
       '<td class="col-venue" style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td>'+
-            '<td class="td-right mono" style="'+dim+'">'+(r.hasData?(r.listings>0?esc(fmt(r.listings)):'<span style="color:#aaa;font-size:10px;">cached</span>'):'<span class="no-data">\u2014</span>')+'</td>'+
+            '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings||0)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right mono" style="color:#aaa;'+dim+'" id="tq-'+r.id+'"><span class="no-data">\u2014</span></td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
