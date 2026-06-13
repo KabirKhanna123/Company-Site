@@ -901,8 +901,8 @@ function buildRows(events,snaps){
       var oldest=n(runs[0].total_listings);if(oldest>0)sellThru=oldest-newest;
     }
     var floorVelocity=null;
-    var floorSnaps=es.filter(function(s){return snapVal(s,'event_floor')>0;});
-    if(floorSnaps.length>=2){floorVelocity=snapVal(floorSnaps[floorSnaps.length-1],'event_floor')-snapVal(floorSnaps[0],'event_floor');}
+    var floorSnaps=es.filter(function(s){return n(s.event_floor)>0;});
+    if(floorSnaps.length>=2){floorVelocity=n(floorSnaps[floorSnaps.length-1].event_floor)-n(floorSnaps[0].event_floor);}
     var demandScore=null;
     if(curListings>0&&latest){
       var d=40; // base — World Cup events start at medium
@@ -1178,8 +1178,8 @@ function processAnalysis(ev, snaps, eventId) {
     var secNames=Array.from(new Set(snaps.map(function(s){return s.section||'';}).filter(Boolean))).sort();
     var dEl=function(v){return v>0?'delta-up':v<0?'delta-down':'delta-flat';};var dTxt=function(v,money){if(!v||isNaN(v))return '\u2014';var sign=v>0?'+':'-';var abs=Math.abs(v);return money?sign+'$'+Math.round(abs).toLocaleString():sign+Math.round(abs).toLocaleString();};
     function sc(label,value,delta,money){return '<div class="stat-card"><div class="stat-label">'+esc(label)+'</div><div class="stat-value">'+esc(value)+'</div>'+(delta!==null&&!isNaN(delta)?'<div class="stat-delta '+dEl(delta)+'">'+dTxt(delta,money)+'</div>':'')+'</div>';}
-    var dailySnaps=aggregateDaily(eventSnaps).filter(function(s){return snapVal(s,'event_floor')>0 && n(s.total_listings)!==10;});var dailyListSnaps=aggregateDaily(eventSnaps).filter(function(s){return n(s.total_listings)>0 && n(s.total_listings)!==10;});var dailyAtpSnaps=aggregateDaily(atpSnaps).filter(function(s){return n(s.section_avg)>0 && n(s.total_listings)!==10;});
-    var labels=dailySnaps.map(function(s){return fmtDT(s.scraped_at);});var floorData=dailySnaps.map(function(s){return snapVal(s,'event_floor');});var listLabels=dailyListSnaps.map(function(s){return fmtDT(s.scraped_at);});var listData=dailyListSnaps.map(function(s){return n(s.total_listings);});var atpLabels=dailyAtpSnaps.map(function(s){return fmtDT(s.scraped_at);});var atpData=dailyAtpSnaps.map(function(s){return n(s.section_avg);});
+    var dailySnaps=aggregateDaily(eventSnaps).filter(function(s){return n(s.event_floor)>0 && n(s.total_listings)!==10;});var dailyListSnaps=aggregateDaily(eventSnaps).filter(function(s){return n(s.total_listings)>0 && n(s.total_listings)!==10;});var dailyAtpSnaps=aggregateDaily(atpSnaps).filter(function(s){return n(s.section_avg)>0 && n(s.total_listings)!==10;});
+    var labels=dailySnaps.map(function(s){return fmtDT(s.scraped_at);});var floorData=dailySnaps.map(function(s){return n(s.event_floor);});var listLabels=dailyListSnaps.map(function(s){return fmtDT(s.scraped_at);});var listData=dailyListSnaps.map(function(s){return n(s.total_listings);});var atpLabels=dailyAtpSnaps.map(function(s){return fmtDT(s.scraped_at);});var atpData=dailyAtpSnaps.map(function(s){return n(s.section_avg);});
     var html='<div class="analysis-shell"><div class="analysis-topbar"><div><div class="analysis-title">'+esc(cleanName(ev.name))+'</div><div class="analysis-sub">'+esc(fmtDate(ev.date))+(ev.venue?' &bull; '+esc(ev.venue):'')+'</div></div><a class="back-btn" href="'+esc(window.location.pathname)+'">&#8592; All Events</a></div>';
     if(!snaps.length){html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event.</div>';}
     else{
@@ -1190,7 +1190,7 @@ function processAnalysis(ev, snaps, eventId) {
       
     // ── HERO DASHBOARD (SeatData style) ──
     // Compute milestones from dailySnaps
-    var heroFloors=dailySnaps.map(function(s){return snapVal(s,'event_floor');}).filter(function(v){return v>0;});
+    var heroFloors=dailySnaps.map(function(s){return n(s.event_floor);}).filter(function(v){return v>0;});
     var heroListings=dailyListSnaps.map(function(s){return n(s.total_listings);}).filter(function(v){return v>0;});
     var atLow=heroFloors.length?Math.min.apply(null,heroFloors):0;
     var atHigh=heroFloors.length?Math.max.apply(null,heroFloors):0;
@@ -1198,11 +1198,11 @@ function processAnalysis(ev, snaps, eventId) {
     var curVsHigh=atHigh>0?Math.round((curFloor-atHigh)/atHigh*100):null;
     // Biggest 1-day swing
     var bigSwing=0;
-    for(var si3=1;si3<dailySnaps.length;si3++){var sw=Math.abs(snapVal(dailySnaps[si3],'event_floor')-snapVal(dailySnaps[si3-1],'event_floor'));if(sw>bigSwing)bigSwing=sw;}
+    for(var si3=1;si3<dailySnaps.length;si3++){var sw=Math.abs(n(dailySnaps[si3].event_floor)-n(dailySnaps[si3-1].event_floor));if(sw>bigSwing)bigSwing=sw;}
     // 7-day delta
     var snap7d=null,now7=Date.now()-7*24*3600000;
     for(var si4=0;si4<dailySnaps.length;si4++){if(new Date(dailySnaps[si4].scraped_at).getTime()<=now7)snap7d=dailySnaps[si4];}
-    var delta7=snap7d&&curFloor?pct(curFloor,snapVal(snap7d,'event_floor')):null;
+    var delta7=snap7d&&curFloor?pct(curFloor,n(snap7d.event_floor)):null;
     var delta7cls=delta7===null?'':delta7>0?'delta-up':delta7<0?'delta-down':'delta-flat';
     var delta7str=delta7===null?'—':(delta7>0?'+':'')+delta7+'% from last week';
     // Demand label based on sell-through
@@ -2442,7 +2442,7 @@ function setHeroRange(days, btn) {
   var all = window._heroSnaps.all || [];
   var filtered = days > 0 ? all.filter(function(s){ return new Date(s.scraped_at).getTime() >= Date.now()-days*24*3600000; }) : all;
   if (!filtered.length) filtered = all;
-  var fl = filtered.map(function(s){ return snapVal(s,'event_floor'); });
+  var fl = filtered.map(function(s){ return n(s.event_floor); });
   var lb = filtered.map(function(s){ return fmtDT(s.scraped_at); });
   var cleaned = removeOutliers(fl, lb); fl = cleaned.data; lb = cleaned.labels;
   if (window._heroChart) { try { window._heroChart.destroy(); } catch(e){} window._heroChart = null; }
