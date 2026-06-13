@@ -830,7 +830,6 @@ function parseNames(name){var c=cleanName(name||'');var m=c.match(/^(.*?)\s+at\s
 function pct(a,b){if(!a||!b||b===0)return null;return Math.round(((a-b)/b)*100);}
 
 
-// snapVal: never show 0 — fall back to last_valid_* columns
 function snapVal(snap, field) {
   if (!snap) return 0;
   var raw = Number(snap[field]) || 0;
@@ -1037,7 +1036,7 @@ function drawTable(){
       '<td style="'+dim+'">'+esc(fmtDate(r.date))+'</td>'+
       '<td class="col-venue" style="'+dim+'">'+esc(r.venue)+'</td>'+
       '<td class="td-right gold mono" style="'+dim+'">'+(r.hasData?esc(cur(r.floor)):'<span class="no-data">\u2014</span>')+'</td>'+
-            '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings||0)):'<span class="no-data">\u2014</span>')+'</td>'+
+            '<td class="td-right mono" style="'+dim+'">'+(r.hasData?esc(fmt(r.listings)):'<span class="no-data">\u2014</span>')+'</td>'+
       '<td class="td-right mono" style="color:#aaa;'+dim+'" id="tq-'+r.id+'"><span class="no-data">\u2014</span></td>'+
       '<td class="td-right" style="'+dim+'">'+(r.hasData?demandHtml:'\u2014')+'</td>'+
       '<td class="td-right '+pctCls+'" style="'+dim+'">'+(r.hasData?esc(pctStr):'<span class="no-data">\u2014</span>')+'</td>'+
@@ -1057,7 +1056,7 @@ function loadTotalTickets(rows) {
   if (!ids.length) return;
   var url = '/rest/v1/listings?select=event_id,quantity&event_id=in.('+ids.map(encodeURIComponent).join(',')+')';
   if (platform) url += '&platform=eq.'+encodeURIComponent(platform);
-  url += '&scrape_date=eq.'+(new Date().toISOString().slice(0,10));
+  // scrape_date filter removed — show all listings from latest scrape
   fetch(SB+url, {headers:H}).then(function(r){return r.json();}).then(function(data){
     if(!data||!data.length) return;
     var totals={};
@@ -1956,9 +1955,9 @@ function loadCompareDetail(el) {
   var sgSnap = window._cmpSgMap && window._cmpSgMap[shId] || {};
 
   Promise.all([
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.StubHub&select=section,row,quantity,price,listing_id,scraped_at&order=price.asc', 3000),
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=section,row,quantity,price,scraped_at&order=price.asc', 3000),
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.SeatGeek&select=section,row,quantity,price,scraped_at&order=price.asc', 3000)
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.StubHub&select=section,row,quantity,price,listing_id,scraped_at&order=scraped_at.desc', 5000),
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=section,row,quantity,price,scraped_at&order=scraped_at.desc', 5000),
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.SeatGeek&select=section,row,quantity,price,scraped_at&order=scraped_at.desc', 5000)
   ]).then(function(res) {
     var shAll = res[0] || [];
     var vsAll = res[1] || [];
@@ -1968,7 +1967,7 @@ function loadCompareDetail(el) {
       if (!lst.length) return lst;
       var latest = lst.reduce(function(m,l){ return new Date(l.scraped_at)>new Date(m)?l.scraped_at:m; }, lst[0].scraped_at);
       var lms = new Date(latest).getTime();
-      return lst.filter(function(l){ return lms - new Date(l.scraped_at).getTime() < 30*60*1000; });
+      return lst.filter(function(l){ return lms - new Date(l.scraped_at).getTime() < 24*60*60*1000; });
     }
     function dedup(lst) {
       var seen = {};
