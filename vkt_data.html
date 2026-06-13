@@ -807,12 +807,7 @@ function snapVal(snap, field) {
   if (!snap) return 0;
   var raw = Number(snap[field]) || 0;
   if (raw > 0) return raw;
-  var fieldMap = {
-    'event_floor':    'last_valid_floor',
-    'event_avg':      'last_valid_avg',
-    'event_ceiling':  'last_valid_ceiling',
-    'total_listings': 'last_valid_listings'
-  };
+  var fieldMap = {'event_floor':'last_valid_floor','event_avg':'last_valid_avg','event_ceiling':'last_valid_ceiling','total_listings':'last_valid_listings'};
   var lv = fieldMap[field];
   return (lv && snap[lv] && Number(snap[lv]) > 0) ? Number(snap[lv]) : 0;
 }
@@ -1121,7 +1116,7 @@ function loadAnalysis(eventId){
     });
     return;
   }
-  Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')]).then(function(res){
+  Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform,last_valid_floor,last_valid_avg,last_valid_ceiling,last_valid_listings')]).then(function(res){
     var ev=(res[0]||[])[0];var snaps=res[1]||[];
     var snapPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : 'StubHub';
     snaps = snaps.filter(function(s){ return (s.platform || 'StubHub') === snapPlatform; });
@@ -1222,7 +1217,7 @@ function processAnalysis(ev, snaps, eventId) {
     heroHtml+='<div>';
     heroHtml+='<div class="hero-getin">';
     heroHtml+='<div class="hero-getin-label">Current Floor Price</div>';
-    var _heroDisplayFloor=curFloor||snapVal(last,'event_floor');heroHtml+='<div class="hero-getin-price">'+(_heroDisplayFloor?'$'+Math.round(_heroDisplayFloor).toLocaleString():'—')+'</div>';
+    var _hdf=curFloor||snapVal(last,'event_floor');heroHtml+='<div class="hero-getin-price">'+(_hdf?'$'+Math.round(_hdf).toLocaleString():'—')+'</div>';
     heroHtml+='<div class="hero-getin-delta '+delta7cls+'">'+esc(delta7str)+'</div>';
     if(avgAtp>0)heroHtml+='<div style="font-size:12px;color:#888;">Avg ticket price: <strong style="color:#111;">'+cur(avgAtp)+'</strong></div>';
     heroHtml+='<div class="hero-getin-meta">';
