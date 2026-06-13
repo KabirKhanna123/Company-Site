@@ -813,7 +813,7 @@ var fChart=null, lChart=null, aChart=null, slChart=null, saChart=null;
 function getRanged(url,pageSize){pageSize=pageSize||1000;var allData=[];function fetchPage(offset){var rangeEnd=offset+pageSize-1;return fetch(SB+url,{headers:Object.assign({},H,{'Range':offset+'-'+rangeEnd,'Range-Unit':'items','Prefer':'count=none'})}).then(function(r){if(r.status===416)return allData;if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(data){if(!data||!data.length)return allData;allData=allData.concat(data);if(data.length<pageSize)return allData;return fetchPage(offset+pageSize);});}return fetchPage(0);}
 function get(url,extraHeaders){var headers=Object.assign({},H,extraHeaders||{});return fetch(SB+url,{headers:headers}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
 function getAllEvents(today){return getRanged('/rest/v1/events?date=gte.'+today+'&order=date.asc&select=id,name,date,venue');}
-function getSnapshotsForChunk(idList){return getRanged('/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&select=event_id,total_listings,event_floor,section_avg,section,scraped_at,platform,last_valid_floor,last_valid_avg,last_valid_ceiling,last_valid_listings',1000);}
+function getSnapshotsForChunk(idList){return getRanged('/rest/v1/volume_snapshots?event_id=in.('+idList+')&order=scraped_at.asc&select=event_id,total_listings,event_floor,section_avg,section,scraped_at,platform',1000);}
 function n(v){var x=Number(v);return isNaN(x)?0:x;}
 function cur(v){if(!v||isNaN(v))return '\u2014';return '$'+Math.round(v).toLocaleString();}
 function fmt(v){if(v===null||v===undefined||isNaN(v))return '\u2014';return Number(v).toLocaleString();}
@@ -829,20 +829,6 @@ function tagClass(c){var map={'FIFA':'tag tag-fifa','NFL':'tag tag-nfl','NBA':'t
 function parseNames(name){var c=cleanName(name||'');var m=c.match(/^(.*?)\s+at\s+(.*?)$/i);if(m)return{performer:m[2].trim(),opponent:m[1].trim()};m=c.match(/^(.*?)\s+(?:vs?\.?)\s+(.*?)$/i);if(m)return{performer:m[1].trim(),opponent:m[2].trim()};return{performer:c,opponent:''};}
 function pct(a,b){if(!a||!b||b===0)return null;return Math.round(((a-b)/b)*100);}
 
-
-function snapVal(snap, field) {
-  if (!snap) return 0;
-  var raw = Number(snap[field]) || 0;
-  if (raw > 0) return raw;
-  var fieldMap = {
-    'event_floor':    'last_valid_floor',
-    'event_avg':      'last_valid_avg',
-    'event_ceiling':  'last_valid_ceiling',
-    'total_listings': 'last_valid_listings'
-  };
-  var lv = fieldMap[field];
-  return (lv && snap[lv] && Number(snap[lv]) > 0) ? Number(snap[lv]) : 0;
-}
 function buildRows(events,snaps){
   var junk=/hotel|voucher|credential|postgame|nfl football 2026 event|nba basketball 2026 event|nhl hockey 2026 event|mlb baseball 2026 event/i;
   var snapIndex={};
@@ -850,7 +836,7 @@ function buildRows(events,snaps){
   return events.filter(function(e){return e.name&&e.name.length>3&&!junk.test(e.name);}).map(function(ev){
     var es=(snapIndex[ev.id]||[]).filter(function(s){
       if(activePlatform==='Total') return s.platform==='Total';
-      return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform)&&(n(s.total_listings)>0||n(s.last_valid_listings)>0);
+      return(!s.section||s.section==='')&&(!s.platform||s.platform===activePlatform)&&n(s.total_listings)>0;
     }).sort(function(a,b){return new Date(a.scraped_at)-new Date(b.scraped_at);});
     var latest=es.length?es[es.length-1]:null;
     var allEvSnaps=(snapIndex[ev.id]||[]).filter(function(s){
@@ -865,7 +851,7 @@ function buildRows(events,snaps){
       var synthLatest=es.length?es[es.length-1]:null;
       curListings=synthLatest?n(synthLatest.total_listings):0;
     } else {
-      curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return snapVal(r,'total_listings');})):0;if(!curListings&&latest)curListings=snapVal(latest,'total_listings');
+      curListings=runs.length?Math.max.apply(null,runs.slice(-3).map(function(r){return n(r.total_listings);})):0;
     }
     var latestTime=runs.length?new Date(runs[runs.length-1].scraped_at).getTime():Date.now();
     var prevRuns=runs.filter(function(r){return new Date(r.scraped_at).getTime()<latestTime-20*3600000;});
@@ -906,8 +892,8 @@ function buildRows(events,snaps){
       var oldest=n(runs[0].total_listings);if(oldest>0)sellThru=oldest-newest;
     }
     var floorVelocity=null;
-    var floorSnaps=es.filter(function(s){return snapVal(s,'event_floor')>0;});
-    if(floorSnaps.length>=2){floorVelocity=n(floorSnaps[floorSnaps.length-1].event_floor)-n(floorSnaps[0].event_floor);}
+    var floorSnaps=es.filter(function(s){return n(s.event_floor)>0;});
+    if(floorSnaps.length>=2){floorVelocity=snapVal(floorSnaps[floorSnaps.length-1],'event_floor')-snapVal(floorSnaps[0],'event_floor');}
     var demandScore=null;
     if(curListings>0&&latest){
       var d=40; // base — World Cup events start at medium
@@ -924,7 +910,7 @@ function buildRows(events,snaps){
       if(curListings>800&&flr>500)d+=8;else if(curListings<200&&flr>500)d+=5;
       demandScore=Math.min(99,Math.max(1,d));
     }
-    return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?snapVal(latest,'event_floor'):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,vol7d:vol7d,vol14d:vol14d,vol7dQty:vol7dQty,vol14dQty:vol14dQty,vol24Qty:vol24Qty,demandScore:demandScore,floorVelocity:floorVelocity,latestScrape:latest?latest.scraped_at:null};
+    return{id:ev.id,name:cleanName(ev.name),raw:ev.name,date:ev.date||'',venue:shortV(ev.venue),fullVenue:ev.venue||'',floor:latest?n(latest.event_floor):0,atp:atp,listings:curListings,prevListings:prevListings,listingsPct:listingsPct,category:category,performer:p.performer,opponent:p.opponent,hasData:!!latest,daysToEvent:daysToEvent,sellThru:sellThru,vol7d:vol7d,vol14d:vol14d,vol7dQty:vol7dQty,vol14dQty:vol14dQty,vol24Qty:vol24Qty,demandScore:demandScore,floorVelocity:floorVelocity,latestScrape:latest?latest.scraped_at:null};
   });
 }
 
@@ -1056,7 +1042,7 @@ function loadTotalTickets(rows) {
   if (!ids.length) return;
   var url = '/rest/v1/listings?select=event_id,quantity&event_id=in.('+ids.map(encodeURIComponent).join(',')+')';
   if (platform) url += '&platform=eq.'+encodeURIComponent(platform);
-  // scrape_date filter removed — show all listings from latest scrape
+  url += '&scrape_date=eq.'+(new Date().toISOString().slice(0,10));
   fetch(SB+url, {headers:H}).then(function(r){return r.json();}).then(function(data){
     if(!data||!data.length) return;
     var totals={};
@@ -1109,7 +1095,7 @@ function loadAnalysis(eventId){
     activePlatform = 'StubHub'; // temporarily use SH data
     Promise.all([
       get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),
-      getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform,last_valid_floor,last_valid_avg,last_valid_ceiling,last_valid_listings')
+      getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')
     ]).then(function(res){
       var ev=(res[0]||[])[0];
       var snaps=(res[1]||[]).filter(function(s){return (s.platform||'StubHub')==='StubHub';});
@@ -1121,7 +1107,7 @@ function loadAnalysis(eventId){
     });
     return;
   }
-  Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform,last_valid_floor,last_valid_avg,last_valid_ceiling,last_valid_listings')]).then(function(res){
+  Promise.all([get('/rest/v1/events?id=eq.'+encodeURIComponent(eventId)+'&select=id,name,date,venue'),getRanged('/rest/v1/volume_snapshots?event_id=eq.'+encodeURIComponent(eventId)+'&order=scraped_at.asc&select=id,event_id,total_listings,section_listings,event_floor,section_floor,section_avg,section,scraped_at,platform')]).then(function(res){
     var ev=(res[0]||[])[0];var snaps=res[1]||[];
     var snapPlatform = activePlatform === 'SeatGeek' ? 'SeatGeek' : activePlatform === 'VividSeats' ? 'VividSeats' : 'StubHub';
     snaps = snaps.filter(function(s){ return (s.platform || 'StubHub') === snapPlatform; });
@@ -1183,8 +1169,8 @@ function processAnalysis(ev, snaps, eventId) {
     var secNames=Array.from(new Set(snaps.map(function(s){return s.section||'';}).filter(Boolean))).sort();
     var dEl=function(v){return v>0?'delta-up':v<0?'delta-down':'delta-flat';};var dTxt=function(v,money){if(!v||isNaN(v))return '\u2014';var sign=v>0?'+':'-';var abs=Math.abs(v);return money?sign+'$'+Math.round(abs).toLocaleString():sign+Math.round(abs).toLocaleString();};
     function sc(label,value,delta,money){return '<div class="stat-card"><div class="stat-label">'+esc(label)+'</div><div class="stat-value">'+esc(value)+'</div>'+(delta!==null&&!isNaN(delta)?'<div class="stat-delta '+dEl(delta)+'">'+dTxt(delta,money)+'</div>':'')+'</div>';}
-    var dailySnaps=aggregateDaily(eventSnaps).filter(function(s){return snapVal(s,'event_floor')>0 && n(s.total_listings)!==10;});var dailyListSnaps=aggregateDaily(eventSnaps).filter(function(s){return n(s.total_listings)>0 && n(s.total_listings)!==10;});var dailyAtpSnaps=aggregateDaily(atpSnaps).filter(function(s){return n(s.section_avg)>0 && n(s.total_listings)!==10;});
-    var labels=dailySnaps.map(function(s){return fmtDT(s.scraped_at);});var floorData=dailySnaps.map(function(s){return snapVal(s,'event_floor');});var listLabels=dailyListSnaps.map(function(s){return fmtDT(s.scraped_at);});var listData=dailyListSnaps.map(function(s){return n(s.total_listings);});var atpLabels=dailyAtpSnaps.map(function(s){return fmtDT(s.scraped_at);});var atpData=dailyAtpSnaps.map(function(s){return n(s.section_avg);});
+    var dailySnaps=aggregateDaily(eventSnaps).filter(function(s){return n(s.event_floor)>0 && n(s.total_listings)!==10;});var dailyListSnaps=aggregateDaily(eventSnaps).filter(function(s){return n(s.total_listings)>0 && n(s.total_listings)!==10;});var dailyAtpSnaps=aggregateDaily(atpSnaps).filter(function(s){return n(s.section_avg)>0 && n(s.total_listings)!==10;});
+    var labels=dailySnaps.map(function(s){return fmtDT(s.scraped_at);});var floorData=dailySnaps.map(function(s){return n(s.event_floor);});var listLabels=dailyListSnaps.map(function(s){return fmtDT(s.scraped_at);});var listData=dailyListSnaps.map(function(s){return n(s.total_listings);});var atpLabels=dailyAtpSnaps.map(function(s){return fmtDT(s.scraped_at);});var atpData=dailyAtpSnaps.map(function(s){return n(s.section_avg);});
     var html='<div class="analysis-shell"><div class="analysis-topbar"><div><div class="analysis-title">'+esc(cleanName(ev.name))+'</div><div class="analysis-sub">'+esc(fmtDate(ev.date))+(ev.venue?' &bull; '+esc(ev.venue):'')+'</div></div><a class="back-btn" href="'+esc(window.location.pathname)+'">&#8592; All Events</a></div>';
     if(!snaps.length){html+='<div class="msg" style="padding:2rem;background:#fff;border:1px solid #e4e2dc;border-radius:10px;margin-bottom:14px;">No scrape data yet for this event.</div>';}
     else{
@@ -1195,19 +1181,19 @@ function processAnalysis(ev, snaps, eventId) {
       
     // ── HERO DASHBOARD (SeatData style) ──
     // Compute milestones from dailySnaps
-    var heroFloors=dailySnaps.map(function(s){return n(s.event_floor);}).filter(function(v){return v>0;});
+    var heroFloors=dailySnaps.map(function(s){return snapVal(s,'event_floor');}).filter(function(v){return v>0;});
     var heroListings=dailyListSnaps.map(function(s){return n(s.total_listings);}).filter(function(v){return v>0;});
     var atLow=heroFloors.length?Math.min.apply(null,heroFloors):0;
     var atHigh=heroFloors.length?Math.max.apply(null,heroFloors):0;
-    var curFloor=last?snapVal(last,'event_floor'):0;
+    var curFloor=last?n(last.event_floor):0;
     var curVsHigh=atHigh>0?Math.round((curFloor-atHigh)/atHigh*100):null;
     // Biggest 1-day swing
     var bigSwing=0;
-    for(var si3=1;si3<dailySnaps.length;si3++){var sw=Math.abs(n(dailySnaps[si3].event_floor)-n(dailySnaps[si3-1].event_floor));if(sw>bigSwing)bigSwing=sw;}
+    for(var si3=1;si3<dailySnaps.length;si3++){var sw=Math.abs(snapVal(dailySnaps[si3],'event_floor')-snapVal(dailySnaps[si3-1],'event_floor'));if(sw>bigSwing)bigSwing=sw;}
     // 7-day delta
     var snap7d=null,now7=Date.now()-7*24*3600000;
     for(var si4=0;si4<dailySnaps.length;si4++){if(new Date(dailySnaps[si4].scraped_at).getTime()<=now7)snap7d=dailySnaps[si4];}
-    var delta7=snap7d&&curFloor?pct(curFloor,n(snap7d.event_floor)):null;
+    var delta7=snap7d&&curFloor?pct(curFloor,snapVal(snap7d,'event_floor')):null;
     var delta7cls=delta7===null?'':delta7>0?'delta-up':delta7<0?'delta-down':'delta-flat';
     var delta7str=delta7===null?'—':(delta7>0?'+':'')+delta7+'% from last week';
     // Demand label based on sell-through
@@ -1222,7 +1208,7 @@ function processAnalysis(ev, snaps, eventId) {
     heroHtml+='<div>';
     heroHtml+='<div class="hero-getin">';
     heroHtml+='<div class="hero-getin-label">Current Floor Price</div>';
-    heroHtml+='<div class="hero-getin-price">'+(curFloor?'$'+Math.round(curFloor).toLocaleString():'—')+'</div>';
+    var _heroDisplayFloor=curFloor||snapVal(last,'event_floor');heroHtml+='<div class="hero-getin-price">'+(_heroDisplayFloor?'$'+Math.round(_heroDisplayFloor).toLocaleString():'—')+'</div>';
     heroHtml+='<div class="hero-getin-delta '+delta7cls+'">'+esc(delta7str)+'</div>';
     if(avgAtp>0)heroHtml+='<div style="font-size:12px;color:#888;">Avg ticket price: <strong style="color:#111;">'+cur(avgAtp)+'</strong></div>';
     heroHtml+='<div class="hero-getin-meta">';
@@ -1250,7 +1236,7 @@ function processAnalysis(ev, snaps, eventId) {
     heroHtml+='</div>';
     html+=heroHtml;
 
-    html+='<div class="stats-grid">'+sc('Current Floor',cur(last?snapVal(last,'event_floor'):0),null,true)+'<div class="stat-card" style="position:relative;"><span class="info-tip" style="position:absolute;top:8px;right:10px;cursor:help;color:#bbb;font-size:12px;line-height:1;display:inline-block;">&#9432;<span class="info-tip-text" style="position:absolute;right:0;top:18px;width:200px;background:#111;color:#fff;font-size:11px;padding:6px 8px;border-radius:6px;z-index:100;line-height:1.4;font-weight:400;white-space:normal;visibility:hidden;opacity:0;transition:opacity 0.15s;pointer-events:none;">The marketplace UI may show a higher total — this reflects deduplicated unique listings after removing duplicates.</span></span><div class="stat-label">Current Unique Listings</div><div class="stat-value">'+fmt(last?n(last.total_listings):0)+'</div></div>'+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card" id="stat-total-sales"><div class="stat-label">Total Sales</div><div class="stat-value" style="color:#ef4444;">—</div><div style="font-size:11px;color:#aaa;margin-top:4px;">loading...</div></div></div>';
+    html+='<div class="stats-grid">'+sc('Current Floor',cur(last?n(last.event_floor):0),null,true)+'<div class="stat-card" style="position:relative;"><span class="info-tip" style="position:absolute;top:8px;right:10px;cursor:help;color:#bbb;font-size:12px;line-height:1;display:inline-block;">&#9432;<span class="info-tip-text" style="position:absolute;right:0;top:18px;width:200px;background:#111;color:#fff;font-size:11px;padding:6px 8px;border-radius:6px;z-index:100;line-height:1.4;font-weight:400;white-space:normal;visibility:hidden;opacity:0;transition:opacity 0.15s;pointer-events:none;">The marketplace UI may show a higher total — this reflects deduplicated unique listings after removing duplicates.</span></span><div class="stat-label">Current Unique Listings</div><div class="stat-value">'+fmt(last?snapVal(last,'total_listings'):0)+'</div></div>'+sc('Avg ATP',cur(avgAtp),null,false)+'<div class="stat-card" id="stat-total-sales"><div class="stat-label">Total Sales</div><div class="stat-value" style="color:#ef4444;">—</div><div style="font-size:11px;color:#aaa;margin-top:4px;">loading...</div></div></div>';
       html+='<div class="charts-grid"><div class="chart-card"><h3>Floor Price Over Time</h3><div class="chart-wrap"><canvas id="fChart"></canvas></div></div><div class="chart-card"><h3>Listings Over Time</h3><div class="chart-wrap"><canvas id="lChart"></canvas></div></div>'+(activePlatform!=='VividSeats'?'<div class="chart-card full"><div class="section-header"><h3>Section Deep Dive</h3>':'');
       if(secNames.length)html+='<select class="section-select" id="secSel">'+secNames.map(function(s,i){return'<option value="'+esc(s)+'"'+(i===0?' selected':'')+'>'+esc(s)+'</option>';}).join('')+'</select>';
       html+='</div>';if(secNames.length){html+='<div class="section-charts"><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Listings</div><div class="chart-wrap"><canvas id="slChart"></canvas></div></div><div><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:8px;">Floor</div><div class="chart-wrap"><canvas id="saChart"></canvas></div></div></div><div id="secNote" style="font-size:12px;color:#aaa;margin-top:8px;"></div>';}else html+='<div class="msg" style="padding:2rem;">No section data yet.</div>';html+='</div></div>';
@@ -1955,9 +1941,9 @@ function loadCompareDetail(el) {
   var sgSnap = window._cmpSgMap && window._cmpSgMap[shId] || {};
 
   Promise.all([
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.StubHub&select=section,row,quantity,price,listing_id,scraped_at&order=scraped_at.desc', 5000),
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=section,row,quantity,price,scraped_at&order=scraped_at.desc', 5000),
-    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.SeatGeek&select=section,row,quantity,price,scraped_at&order=scraped_at.desc', 5000)
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.StubHub&select=section,row,quantity,price,listing_id,scraped_at&order=price.asc', 3000),
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(vsId)+'&platform=eq.VividSeats&select=section,row,quantity,price,scraped_at&order=price.asc', 3000),
+    getRanged('/rest/v1/listings?event_id=eq.'+encodeURIComponent(shId)+'&platform=eq.SeatGeek&select=section,row,quantity,price,scraped_at&order=price.asc', 3000)
   ]).then(function(res) {
     var shAll = res[0] || [];
     var vsAll = res[1] || [];
@@ -1967,7 +1953,7 @@ function loadCompareDetail(el) {
       if (!lst.length) return lst;
       var latest = lst.reduce(function(m,l){ return new Date(l.scraped_at)>new Date(m)?l.scraped_at:m; }, lst[0].scraped_at);
       var lms = new Date(latest).getTime();
-      return lst.filter(function(l){ return lms - new Date(l.scraped_at).getTime() < 24*60*60*1000; });
+      return lst.filter(function(l){ return lms - new Date(l.scraped_at).getTime() < 30*60*1000; });
     }
     function dedup(lst) {
       var seen = {};
@@ -2447,7 +2433,7 @@ function setHeroRange(days, btn) {
   var all = window._heroSnaps.all || [];
   var filtered = days > 0 ? all.filter(function(s){ return new Date(s.scraped_at).getTime() >= Date.now()-days*24*3600000; }) : all;
   if (!filtered.length) filtered = all;
-  var fl = filtered.map(function(s){ return n(s.event_floor); });
+  var fl = filtered.map(function(s){ return snapVal(s,'event_floor'); });
   var lb = filtered.map(function(s){ return fmtDT(s.scraped_at); });
   var cleaned = removeOutliers(fl, lb); fl = cleaned.data; lb = cleaned.labels;
   if (window._heroChart) { try { window._heroChart.destroy(); } catch(e){} window._heroChart = null; }
